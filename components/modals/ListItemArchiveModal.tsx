@@ -13,30 +13,32 @@ import { useTheme } from '@react-navigation/native';
 interface ArchiveListModalProps {
   visible: boolean;
   onClose: () => void;
-  onDelete: (newName: string) => void;
+  onArchive: () => void;
+  activeTab: string;
 }
 
 const ArchiveListModal: React.FC<ArchiveListModalProps> = ({
   visible,
   onClose,
-  onDelete,
+  onArchive,
+  activeTab
 }) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
 
-  const handleDelete = useCallback(() => {
-    onDelete();
+  const handleArchive = useCallback(() => {
+    onArchive();
     onClose();
-  }, [onDelete, onClose]);
+  }, [onArchive, onClose]);
 
-  const handleBackdropPress = (event) => {
+  const handleBackdropPress = (event: any) => {
     if (event.target === event.currentTarget) {
         onClose();
     }
   };
 
   if (!visible) return null;
-
+  
   return (
     <Modal
       animationType="fade"
@@ -50,13 +52,17 @@ const ArchiveListModal: React.FC<ArchiveListModalProps> = ({
               <Text style={styles.closeButtonText}>×</Text>
             </TouchableOpacity>
 
-            <Text style={[styles.modalTitle, styles.textColor]}>Archive list</Text>
+            <Text style={[styles.modalTitle, styles.textColor]}>{ activeTab == 'Lists'? 'Archive list': 'Unarchive list'}</Text>
             <Text style={[styles.modalDescription, styles.textColor]}>
-              Archive lists that you will not be using often anymore.
+              {
+                activeTab == 'Lists'?
+                'Archive lists that you will not be using often anymore.':
+                'Bring your list back to your home page.'
+              }
             </Text>
 
-            <TouchableOpacity style={styles.saveButton} onPress={handleDelete}>
-              <Text style={styles.saveButtonText}>Archive list</Text>
+            <TouchableOpacity style={styles.saveButton} onPress={handleArchive}>
+              <Text style={styles.saveButtonText}>{ activeTab == 'Lists'? 'Archive list': 'Unarchive list' }</Text>
             </TouchableOpacity>
           </View>
       </Pressable>

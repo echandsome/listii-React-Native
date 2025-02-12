@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,20 +14,25 @@ import {
 import { useTheme } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'expo-router';
-import 'react-native-get-random-values'; // Import this line
-import { v4 as uuidv4 } from 'uuid'; // Import the UUID generator
+import { v4 as uuidv4 } from 'uuid';
 import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import ThemeModal from '@/components/modals/ThemeModal';
-import NewListModal from '@/components/modals/NewListModal'; // Import NewListModal
-import ListCard from '@/components/ui/ListCard'; // Import ListCard
-import ListItemMenuModal from '@/components/modals/ListItemMenuModal'; // Import the modal
+import NewListModal from '@/components/modals/NewListModal';
+import ListCard from '@/components/ui/ListCard';
+import ListItemMenuModal from '@/components/modals/ListItemMenuModal';
 import ListItemEditModal from '@/components/modals/ListItemEditModal';
 import ListItemDeleteModal from '@/components/modals/ListItemDeleteModal';
 import ListItemShareModal from '@/components/modals/ListItemShareModal';
 import ListItemArchiveModal from '@/components/modals/ListItemArchiveModal';
+import LogoutModal from '@/components/modals/LogoutModal';
+import { images } from '@/constants/Resources';
 
-// Enable LayoutAnimation on Android
+// Import list-related actions and selectors from Redux
+import { addList, deleteList, 
+  updateList, duplicateList, archiveList, restoreList, 
+  selectLists, selectArchiveLists, selectListById  } from '@/store/reducers/listSlice';
+
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -47,9 +52,21 @@ export default function ListScreen() {
   const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   const [isNewListModalVisible, setIsNewListModalVisible] = useState(false);
-  const [lists, setLists] = useState([
 
-  ]); // Example list data
+  // Retrieve lists from Redux store
+  const lists = useSelector(selectLists);
+  const archiveLists = useSelector(selectArchiveLists);
+
+  const [selectedListId, setSelectedListId] = useState('');
+  const listItem = useSelector((state) => selectListById(state, selectedListId));
+
+  const [listName, setListName] = useState('');
+
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [archiveModalVisible, setArchiveModalVisible] = useState(false);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const handleToggleTheme = (event: any) => {
     if (event == "system") event = colorScheme;
@@ -82,48 +99,55 @@ export default function ListScreen() {
   };
 
   const handleAddNewList = (newList: any) => {
-    // Generate a unique ID using UUID
     const newListWithId = {
       ...newList,
-      id: uuidv4(), // Add the unique ID to the new list object
+      id: uuidv4(),
     };
-  
-    setLists([...lists, newListWithId]);
+    dispatch(addList(newListWithId));
     closeNewListModal();
   };
 
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [listName, setListName] = useState('My List');
-
   const handleSave = (newName: any) => {
-    setListName(newName);
+    dispatch(updateList({ id: selectedListId, updates: { name: newName } }));
     setEditModalVisible(false);
   };
 
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-
   const handleDelete = () => {
+    dispatch(deleteList(selectedListId));
     setDeleteModalVisible(false);
   };
 
-  const [archiveModalVisible, setArchiveModalVisible] = useState(false);
-
   const handleArchive = () => {
+    if (activeTab === 'Lists')
+      dispatch(archiveList(selectedListId));
+    else
+      dispatch(restoreList(selectedListId));
+    
     setArchiveModalVisible(false);
   };
 
-  const [shareModalVisible, setShareModalVisible] = useState(false);
-
   const handleShare = () => {
+    dispatch(duplicateList(selectedListId));
     setShareModalVisible(false);
   };
 
   const handleItemMenu = (data: any) => {
+    setSelectedListId(data.id);
     if (data.type == 'edit') setEditModalVisible(true);
     else if (data.type == 'delete') setDeleteModalVisible(true)
-      else if (data.type == 'share') setShareModalVisible(true)
-        else if (data.type == 'archive') setArchiveModalVisible(true)
+    else if (data.type == 'share') setShareModalVisible(true)
+    else if (data.type == 'archive') setArchiveModalVisible(true)
   }
+
+  const handleLogout = () => {
+
+  }
+
+  useEffect(() => {
+    if (listItem != undefined) {
+      setListName(listItem.name);
+    }
+  }, [listItem]);
 
   return (
     <SafeAreaView style={[styles.container, styles.bgColor]}>
@@ -139,26 +163,18 @@ export default function ListScreen() {
           </View>
 
           <View style={styles.headerButtons}>
-            <TouchableOpacity style={styles.signout}>
+            <TouchableOpacity style={styles.signout} onPress={() => setLogoutModalVisible(true)}>
               <Text style={styles.signoutText}>Sign Out</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-              <Text>{
-                themeMode == 'light' ? (
-                  <Image
-                    source={require('@/assets/images/light.png')}
-                    style={styles.themeToggleImage}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <Image
-                    source={require('@/assets/images/dark.png')}
-                    style={styles.themeToggleImage}
-                    resizeMode="contain"
-                  />
-                )
-              }</Text>
+              <Text>
+                <Image
+                  source={ images[themeMode].theme }
+                  style={styles.themeToggleImage}
+                  resizeMode="contain"
+                />
+              </Text>
             </TouchableOpacity>
 
             <ThemeModal
@@ -207,52 +223,66 @@ export default function ListScreen() {
                 activeTab === 'Archive' && styles.activeTabText,
               ]}
             >
-              0 Archive
+              {archiveLists.length} Archive
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* List Content Here */}
         <View>
           {
             activeTab == 'Lists' ? (
               <View>
-                {lists.map((list, index) => (
-                  <ListCard key={index} list={list} /> // Use list.id as the key
+                {lists.map((list) => (
+                  <ListCard
+                    key={list.id}
+                    list={list}
+                  />
                 ))}
               </View>
             ) : (
               <View>
-                {/* Archive Content */}
+                {archiveLists.map((list) => (
+                  <ListCard
+                    key={list.id}
+                    list={list}
+                  />
+                ))}
               </View>
             )
           }
         </View>
       </ScrollView>
 
-      <ListItemMenuModal 
+      <ListItemMenuModal
         onItemPress={handleItemMenu}
+        activeTab={activeTab}
       />
-      <ListItemEditModal 
+      <ListItemEditModal
         visible={editModalVisible}
         onClose={() => setEditModalVisible(false)}
         initialName={listName}
         onSave={handleSave}
       />
-      <ListItemDeleteModal 
+      <ListItemDeleteModal
         visible={deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
         onDelete={handleDelete}
       />
-      <ListItemShareModal 
+      <ListItemShareModal
         visible={shareModalVisible}
         onClose={() => setShareModalVisible(false)}
         onShare={handleShare}
       />
-      <ListItemArchiveModal 
+      <ListItemArchiveModal
         visible={archiveModalVisible}
         onClose={() => setArchiveModalVisible(false)}
         onArchive={handleArchive}
+        activeTab={activeTab}
+      />
+      <LogoutModal
+        visible={logoutModalVisible}
+        onClose={() => setLogoutModalVisible(false)}
+        onLogout={handleLogout}
       />
     </SafeAreaView>
   );
@@ -262,7 +292,7 @@ const getStyles = (colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background, // Use theme background color
+      backgroundColor: colors.background,
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
       alignItems: 'center',
     },
@@ -324,18 +354,18 @@ const getStyles = (colors: any) =>
       flex: 1,
       paddingVertical: 8,
       alignItems: 'center',
-      backgroundColor: colors.tabBg, // Theme card color
+      backgroundColor: colors.tabBg,
     },
     activeTabButton: {
-      backgroundColor: colors.background, // Theme primary color for active tab
+      backgroundColor: colors.background,
     },
     tabText: {
       fontSize: 16,
-      color: colors.text, // Theme text color
+      color: colors.text,
     },
     activeTabText: {
       fontWeight: 'bold',
-      color: colors.text, // Theme text color for active tab
+      color: colors.text,
     },
     //Theme
     bgColor: {
@@ -358,9 +388,8 @@ const getStyles = (colors: any) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
-    // List Card Styles
     listCard: {
       backgroundColor: colors.card,
       borderRadius: 8,
@@ -398,6 +427,6 @@ const getStyles = (colors: any) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
   });

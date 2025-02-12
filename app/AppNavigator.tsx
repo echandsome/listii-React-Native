@@ -4,6 +4,7 @@ import { ThemeProvider as NavigationThemeProvider  } from '@react-navigation/nat
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import 'react-native-get-random-values';
 import { selectThemeMode } from '@/store/reducers/themeSlice';
 import { MyLightTheme, MyDarkTheme } from '@/constants/CustomTheme';
 
@@ -33,6 +34,7 @@ export default function AppNavigator() {
                     <Stack.Screen name="signin" options={{ title: 'Signin', headerShown: false }} />
                     <Stack.Screen name="signup" options={{ title: 'Signup', headerShown: false }} />
                     <Stack.Screen name="list" options={{ title: 'List', headerShown: false }} />
+                    <Stack.Screen name="listDetail" options={{ title: 'listDetail', headerShown: false }} />
                     <Stack.Screen name="+not-found" />
                 </Stack>
                 <StatusBar style={ themeMode == 'light'? 'dark': 'light' } />

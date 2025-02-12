@@ -70,7 +70,7 @@ const ListCard = ({ list }) => {
           </TouchableOpacity>
         </View>
 
-        <Link href={`/list/${list.name}`}>
+        <Link href={`/listDetail`}>
           <View>
             <Text style={[styles.listCardTitle, styles.textColor]}>{list.name}</Text>
             {list.type === 'Grocery' && <Text style={[styles.textColor, styles.listCardTotal]}>List total: R0</Text>}

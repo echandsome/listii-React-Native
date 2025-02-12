@@ -16,7 +16,8 @@ import { useTheme } from '@react-navigation/native';
 import { Link } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
-import ThemeModal from '@/components/modals/ThemeModal'; // Import the ThemeModal component
+import ThemeModal from '@/components/modals/ThemeModal'; // Import the ThemeModal 
+import { images } from '@/constants/Resources';
 
 export default function DashboardScreen() {
 
@@ -81,21 +82,13 @@ export default function DashboardScreen() {
             </Link>
             {/* Theme Toggle Button */}
             <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-              <Text>{
-                    themeMode == 'light' ? (
-                        <Image
-                            source={require('@/assets/images/light.png')}
-                            style={styles.themeToggleImage}
-                            resizeMode="contain"
-                        />
-                    ) : (
-                        <Image
-                            source={require('@/assets/images/dark.png')}
-                            style={styles.themeToggleImage}
-                            resizeMode="contain"
-                        />
-                    )
-                }</Text>
+              <Text>
+                <Image
+                  source={ images[themeMode].theme }
+                  style={styles.themeToggleImage}
+                  resizeMode="contain"
+                />
+              </Text>
             </TouchableOpacity>
 
             <ThemeModal

@@ -16,6 +16,7 @@ import { Link } from 'expo-router';
 import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import ThemeModal from '@/components/modals/ThemeModal'; // Import ThemeModal
+import { images } from '@/constants/Resources';
 
 export default function LoginScreen() {
     const { colors } = useTheme();
@@ -95,12 +96,7 @@ export default function LoginScreen() {
             <View style={styles.header}>
                 <Link href='/'>
                     <Image
-                        source={
-                            themeMode == 'light' ? (
-                                require('@/assets/images/back-dark.png')
-                            ):(
-                                require('@/assets/images/back-light.png')
-                            )}
+                        source={ images[themeMode].back }
                         style={styles.logo}
                         resizeMode="contain"
                     />
@@ -111,21 +107,13 @@ export default function LoginScreen() {
                     </Link>
                     {/* Theme Toggle Button */}
                     <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-                    <Text>{
-                            themeMode == 'light' ? (
-                                <Image
-                                    source={require('@/assets/images/light.png')}
-                                    style={styles.themeToggleImage}
-                                    resizeMode="contain"
-                                />
-                            ) : (
-                                <Image
-                                    source={require('@/assets/images/dark.png')}
-                                    style={styles.themeToggleImage}
-                                    resizeMode="contain"
-                                />
-                            )
-                        }</Text>
+                    <Text>
+                        <Image
+                            source={ images[themeMode].theme }
+                            style={styles.themeToggleImage}
+                            resizeMode="contain"
+                        />
+                    </Text>
                     </TouchableOpacity>
 
                     <ThemeModal

@@ -17,7 +17,7 @@ import { closeMenu } from '@/store/reducers/listItemMenuSlice'; // Import closeM
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const ListItemMenuModal = ({onItemPress}) => { // Remove props: visible, onClose, menuButtonLayout
+const ListItemMenuModal = ({onItemPress, activeTab}) => { // Remove props: visible, onClose, menuButtonLayout
     const dispatch = useDispatch();
     const themeMode = useSelector(selectThemeMode);
     const { colors } = useTheme();
@@ -27,7 +27,7 @@ const ListItemMenuModal = ({onItemPress}) => { // Remove props: visible, onClose
     // Get modal state from Redux
     const { isVisible, menuButtonLayout, selectedListId } = useSelector(state => state.listItemMenu);
 
-    const handleModalPress = (event) => {
+    const handleModalPress = (event: any) => {
         if (event.target === event.currentTarget) {
             dispatch(closeMenu()); // Close via Redux
         }
@@ -127,7 +127,9 @@ const ListItemMenuModal = ({onItemPress}) => { // Remove props: visible, onClose
                             <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.listItemMenuOption} onPress={handleArchive}>
-                            <Image source={images['dark'].archive} style={styles.listItemMenuIcon} />
+                            <Image source={
+                                activeTab == 'Lists'? (images['dark'].archive): (images['dark'].unarchive)
+                            } style={styles.listItemMenuIcon} />
                             <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
                         </TouchableOpacity>
                     </View>
@@ -137,7 +139,7 @@ const ListItemMenuModal = ({onItemPress}) => { // Remove props: visible, onClose
     );
 };
 
-const getModalStyles = (colors) =>
+const getModalStyles = (colors: any) =>
     StyleSheet.create({
         modalOverlay: {
             flex: 1,

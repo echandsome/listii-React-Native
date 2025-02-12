@@ -13,21 +13,21 @@ import { useTheme } from '@react-navigation/native';
 interface ShareListModalProps {
   visible: boolean;
   onClose: () => void;
-  onDelete: (newName: string) => void;
+  onShare: (newName: string) => void;
 }
 
 const ShareListModal: React.FC<ShareListModalProps> = ({
   visible,
   onClose,
-  onDelete,
+  onShare,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
 
   const handleDelete = useCallback(() => {
-    onDelete();
+    onShare();
     onClose();
-  }, [onDelete, onClose]);
+  }, [onShare, onClose]);
 
   const handleBackdropPress = (event) => {
     if (event.target === event.currentTarget) {
