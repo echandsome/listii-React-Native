@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import {
     Modal,
     View,
@@ -11,25 +10,18 @@ import {
     Dimensions,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { selectThemeMode } from '@/store/reducers/themeSlice';
 import { images } from '@/constants/Resources';
-import { closeMenu } from '@/store/reducers/listItemMenuSlice'; // Import closeMenu
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const ListItemMenuModal = ({onItemPress, activeTab}) => { // Remove props: visible, onClose, menuButtonLayout
-    const dispatch = useDispatch();
-    const themeMode = useSelector(selectThemeMode);
+const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose, onItemPress, activeTab}) => {
     const { colors } = useTheme();
     const styles = getModalStyles(colors);
     const [adjustedPosition, setAdjustedPosition] = useState(null);
 
-    // Get modal state from Redux
-    const { isVisible, menuButtonLayout, selectedListId } = useSelector(state => state.listItemMenu);
-
     const handleModalPress = (event: any) => {
         if (event.target === event.currentTarget) {
-            dispatch(closeMenu()); // Close via Redux
+            onMenuClose();
         }
     };
 
@@ -37,9 +29,11 @@ const ListItemMenuModal = ({onItemPress, activeTab}) => { // Remove props: visib
         if (!menuButtonLayout) return null; // Guard against null layout
 
         const DROPDOWN_OFFSET = 5;
-        let initialTop = menuButtonLayout.y + menuButtonLayout.height + DROPDOWN_OFFSET - 20;
+        let initialTop = menuButtonLayout.y + DROPDOWN_OFFSET;
         let initialLeft = menuButtonLayout.x - 40;
-        const modalHeight = 200; // Adjust this value if your modal's height is different
+        let modalHeight;
+        if (activeTab != 'Detail') modalHeight = 200;
+        else modalHeight = 120;
         const modalWidth = 40;
 
         // Check if the modal will go off-screen at the bottom
@@ -73,43 +67,42 @@ const ListItemMenuModal = ({onItemPress, activeTab}) => { // Remove props: visib
     // Handler functions for menu options
     const handleEdit = () => {
         onItemPress({
-            id: selectedListId,
+            id: selectedId,
             type: 'edit'
         });
-        dispatch(closeMenu()); // Close via Redux
+        onMenuClose();
     };
 
     const handleDelete = () => {
         onItemPress({
-            id: selectedListId,
+            id: selectedId,
             type: 'delete'
         });
-        dispatch(closeMenu()); // Close via Redux
+        onMenuClose();
     };
 
     const handleShare = () => {
         onItemPress({
-            id: selectedListId,
+            id: selectedId,
             type: 'share'
         });
-        dispatch(closeMenu()); // Close via Redux
+        onMenuClose();
     };
 
     const handleArchive = () => {
         onItemPress({
-            id: selectedListId,
+            id: selectedId,
             type: 'archive'
         });
-        dispatch(closeMenu()); // Close via Redux
+        onMenuClose();
     };
-
 
     return (
         <Modal
             animationType="fade"
             transparent={true}
             visible={isVisible}
-            onRequestClose={() => dispatch(closeMenu())} // Close via Redux
+            onRequestClose={() => onMenuClose()} // Close via Redux
         >
             <Pressable style={styles.modalOverlay} onPress={handleModalPress}>
                 {adjustedPosition && (
@@ -122,16 +115,25 @@ const ListItemMenuModal = ({onItemPress, activeTab}) => { // Remove props: visib
                             <Image source={images['dark'].delete} style={styles.listItemMenuIcon} />
                             <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.listItemMenuOption} onPress={handleShare}>
-                            <Image source={images['dark'].share} style={styles.listItemMenuIcon} />
-                            <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.listItemMenuOption} onPress={handleArchive}>
-                            <Image source={
-                                activeTab == 'Lists'? (images['dark'].archive): (images['dark'].unarchive)
-                            } style={styles.listItemMenuIcon} />
-                            <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
-                        </TouchableOpacity>
+                        {
+                            activeTab != 'Detail'? (
+                                <>
+                                    <TouchableOpacity style={styles.listItemMenuOption} onPress={handleShare}>
+                                        <Image source={images['dark'].share} style={styles.listItemMenuIcon} />
+                                        <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.listItemMenuOption} onPress={handleArchive}>
+                                        <Image source={
+                                            activeTab == 'Lists'? (images['dark'].archive): (images['dark'].unarchive)
+                                        } style={styles.listItemMenuIcon} />
+                                        <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
+                                    </TouchableOpacity>
+                                </>
+                            ): (
+                                <></>
+                            )
+                        }
+                       
                     </View>
                 )}
             </Pressable>

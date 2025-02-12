@@ -4,34 +4,16 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Image
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { Link } from 'expo-router';
-import { useDispatch, useSelector } from 'react-redux';
-import { openMenu } from '@/store/reducers/listItemMenuSlice'; // Import the action
-import { selectThemeMode } from '@/store/reducers/themeSlice';
-import { images } from '@/constants/Resources';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
-const ListCard = ({ list }) => {
+const ListCard = ({ list, openMenuModal }) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
-  const dispatch = useDispatch();
-  const themeMode = useSelector(selectThemeMode);
   const menuButtonRef = useRef(null);
-
-  const openMenuModal = () => {
-    if (menuButtonRef.current) {
-      menuButtonRef.current.measure((fx, fy, width, height, px, py) => {
-        dispatch(
-          openMenu({
-            menuButtonLayout: { x: px, y: py, width, height },
-            listId: list.id,
-          })
-        );
-      });
-    }
-  };
+  const navigation = useNavigation();
 
   const typeColors = {
     Note: '#FFDA61',
@@ -55,33 +37,36 @@ const ListCard = ({ list }) => {
     }
   };
 
-  return (
-    <View style={[styles.listCard]}>
-      <View style={[styles.listCardIndicator, { backgroundColor: typeColors[list.type] }]} />
-      <View style={{ flex: 1 }}>
-        <View style={styles.listCardHeader}>
-          <Text style={[styles.listCardItemCount, styles.textColor]}>{itemCount()}</Text>
-          <TouchableOpacity
-            style={styles.listCardMenuButton}
-            onPress={openMenuModal}
-            ref={menuButtonRef} // Attach the ref
-          >
-            <Image source={images[themeMode].menu} style={styles.listItemMenuIcon} />
-          </TouchableOpacity>
-        </View>
+  const movePage = () => {
+    navigation.navigate('listDetail', {
+      ...list
+    })
+  }
 
-        <Link href={`/listDetail`}>
+  return (
+    <TouchableOpacity style={[styles.listCard]} onPress={movePage}>
+      <View style={[styles.listCardIndicator, { backgroundColor: typeColors[list.type] }]} />
+        <View style={{ flex: 1 }} >
+          <View style={styles.listCardHeader}>
+            <Text style={[styles.listCardItemCount, styles.textColor]}>{itemCount()}</Text>
+            <TouchableOpacity
+              style={styles.listCardMenuButton}
+              onPress={() => openMenuModal(menuButtonRef, list.id)}
+              ref={menuButtonRef} // Attach the ref
+            >
+              <Ionicons name="ellipsis-vertical" size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
           <View>
             <Text style={[styles.listCardTitle, styles.textColor]}>{list.name}</Text>
             {list.type === 'Grocery' && <Text style={[styles.textColor, styles.listCardTotal]}>List total: R0</Text>}
           </View>
-        </Link>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
-const getStyles = (colors) =>
+const getStyles = (colors: any) =>
   StyleSheet.create({
     listCard: {
       backgroundColor: colors.tabBg,

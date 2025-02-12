@@ -15,6 +15,8 @@ export const MyLightTheme = {
     secondaryText: 'black',      
     notification: 'rgb(255, 69, 58)', 
     myCustomColor: '#007AFF',  
+    badge: '#BFDBFE',
+    badgeText: '#3370ED',
   },
 };
 
@@ -33,5 +35,7 @@ export const MyDarkTheme = {
     secondaryText: 'lightgray',
     notification: 'rgb(255, 69, 58)', 
     myCustomColor: '#007AFF',  
+    badge: '#3B82F6',
+    badgeText: '#fff',
   },
 };

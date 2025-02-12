@@ -139,6 +139,22 @@ export default function ListScreen() {
     else if (data.type == 'archive') setArchiveModalVisible(true)
   }
 
+  const [isVisible, setVisible] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [menuButtonLayout, setMenuButtonLayout] = useState(null);
+  const openMenuModal = (ref: any, itemId: any) => {
+      if (ref.current) {
+          ref.current.measure((fx, fy, width, height, px, py) => {
+              setMenuButtonLayout({ x: px, y: py, width, height });
+              setSelectedId(itemId);
+              setVisible(true);
+          });
+      }
+  }
+  const onMenuClose = () => {
+      setVisible(false);
+  }
+
   const handleLogout = () => {
 
   }
@@ -236,6 +252,7 @@ export default function ListScreen() {
                   <ListCard
                     key={list.id}
                     list={list}
+                    openMenuModal={openMenuModal}
                   />
                 ))}
               </View>
@@ -245,6 +262,7 @@ export default function ListScreen() {
                   <ListCard
                     key={list.id}
                     list={list}
+                    openMenuModal={openMenuModal}
                   />
                 ))}
               </View>
@@ -254,8 +272,12 @@ export default function ListScreen() {
       </ScrollView>
 
       <ListItemMenuModal
-        onItemPress={handleItemMenu}
-        activeTab={activeTab}
+          isVisible={isVisible}
+          selectedId={selectedId}
+          menuButtonLayout={menuButtonLayout}
+          onMenuClose={onMenuClose}
+          onItemPress={handleItemMenu}
+          activeTab={activeTab}
       />
       <ListItemEditModal
         visible={editModalVisible}

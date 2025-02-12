@@ -130,7 +130,7 @@ export default function LoginScreen() {
                 <TextInput
                     style={[styles.input, styles.textColor, { borderColor: colors.border }]}
                     placeholder="you@example.com"
-                    placeholderTextColor={colors.secondaryText}
+                    placeholderTextColor={(styles.placeholder as any).color}
                     value={email}
                     onChangeText={validateEmail}
                 />
@@ -141,7 +141,7 @@ export default function LoginScreen() {
                 <TextInput
                     style={[styles.input, styles.textColor, { borderColor: colors.border }]}
                     placeholder="Password"
-                    placeholderTextColor={colors.secondaryText}
+                    placeholderTextColor={(styles.placeholder as any).color}
                     secureTextEntry
                     value={password}
                     onChangeText={validatePassword}
@@ -192,6 +192,9 @@ const getStyles = (colors) =>
         signInButtonText: {
             color: '#fff',
             fontWeight: 'bold',
+        },
+        placeholder: {
+            color: '#999',
         },
         anonymousModeButton: {
             backgroundColor: colors.background,
