@@ -51,9 +51,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
             </TouchableOpacity>
 
             <Text style={[styles.modalTitle, styles.textColor]}>Are you absolutely sure?</Text>
-            <Text style={[styles.modalDescription, styles.textColor]}>
-              This action cannot be undone. This will permanently delete your lists and items.
-            </Text>
+            <View style={{paddingVertical: 10}}></View>
 
             <View style={styles.btnGroup}>
               <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
@@ -124,7 +122,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   },
   cancelButton: {
     borderRadius: 5,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     elevation: 2,
     backgroundColor: colors.background,
@@ -139,7 +137,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   saveButton: {
     backgroundColor: '#2962FF',
     borderRadius: 5,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     elevation: 2,
   },

@@ -14,12 +14,12 @@ import {
 import { useTheme } from '@react-navigation/native';
 import { Theme } from '@react-navigation/native';
 
-interface AddItemGroceryModalProps {
+interface AddItemNoteModalProps {
   visible: boolean;
   onClose: () => void;
-  onAddItem: (item: { name: string; price: string; quantity: string; shop: string }, mode: 'add' | 'edit') => void;
+  onAddItem: (item: { name: string; note: string; }, mode: 'add' | 'edit') => void;
   mode: 'add' | 'edit';
-  initialData?: { name: string; price: string; quantity: string; shop: string };
+  initialData?: { name: string; note: string; };
 }
 
 interface ModalStyles {
@@ -35,37 +35,26 @@ interface ModalStyles {
   addItemButtonText: StyleProp<TextStyle>;
 }
 
-const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onClose, onAddItem, mode, initialData }) => {
+const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, onAddItem, mode, initialData }) => {
   const { colors } = useTheme();
   const styles = getModalStyles(colors);
 
   const [name, setName] = useState(initialData?.name || '');
-  const [price, setPrice] = useState(initialData?.price || '');
-  const [quantity, setQuantity] = useState(initialData?.quantity || '');
-  const [shop, setShop] = useState(initialData?.shop || '');
+  const [note, setNote] = useState(initialData?.note || '');;
 
   useEffect(() => {
     if (mode === 'edit' && initialData) {
       setName(initialData.name || '');
-      setPrice(initialData.price || '');
-      setQuantity(initialData.quantity || '');
-      setShop(initialData.shop || '');
+      setNote(initialData.note || '');
     } else {
       setName('');
-      setPrice('');
-      setQuantity('');
-      setShop('');
+      setNote('');
     }
   }, [mode, initialData]);
-
   const handleAddItem = () => {
-    onAddItem({ ...initialData, name, price, quantity, shop }, mode);
-    
+    onAddItem({ ...initialData, name, note}, mode);
     setName('');
-    setPrice('');
-    setQuantity('');
-    setShop('');
-
+    setNote('');
     onClose();
   };
 
@@ -75,15 +64,6 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
     }
   };
 
-  const handlePriceChange = (text: string) => {
-    const numericValue = text.replace(/[^0-9]/g, '');
-    setPrice(numericValue);
-  };
-
-  const handleQuantityChange = (text: string) => {
-    const numericValue = text.replace(/[^0-9]/g, '');
-    setQuantity(numericValue);
-  };
 
   return (
     <Modal
@@ -107,37 +87,20 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
               style={[styles.input, { color: colors.text, borderColor: colors.border }]}
               value={name}
               onChangeText={setName}
-              placeholder="Item Name"
+              placeholder="Name"
               placeholderTextColor={(styles.placeholder as any).color}
             />
 
-            <Text style={[styles.label, { color: colors.text }]}>Price</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Note</Text>
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={price}
-              onChangeText={handlePriceChange}
-              placeholder="0"
-              keyboardType="numeric"
+              style={[styles.input, { color: colors.text, borderColor: colors.border, minHeight: 60 }]}
+              value={note}
+              onChangeText={setNote}
+              placeholder="Note"
               placeholderTextColor={(styles.placeholder as any).color}
-            />
-
-            <Text style={[styles.label, { color: colors.text }]}>Quantity</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={quantity}
-              onChangeText={handleQuantityChange}
-              placeholder="1"
-              keyboardType="numeric"
-              placeholderTextColor={(styles.placeholder as any).color}
-            />
-
-            <Text style={[styles.label, { color: colors.text }]}>Shop</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={shop}
-              onChangeText={setShop}
-              placeholder="Shop Name"
-              placeholderTextColor={(styles.placeholder as any).color}
+              multiline={true}
+              numberOfLines={5}
+              textAlignVertical="top"
             />
           </View>
 
@@ -212,4 +175,4 @@ const getModalStyles = (colors: Theme['colors']): ModalStyles =>
     },
   });
 
-export default AddItemGroceryModal;
+export default AddItemNoteModal;

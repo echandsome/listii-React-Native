@@ -3,33 +3,34 @@ import {
   Modal,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Pressable
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 
-interface ArchiveListModalProps {
+interface LogoutModalProps {
   visible: boolean;
+  title: string;
+  content: string;
   onClose: () => void;
-  onArchive: () => void;
-  activeTab: string;
+  onConfirm: () => void;
 }
 
-const ArchiveListModal: React.FC<ArchiveListModalProps> = ({
+const LogoutModal: React.FC<LogoutModalProps> = ({
   visible,
   onClose,
-  onArchive,
-  activeTab
+  title,
+  content,
+  onConfirm,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
 
-  const handleArchive = useCallback(() => {
-    onArchive();
+  const handleLogout = useCallback(() => {
+    onConfirm();
     onClose();
-  }, [onArchive, onClose]);
+  }, [onConfirm, onClose]);
 
   const handleBackdropPress = (event: any) => {
     if (event.target === event.currentTarget) {
@@ -38,7 +39,7 @@ const ArchiveListModal: React.FC<ArchiveListModalProps> = ({
   };
 
   if (!visible) return null;
-  
+
   return (
     <Modal
       animationType="fade"
@@ -52,18 +53,20 @@ const ArchiveListModal: React.FC<ArchiveListModalProps> = ({
               <Text style={styles.closeButtonText}>×</Text>
             </TouchableOpacity>
 
-            <Text style={[styles.modalTitle, styles.textColor]}>{ activeTab == 'Lists'? 'Archive list': 'Unarchive list'}</Text>
-            <Text style={[styles.modalDescription, styles.textColor]}>
-              {
-                activeTab == 'Lists'?
-                'Archive lists that you will not be using often anymore.':
-                'Bring your list back to your home page.'
-              }
-            </Text>
-
-            <TouchableOpacity style={styles.saveButton} onPress={handleArchive}>
-              <Text style={styles.saveButtonText}>{ activeTab == 'Lists'? 'Archive list': 'Unarchive list' }</Text>
-            </TouchableOpacity>
+            <Text style={[styles.modalTitle, styles.textColor]}>{title}</Text>
+            {
+              content != null && content != ''? (
+                <Text style={[styles.modalcontent, styles.textColor]}>{content}</Text>
+              ): (<View style={{paddingVertical: 10}}></View>)
+            }
+            <View style={styles.btnGroup}>
+              <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButton} onPress={handleLogout}>
+                <Text style={styles.saveButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
           </View>
       </Pressable>
     </Modal>
@@ -114,10 +117,28 @@ const getStyles = (colors: any) => StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  modalDescription: {
+  modalcontent: {
     marginBottom: 20,
     textAlign: 'center',
     color: '#555',
+  },
+  btnGroup: {
+    flexDirection: 'row',
+    gap: 10
+  },
+  cancelButton: {
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    elevation: 2,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelButtonText: {
+    color: colors.text,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   saveButton: {
     backgroundColor: '#2962FF',
@@ -136,4 +157,4 @@ const getStyles = (colors: any) => StyleSheet.create({
   }
 });
 
-export default ArchiveListModal;
+export default LogoutModal;

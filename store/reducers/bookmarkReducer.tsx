@@ -1,43 +1,36 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export interface GroceryItem {
+export interface BookmarkItem {
   id: string;
   name: string;
-  price: string;
-  quantity: string;
-  shop: string;
+  path: string;
   isCart: boolean;
 }
 
-interface GroceryState {
-  items: GroceryItem[];
+interface BookmarkState {
+  items: BookmarkItem[];
 }
 
-const initialState: GroceryState = {
+const initialState: BookmarkState = {
   items: [],
 };
 
-const grocerySlice = createSlice({
-  name: 'grocery',
+const bookmarkSlice = createSlice({
+  name: 'bookmark',
   initialState,
   reducers: {
-    addItem: (state, action: PayloadAction<GroceryItem>) => {
+    addItem: (state, action: PayloadAction<BookmarkItem>) => {
       state.items.push(action.payload);
     },
     removeItem: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((item) => item.id !== action.payload);
     },
-    updateItem: (state, action: PayloadAction<GroceryItem>) => {
+    updateItem: (state, action: PayloadAction<BookmarkItem>) => {
       const index = state.items.findIndex((item) => item.id === action.payload.id);
       if (index !== -1) {
         state.items[index] = action.payload;
       }
     },
-
-    setAllItemsIsCart: (state, action: PayloadAction<boolean>) => {
-      state.items = state.items.map(item => ({ ...item, isCart: action.payload }));
-    },
-
     setAllItemsFalse: (state) => {
       state.items = state.items.map(item =>
         item.isCart ? { ...item, isCart: false } : item
@@ -64,11 +57,10 @@ export const {
   addItem,
   removeItem,
   updateItem,
-  setAllItemsIsCart,
   setAllItemsFalse,
   setAllItemsTrue,
   removeItemsFalse,
   removeItemsTrue,
-} = grocerySlice.actions;
+} = bookmarkSlice.actions;
 
-export default grocerySlice.reducer;
+export default bookmarkSlice.reducer;

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -7,8 +7,6 @@ import {
   Modal,
   TextInput,
   Pressable,
-  ScrollView,
-  Platform,
   StyleProp,
   ViewStyle,
   TextStyle,
@@ -128,7 +126,8 @@ const getModalStyles = (colors: Theme['colors']): ModalStyles =>
     newListModalContent: {
       backgroundColor: colors.background,
       borderRadius: 8,
-      width: 300,
+      width: '80%',
+      maxWidth: 400,
       padding: 20,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
@@ -166,7 +165,7 @@ const getModalStyles = (colors: Theme['colors']): ModalStyles =>
     },
     newlist: {
       backgroundColor: '#007bff',
-      paddingVertical: 8,
+      paddingVertical: 10,
       paddingHorizontal: 16,
       borderRadius: 5,
       marginRight: 10,

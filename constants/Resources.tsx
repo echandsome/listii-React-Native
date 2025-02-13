@@ -5,6 +5,7 @@ export const images = {
         share: require('@/assets/images/dark/share.png'),
         archive: require('@/assets/images/dark/archive.png'),
         unarchive: require('@/assets/images/dark/unarchive.png'),
+        copy: require('@/assets/images/dark/copy.png'),
         menu: require('@/assets/images/dark/menu.png'),
         back: require('@/assets/images/dark/back.png'),
         theme: require('@/assets/images/dark/theme.png')
@@ -15,6 +16,7 @@ export const images = {
         share: require('@/assets/images/light/share.png'),
         archive: require('@/assets/images/light/archive.png'),
         unarchive: require('@/assets/images/light/unarchive.png'),
+        copy: require('@/assets/images/light/copy.png'),
         menu: require('@/assets/images/light/menu.png'),
         back: require('@/assets/images/light/back.png'),
         theme: require('@/assets/images/light/theme.png')

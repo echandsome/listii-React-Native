@@ -17,9 +17,9 @@ import { Theme } from '@react-navigation/native';
 interface AddItemGroceryModalProps {
   visible: boolean;
   onClose: () => void;
-  onAddItem: (item: { name: string; price: string; quantity: string; shop: string }, mode: 'add' | 'edit') => void;
+  onAddItem: (item: { name: string; path: string; }, mode: 'add' | 'edit') => void;
   mode: 'add' | 'edit';
-  initialData?: { name: string; price: string; quantity: string; shop: string };
+  initialData?: { name: string; path: string; };
 }
 
 interface ModalStyles {
@@ -40,32 +40,21 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
   const styles = getModalStyles(colors);
 
   const [name, setName] = useState(initialData?.name || '');
-  const [price, setPrice] = useState(initialData?.price || '');
-  const [quantity, setQuantity] = useState(initialData?.quantity || '');
-  const [shop, setShop] = useState(initialData?.shop || '');
+  const [path, setPath] = useState(initialData?.path || '');;
 
   useEffect(() => {
     if (mode === 'edit' && initialData) {
       setName(initialData.name || '');
-      setPrice(initialData.price || '');
-      setQuantity(initialData.quantity || '');
-      setShop(initialData.shop || '');
+      setPath(initialData.path || '');
     } else {
       setName('');
-      setPrice('');
-      setQuantity('');
-      setShop('');
+      setPath('');
     }
   }, [mode, initialData]);
-
   const handleAddItem = () => {
-    onAddItem({ ...initialData, name, price, quantity, shop }, mode);
-    
+    onAddItem({ ...initialData, name, path}, mode);
     setName('');
-    setPrice('');
-    setQuantity('');
-    setShop('');
-
+    setPath('');
     onClose();
   };
 
@@ -75,15 +64,6 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
     }
   };
 
-  const handlePriceChange = (text: string) => {
-    const numericValue = text.replace(/[^0-9]/g, '');
-    setPrice(numericValue);
-  };
-
-  const handleQuantityChange = (text: string) => {
-    const numericValue = text.replace(/[^0-9]/g, '');
-    setQuantity(numericValue);
-  };
 
   return (
     <Modal
@@ -107,36 +87,16 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
               style={[styles.input, { color: colors.text, borderColor: colors.border }]}
               value={name}
               onChangeText={setName}
-              placeholder="Item Name"
+              placeholder="Name"
               placeholderTextColor={(styles.placeholder as any).color}
             />
 
-            <Text style={[styles.label, { color: colors.text }]}>Price</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Path</Text>
             <TextInput
               style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={price}
-              onChangeText={handlePriceChange}
-              placeholder="0"
-              keyboardType="numeric"
-              placeholderTextColor={(styles.placeholder as any).color}
-            />
-
-            <Text style={[styles.label, { color: colors.text }]}>Quantity</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={quantity}
-              onChangeText={handleQuantityChange}
-              placeholder="1"
-              keyboardType="numeric"
-              placeholderTextColor={(styles.placeholder as any).color}
-            />
-
-            <Text style={[styles.label, { color: colors.text }]}>Shop</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={shop}
-              onChangeText={setShop}
-              placeholder="Shop Name"
+              value={path}
+              onChangeText={setPath}
+              placeholder="Path"
               placeholderTextColor={(styles.placeholder as any).color}
             />
           </View>

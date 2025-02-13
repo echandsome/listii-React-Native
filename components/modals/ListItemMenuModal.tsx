@@ -14,7 +14,7 @@ import { images } from '@/constants/Resources';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose, onItemPress, activeTab}) => {
+const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose, onItemPress, activeTab, detailTab}) => {
     const { colors } = useTheme();
     const styles = getModalStyles(colors);
     const [adjustedPosition, setAdjustedPosition] = useState(null);
@@ -64,35 +64,10 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose
         }
     }, [isVisible, menuButtonLayout]);
 
-    // Handler functions for menu options
-    const handleEdit = () => {
+    const handlePress = (type: string) => {
         onItemPress({
             id: selectedId,
-            type: 'edit'
-        });
-        onMenuClose();
-    };
-
-    const handleDelete = () => {
-        onItemPress({
-            id: selectedId,
-            type: 'delete'
-        });
-        onMenuClose();
-    };
-
-    const handleShare = () => {
-        onItemPress({
-            id: selectedId,
-            type: 'share'
-        });
-        onMenuClose();
-    };
-
-    const handleArchive = () => {
-        onItemPress({
-            id: selectedId,
-            type: 'archive'
+            type: type
         });
         onMenuClose();
     };
@@ -107,22 +82,22 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose
             <Pressable style={styles.modalOverlay} onPress={handleModalPress}>
                 {adjustedPosition && (
                     <View style={[styles.listItemMenuModalContent, adjustedPosition]}>
-                        <TouchableOpacity style={styles.listItemMenuOption} onPress={handleEdit}>
+                        <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('edit')}>
                             <Image source={images['dark'].edit} style={styles.listItemMenuIcon} />
                             <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.listItemMenuOption} onPress={handleDelete}>
+                        <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('delete')}>
                             <Image source={images['dark'].delete} style={styles.listItemMenuIcon} />
                             <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
                         </TouchableOpacity>
                         {
                             activeTab != 'Detail'? (
                                 <>
-                                    <TouchableOpacity style={styles.listItemMenuOption} onPress={handleShare}>
+                                    <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('share')}>
                                         <Image source={images['dark'].share} style={styles.listItemMenuIcon} />
                                         <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={styles.listItemMenuOption} onPress={handleArchive}>
+                                    <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('archive')}>
                                         <Image source={
                                             activeTab == 'Lists'? (images['dark'].archive): (images['dark'].unarchive)
                                         } style={styles.listItemMenuIcon} />
@@ -130,7 +105,18 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose
                                     </TouchableOpacity>
                                 </>
                             ): (
-                                <></>
+                                <>
+                                {
+                                    detailTab == 'Note'? (
+                                        <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('copy')}>
+                                            <Image source={images['dark'].copy} style={styles.listItemMenuIcon} />
+                                            <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
+                                        </TouchableOpacity>
+                                    ): (
+                                        <></>
+                                    )
+                                }
+                                </>
                             )
                         }
                        
@@ -164,7 +150,7 @@ const getModalStyles = (colors: any) =>
             flexDirection: 'row',
             alignItems: 'center',
             paddingVertical: 10,
-            width: 100,
+            width: 40,
         },
         listItemMenuIcon: {
             width: 20,

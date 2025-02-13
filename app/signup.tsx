@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,7 +8,10 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-  Image
+  Image,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,24 +19,53 @@ import { Link } from 'expo-router';
 import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import ThemeModal from '@/components/modals/ThemeModal'; // Import ThemeModal
-import { images } from '@/constants/Resources';
+import { images, ImageSource } from '@/constants/Resources'; // Ensure ImageSource is exported
+
+interface Styles {
+  container: StyleProp<ViewStyle>;
+  header: StyleProp<ViewStyle>;
+  logo: StyleProp<TextStyle>;
+  headerButtons: StyleProp<ViewStyle>;
+  signInButton: StyleProp<ViewStyle>;
+  signInButtonText: StyleProp<TextStyle>;
+  anonymousModeButton: StyleProp<ViewStyle>;
+  anonymousModeButtonText: StyleProp<TextStyle>;
+  themeToggleImage: StyleProp<ViewStyle>;
+  themeToggleButton: StyleProp<ViewStyle>;
+  content: StyleProp<ViewStyle>;
+  label: StyleProp<TextStyle>;
+  input: StyleProp<TextStyle>;
+  description: StyleProp<TextStyle>;
+  registerButton: StyleProp<ViewStyle>;
+  registerButtonText: StyleProp<TextStyle>;
+  errorText: StyleProp<TextStyle>;
+  bgColor: StyleProp<ViewStyle>;
+  textColor: StyleProp<TextStyle>;
+}
+
+interface ButtonLayout {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export default function RegisterScreen() {
     const { colors } = useTheme();
     const styles = getStyles(colors);
     const dispatch = useDispatch();
-    const themeMode = useSelector(selectThemeMode);
-
+    const themeMode = useSelector(selectThemeMode) as 'light' | 'dark' | 'system'; // Explicit type
     const colorScheme = useColorScheme();
     const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
-    const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+    const [buttonLayout, setButtonLayout] = useState<ButtonLayout>({ x: 0, y: 0, width: 0, height: 0 });
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [emailError, setEmailError] = useState('');
     const [passwordError, setPasswordError] = useState('');
 
-    const validateEmail = (text) => {
+    // Use useCallback to prevent unnecessary re-renders
+    const validateEmail = useCallback((text: string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(text)) {
             setEmailError('Invalid email format.');
@@ -43,16 +75,16 @@ export default function RegisterScreen() {
             setEmailError('');
         }
         setEmail(text);
-    };
+    }, []);
 
-    const validatePassword = (text) => {
+    const validatePassword = useCallback((text: string) => {
         if (text.length < 9) {
-        setPasswordError('Password must be at least 9 characters.');
+            setPasswordError('Password must be at least 9 characters.');
         } else {
-        setPasswordError('');
+            setPasswordError('');
         }
         setPassword(text);
-    };
+    }, []);
 
     const handleRegister = () => {
         let isValid = true;
@@ -72,8 +104,10 @@ export default function RegisterScreen() {
         }
     };
 
-    const handleToggleTheme = (event: any) => {
-        if (event == "system") event = colorScheme;
+    const handleToggleTheme = (event: 'light' | 'dark' | 'system') => {
+        if (event === "system") {
+          event = colorScheme as 'light' | 'dark'; // Type assertion
+        }
         dispatch(toggleTheme(event));
     };
 
@@ -90,13 +124,16 @@ export default function RegisterScreen() {
         setButtonLayout({ x, y, width, height });
     };
 
+    const backImage = images[themeMode]?.back as ImageSource; // Type assertion
+    const themeImage = images[themeMode]?.theme as ImageSource;   // Type assertion
+
     return (
         <SafeAreaView style={[styles.container, styles.bgColor]}>
             {/* Header */}
             <View style={styles.header}>
                 <Link href='/'>
                     <Image
-                        source={ images[themeMode].back }
+                        source={backImage}
                         style={styles.logo}
                         resizeMode="contain"
                     />
@@ -106,21 +143,24 @@ export default function RegisterScreen() {
                         <Text style={[styles.signInButtonText]}>Sign in</Text>
                     </Link>
                     {/* Theme Toggle Button */}
-                    <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-                    <Text>
+                    <TouchableOpacity
+                        style={styles.themeToggleButton}
+                        onPress={openThemeModal}
+                        onLayout={onButtonLayout}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // Increased touch target
+                    >
                         <Image
-                            source={ images[themeMode].theme }
+                            source={themeImage}
                             style={styles.themeToggleImage}
                             resizeMode="contain"
                         />
-                    </Text>
                     </TouchableOpacity>
 
                     <ThemeModal
-                    visible={isThemeModalVisible}
-                    onClose={closeThemeModal}
-                    setTheme={handleToggleTheme}
-                    buttonLayout={ buttonLayout }
+                        visible={isThemeModalVisible}
+                        onClose={closeThemeModal}
+                        setTheme={handleToggleTheme}
+                        buttonLayout={buttonLayout}
                     />
                 </View>
             </View>
@@ -130,9 +170,11 @@ export default function RegisterScreen() {
                 <TextInput
                     style={[styles.input, styles.textColor, { borderColor: colors.border }]}
                     placeholder="you@example.com"
-                    placeholderTextColor={colors.secondaryText}
+                    placeholderTextColor={(styles.placeholder as any).color}
                     value={email}
                     onChangeText={validateEmail}
+                    keyboardType="email-address" // Specify keyboard type
+                    autoCapitalize="none"        // Prevent auto capitalization
                 />
                 <Text style={[styles.description, styles.textColor]}>Your email won't be shared.</Text>
                 {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
@@ -141,7 +183,7 @@ export default function RegisterScreen() {
                 <TextInput
                     style={[styles.input, styles.textColor, { borderColor: colors.border }]}
                     placeholder="Password"
-                    placeholderTextColor={colors.secondaryText}
+                    placeholderTextColor={(styles.placeholder as any).color}
                     secureTextEntry
                     value={password}
                     onChangeText={validatePassword}
@@ -149,15 +191,15 @@ export default function RegisterScreen() {
                 <Text style={[styles.description, styles.textColor]}>This is the key to your account. Please keep it safe.</Text>
                 {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-                <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-                <Text style={styles.registerButtonText}>Sign up</Text>
+                <TouchableOpacity style={styles.registerButton} onPress={handleRegister} activeOpacity={0.7}>
+                    <Text style={styles.registerButtonText}>Sign up</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
 }
 
-const getStyles = (colors) =>
+const getStyles = (colors: any): Styles =>
     StyleSheet.create({
         container: {
             flex: 1,
@@ -174,6 +216,8 @@ const getStyles = (colors) =>
             width: '100%',
         },
         logo: {
+            width: 24, //Added width and height to fix the error
+            height: 24,
             fontSize: 24,
             fontWeight: 'bold',
             color: colors.text, // Use theme text color
@@ -207,7 +251,8 @@ const getStyles = (colors) =>
             fontWeight: 'bold',
         },
         themeToggleImage: {
-    
+            width: 20, // Set the desired width
+            height: 20, // Set the desired height
         },
         themeToggleButton: {
             backgroundColor: colors.background,
@@ -222,11 +267,19 @@ const getStyles = (colors) =>
             padding: 20,
             borderColor: colors.border,
             borderWidth: 1,
-            borderRadius: 10
+            borderRadius: 10,
         },
         label: {
             fontSize: 16,
             marginBottom: 5,
+            ...Platform.select({ //Consistent font weight across platforms
+              ios: {
+                fontWeight: '600',
+              },
+              android: {
+                fontWeight: 'bold',
+              },
+            }),
         },
         input: {
             borderWidth: 1,
@@ -235,6 +288,9 @@ const getStyles = (colors) =>
             fontSize: 16,
             marginBottom: 10,
         },
+        placeholder: {
+            color: '#999',
+        },
         description: {
             fontSize: 12,
             marginBottom: 10,
@@ -242,7 +298,7 @@ const getStyles = (colors) =>
         },
         registerButton: {
             backgroundColor: '#007bff',
-            paddingVertical: 12,
+            paddingVertical: 10,
             borderRadius: 5,
             alignItems: 'center',
         },
@@ -262,4 +318,4 @@ const getStyles = (colors) =>
         textColor: {
             color: colors.text,
         },
-});
+    });

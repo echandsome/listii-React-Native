@@ -116,7 +116,7 @@ const getStyles = (colors: any) => StyleSheet.create({
   saveButton: {
     backgroundColor: '#2962FF',
     borderRadius: 5,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     elevation: 2,
   },
