@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import store from '@/store';
 import AppNavigator from './AppNavigator';
 
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -14,9 +15,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
+    const hideSplashScreen = async () => {
+      if (loaded) {
+        await SplashScreen.hideAsync();
+      }
+    };
+    hideSplashScreen();
   }, [loaded]);
 
   if (!loaded) {

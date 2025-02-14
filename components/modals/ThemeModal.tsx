@@ -6,16 +6,17 @@ import {
   Text,
   Pressable,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
-import { useTheme } from '@react-navigation/native'; // Import useTheme
+import { useTheme } from '@react-navigation/native';
 
 const ThemeModal = ({ visible, onClose, setTheme, buttonLayout }) => {
-  const { colors } = useTheme(); // Access theme colors
-  const styles = getModalStyles(colors); // Get themed styles
+  const { colors } = useTheme();
+  const styles = getModalStyles(colors);
 
   const modalTop = buttonLayout.y + buttonLayout.height + 26;
 
-  const handleModalPress = (event) => {
+  const handleModalPress = (event: any) => {
     if (event.target === event.currentTarget) {
       onClose();
     }
@@ -63,30 +64,37 @@ const ThemeModal = ({ visible, onClose, setTheme, buttonLayout }) => {
   );
 };
 
-const getModalStyles = (colors) =>
-  StyleSheet.create({
+const getModalStyles = (colors: any) => {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+  const isSmallScreen = screenWidth < 375;
+
+  return StyleSheet.create({
     modalOverlay: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
     },
     modalContent: {
-      padding: 20,
+      padding: isSmallScreen ? 10 : 20,
       borderRadius: 10,
       elevation: 5,
-      width: 200,
+      width: isSmallScreen ? 150 : 200,
       position: 'absolute',
-      right: 16,
+      right: isSmallScreen ? 8 : 16,
       backgroundColor: colors.background,
       borderColor: colors.border,
-      borderWidth: 1
+      borderWidth: 1,
     },
     modalOption: {
-      paddingVertical: 10,
+      paddingVertical: isSmallScreen ? 5 : 10,
     },
     textColor: {
       color: colors.text,
+      fontSize: baseFontSize,
     },
   });
+};
 
 export default ThemeModal;

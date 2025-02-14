@@ -8,6 +8,7 @@ import {
     StyleSheet,
     Image,
     Dimensions,
+    Platform
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { images } from '@/constants/Resources';
@@ -139,11 +140,20 @@ const getModalStyles = (colors: any) =>
             borderRadius: 8,
             width: 50,
             padding: 10,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 5,
+            ...Platform.select({
+                ios: {
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                },
+                android: {
+                  elevation: 5, // Android shadow
+                },
+                web: {
+                  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)', // Web shadow
+                },
+              }),
             position: 'absolute', // Make sure position is absolute to control top/left
         },
         listItemMenuOption: {

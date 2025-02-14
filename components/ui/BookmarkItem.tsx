@@ -1,8 +1,20 @@
 import React, { useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Platform,
+  Dimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import { ExternalLink } from '../ExternalLink';
+
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+const isSmallScreen = screenWidth < 375;
 
 interface BookmarkItemProps {
   item: {
@@ -30,7 +42,7 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
             >
               <Ionicons
                 name={item.isCart ? 'checkbox-outline' : 'square-outline'}
-                size={24}
+                size={baseFontSize * 1.5}
                 color={colors.text}
               />
             </TouchableOpacity>
@@ -46,7 +58,7 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
               {item.path && item.path.startsWith('http') ? (
                 <ExternalLink href={item.path} style={styles.button}>
                   <Text style={styles.buttonText}>Open link </Text>
-                  <Ionicons name="open-outline" size={18} color="white" />
+                  <Ionicons name="open-outline" size={baseFontSize} color="white" />
                 </ExternalLink>
               ) : (
                 <View style={styles.noLinkButton}>
@@ -56,11 +68,11 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
             </View>
           </View>
           <TouchableOpacity
-            style={{alignSelf: 'flex-start'}}
+            style={{ alignSelf: 'flex-start' }}
             onPress={() => openMenuModal(menuButtonRef, item.id)}
             ref={menuButtonRef}
           >
-            <Ionicons name="ellipsis-vertical" size={24} color={colors.text} />
+            <Ionicons name="ellipsis-vertical" size={baseFontSize * 1.5} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -70,7 +82,7 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
 
 const styles = StyleSheet.create({
   itemContainer: {
-    padding: 10,
+    padding: isSmallScreen ? 8 : 10,
     borderRadius: 8,
     marginBottom: 20,
   },
@@ -78,74 +90,85 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center', // Changed to center
-    paddingVertical: 10,
+    alignItems: 'center',
+    paddingVertical: isSmallScreen ? 5 : 10,
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1, // Added flex: 1
-    flexShrink: 1, // Add flexShrink to content
+    flex: 1,
+    flexShrink: 1,
   },
   checkboxContainer: {
-    marginRight: 10,
+    marginRight: isSmallScreen ? 5 : 10,
   },
   itemDetails: {
-    marginLeft: 10,
+    marginLeft: isSmallScreen ? 5 : 10,
     flexShrink: 1,
     flexBasis: 'auto',
   },
   name: {
-    fontSize: 16,
+    fontSize: baseFontSize * 1.1,
     fontWeight: 'bold',
-    flexWrap: 'nowrap', // Disable wrapping
+    flexWrap: 'nowrap',
   },
   button: {
-    width: 130,
     flexDirection: 'row',
     backgroundColor: '#9333EA',
-    paddingVertical: 5,
-    paddingHorizontal: 20,
+    paddingVertical: isSmallScreen ? 3 : 5,
+    paddingHorizontal: isSmallScreen ? 10 : 20,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5, // Android shadow
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)', // Web shadow
+      },
+    }),
     marginTop: 10,
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: baseFontSize,
     fontWeight: 'bold',
     marginRight: 5,
   },
   noLinkButton: {
-    width: 100,
-    backgroundColor: '#4A148C', // Darker purple color
-    paddingVertical: 5,
-    paddingHorizontal: 20,
+    width: isSmallScreen ? 70 : 100,
+    backgroundColor: '#4A148C',
+    paddingVertical: isSmallScreen ? 3 : 5,
+    paddingHorizontal: isSmallScreen ? 10 : 20,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5, // Android shadow
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)', // Web shadow
+      },
+    }),
     marginTop: 10,
   },
   noLinkButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: baseFontSize,
     fontWeight: 'bold',
   },
 });

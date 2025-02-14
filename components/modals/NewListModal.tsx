@@ -7,12 +7,10 @@ import {
   Modal,
   TextInput,
   Pressable,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
+  Dimensions,
+  Platform
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { Theme } from '@react-navigation/native'; // Import Theme type
 
 import SelectInput from '@/components/ui/SelectInput';
 
@@ -20,20 +18,6 @@ interface NewListModalProps {
   visible: boolean;
   onClose: () => void;
   onAdd: (list: { name: string; type: string }) => void;
-}
-
-interface ModalStyles {
-  modalListOverlay: StyleProp<ViewStyle>;
-  newListModalContent: StyleProp<ViewStyle>;
-  newListModalHeader: StyleProp<ViewStyle>;
-  newListModalTitle: StyleProp<TextStyle>;
-  newListModalBody: StyleProp<ViewStyle>;
-  label: StyleProp<TextStyle>;
-  input: StyleProp<TextStyle>;
-  placeholder: StyleProp<TextStyle>;
-  newlist: StyleProp<ViewStyle>;
-  newlistText: StyleProp<TextStyle>;
-  textColor: StyleProp<TextStyle>;
 }
 
 const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) => {
@@ -48,7 +32,7 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
     setListType(type);
   };
 
-  const handleModalPress = (event: any) => { //TODO: Type this event correctly
+  const handleModalPress = (event: any) => {
     if (event.target === event.currentTarget) {
       onClose();
     }
@@ -75,12 +59,9 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
       <Pressable style={styles.modalListOverlay} onPress={handleModalPress}>
         <View style={styles.newListModalContent}>
           <View style={styles.newListModalHeader}>
-            {/* Must be wrapped in a Text component */}
             <Text style={[styles.newListModalTitle, styles.textColor]}>Add a new list</Text>
-            {/* Must be wrapped in a Text component */}
             <TouchableOpacity onPress={onClose}>
-              {/* Must be wrapped in a Text component */}
-              <Text style={[styles.textColor, { fontSize: 20 }]}>×</Text>
+              <Text style={[styles.textColor, styles.closeButton]}>×</Text>
             </TouchableOpacity>
           </View>
 
@@ -91,20 +72,19 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
               value={listName}
               onChangeText={setListName}
               placeholder="List Name"
-              placeholderTextColor={(styles.placeholder as any).color} // Assertion required because placeholder is a TextStyle but only the color property is used
+              placeholderTextColor={(styles.placeholder as any).color}
             />
 
-            {/* Using SelectInput component */}
             <SelectInput
               label="List Type"
               value={listType}
               options={listTypes}
               onSelect={handleSelectListType}
               colors={colors}
+              style={{}}
             />
 
             <TouchableOpacity style={styles.newlist} onPress={handleAddPress}>
-              {/* Must be wrapped in a Text component */}
               <Text style={styles.newlistText}>Add List</Text>
             </TouchableOpacity>
           </View>
@@ -114,9 +94,13 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
   );
 };
 
+const getModalStyles = (colors: any) => {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+  const isSmallScreen = screenWidth < 375;
 
-const getModalStyles = (colors: Theme['colors']): ModalStyles =>
-  StyleSheet.create<ModalStyles>({
+  return StyleSheet.create({
     modalListOverlay: {
       flex: 1,
       justifyContent: 'center',
@@ -128,56 +112,76 @@ const getModalStyles = (colors: Theme['colors']): ModalStyles =>
       borderRadius: 8,
       width: '80%',
       maxWidth: 400,
-      padding: 20,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
+      padding: isSmallScreen ? 10 : 20,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+        },
+        android: {
+          elevation: 5, // Android shadow
+        },
+        web: {
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)', // Web shadow
+        },
+      }),
     },
     newListModalHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 15,
+      marginBottom: isSmallScreen ? 8 : 15,
     },
     newListModalTitle: {
-      fontSize: 18,
+      fontSize: baseFontSize * 1.2,
       fontWeight: 'bold',
+      textAlign: 'center',
+      flex: 1,
     },
     newListModalBody: {
-      marginBottom: 15,
+      marginBottom: isSmallScreen ? 8 : 15,
     },
     label: {
-      fontSize: 16,
-      marginBottom: 5,
+      fontSize: baseFontSize,
+      marginBottom: isSmallScreen ? 3 : 5,
     },
     input: {
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 4,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      marginBottom: 10,
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 8 : 12,
+      marginBottom: isSmallScreen ? 5 : 10,
+      fontSize: baseFontSize,
+      color: colors.text,
     },
     placeholder: {
       color: '#999',
+      fontSize: baseFontSize,
     },
     newlist: {
       backgroundColor: '#007bff',
-      paddingVertical: 10,
-      paddingHorizontal: 16,
+      paddingVertical: isSmallScreen ? 8 : 10,
+      paddingHorizontal: isSmallScreen ? 12 : 16,
       borderRadius: 5,
-      marginRight: 10,
+      alignSelf: 'center', // Center the button
+      marginTop: isSmallScreen ? 5 : 10, // Add some space above the button
     },
     newlistText: {
       textAlign: 'center',
       color: '#fff',
       fontWeight: 'bold',
+      fontSize: baseFontSize,
     },
     textColor: {
       color: colors.text,
     },
+    closeButton: {
+      fontSize: baseFontSize * 1.5,
+      fontWeight: 'bold',
+    },
   });
-
+}
 export default NewListModal;

@@ -1,11 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { useColorScheme } from '@/hooks/useColorScheme';
-const colorScheme = useColorScheme();
 
 const themeSlice = createSlice({
   name: 'theme',
   initialState: {
-    mode: colorScheme,
+    mode: 'light',
   },
   reducers: {
     toggleTheme: (state, action) => {

@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   StyleSheet,
   Text,
   View,
+  ScrollView,
+  Image,
   TouchableOpacity,
   SafeAreaView,
+  Dimensions,
   Platform,
   StatusBar,
-  Image,
-  UIManager,
-  ScrollView,
+  UIManager
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
 import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
@@ -29,9 +30,9 @@ import LogoutModal from '@/components/modals/LogoutModal';
 import { images } from '@/constants/Resources';
 
 // Import list-related actions and selectors from Redux
-import { addList, deleteList, 
-  updateList, duplicateList, archiveList, restoreList, 
-  selectLists, selectArchiveLists, selectListById  } from '@/store/reducers/listSlice';
+import { addList, deleteList,
+  updateList, duplicateList, archiveList, restoreList,
+  selectLists, selectArchiveLists, selectListById } from '@/store/reducers/listSlice';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -68,96 +69,97 @@ export default function ListScreen() {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
-  const handleToggleTheme = (event: any) => {
+  const handleToggleTheme = useCallback((event: any) => {
     if (event == "system") event = colorScheme;
     dispatch(toggleTheme(event));
-  };
+  }, [colorScheme, dispatch]);
 
-  const openThemeModal = () => {
+  const openThemeModal = useCallback(() => {
     setIsThemeModalVisible(true);
-  };
+  }, [setIsThemeModalVisible]);
 
-  const closeThemeModal = () => {
+  const closeThemeModal = useCallback(() => {
     setIsThemeModalVisible(false);
-  };
+  }, [setIsThemeModalVisible]);
 
-  const onButtonLayout = (event: any) => {
+  const onButtonLayout = useCallback((event: any) => {
     const { x, y, width, height } = event.nativeEvent.layout;
     setButtonLayout({ x, y, width, height });
-  };
+  }, [setButtonLayout]);
 
-  const handleTabPress = (tabName: any) => {
+  const handleTabPress = useCallback((tabName: any) => {
     setActiveTab(tabName);
-  };
+  }, [setActiveTab]);
 
-  const openNewListModal = () => {
+  const openNewListModal = useCallback(() => {
     setIsNewListModalVisible(true);
-  };
+  }, [setIsNewListModalVisible]);
 
-  const closeNewListModal = () => {
+  const closeNewListModal = useCallback(() => {
     setIsNewListModalVisible(false);
-  };
+  }, [setIsNewListModalVisible]);
 
-  const handleAddNewList = (newList: any) => {
+  const handleAddNewList = useCallback((newList: any) => {
     const newListWithId = {
       ...newList,
       id: uuidv4(),
     };
     dispatch(addList(newListWithId));
     closeNewListModal();
-  };
+  }, [dispatch, closeNewListModal]);
 
-  const handleSave = (newName: any) => {
+  const handleSave = useCallback((newName: any) => {
     dispatch(updateList({ id: selectedListId, updates: { name: newName } }));
     setEditModalVisible(false);
-  };
+  }, [dispatch, selectedListId, setEditModalVisible]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     dispatch(deleteList(selectedListId));
     setDeleteModalVisible(false);
-  };
+  }, [dispatch, selectedListId, setDeleteModalVisible]);
 
-  const handleArchive = () => {
+  const handleArchive = useCallback(() => {
     if (activeTab === 'Lists')
       dispatch(archiveList(selectedListId));
     else
       dispatch(restoreList(selectedListId));
-    
-    setArchiveModalVisible(false);
-  };
 
-  const handleShare = () => {
+    setArchiveModalVisible(false);
+  }, [dispatch, selectedListId, activeTab, setArchiveModalVisible]);
+
+  const handleShare = useCallback(() => {
     dispatch(duplicateList(selectedListId));
     setShareModalVisible(false);
-  };
+  }, [dispatch, selectedListId, setShareModalVisible]);
 
-  const handleItemMenu = (data: any) => {
+  const handleItemMenu = useCallback((data: any) => {
     setSelectedListId(data.id);
     if (data.type == 'edit') setEditModalVisible(true);
     else if (data.type == 'delete') setDeleteModalVisible(true)
     else if (data.type == 'share') setShareModalVisible(true)
     else if (data.type == 'archive') setArchiveModalVisible(true)
-  }
+  }, [setSelectedListId, setEditModalVisible, setDeleteModalVisible, setShareModalVisible, setArchiveModalVisible]);
 
-  const [isVisible, setVisible] = useState(null);
+  const [isVisible, setVisible] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [menuButtonLayout, setMenuButtonLayout] = useState(null);
-  const openMenuModal = (ref: any, itemId: any) => {
-      if (ref.current) {
-          ref.current.measure((fx, fy, width, height, px, py) => {
-              setMenuButtonLayout({ x: px, y: py, width, height });
-              setSelectedId(itemId);
-              setVisible(true);
-          });
-      }
-  }
-  const onMenuClose = () => {
-      setVisible(false);
-  }
+  const openMenuModal = useCallback((ref: any, itemId: any) => {
+    if (ref.current) {
+      ref.current.measure((fx, fy, width, height, px, py) => {
+        setMenuButtonLayout({ x: px, y: py, width, height });
+        setSelectedId(itemId);
+        setVisible(true);
+      });
+    }
+  }, [setMenuButtonLayout, setSelectedId, setVisible]);
 
-  const handleLogout = () => {
+  const onMenuClose = useCallback(() => {
+    setVisible(false);
+  }, [setVisible]);
 
-  }
+  const handleLogout = useCallback(() => {
+    //TODO: Implement logout functionality
+  }, []);
 
   useEffect(() => {
     if (listItem != undefined) {
@@ -166,7 +168,7 @@ export default function ListScreen() {
   }, [listItem]);
 
   return (
-    <SafeAreaView style={[styles.container, styles.bgColor]}>
+    <SafeAreaView style={[styles.container]}>
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.header}>
           <View style={styles.headerLogo}>
@@ -184,13 +186,11 @@ export default function ListScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-              <Text>
-                <Image
-                  source={ images[themeMode].theme }
-                  style={styles.themeToggleImage}
-                  resizeMode="contain"
-                />
-              </Text>
+              <Image
+                source={images[themeMode].theme}
+                style={styles.themeToggleImage}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
 
             <ThemeModal
@@ -200,11 +200,6 @@ export default function ListScreen() {
               buttonLayout={buttonLayout}
             />
           </View>
-          <NewListModal
-            visible={isNewListModalVisible}
-            onClose={closeNewListModal}
-            onAdd={handleAddNewList}
-          />
         </View>
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -248,7 +243,7 @@ export default function ListScreen() {
           {
             activeTab == 'Lists' ? (
               <View>
-                {lists.map((list) => (
+                {lists.map((list: any) => (
                   <ListCard
                     key={list.id}
                     list={list}
@@ -258,7 +253,7 @@ export default function ListScreen() {
               </View>
             ) : (
               <View>
-                {archiveLists.map((list) => (
+                {archiveLists.map((list: any) => (
                   <ListCard
                     key={list.id}
                     list={list}
@@ -271,13 +266,19 @@ export default function ListScreen() {
         </View>
       </ScrollView>
 
+      <NewListModal
+        visible={isNewListModalVisible}
+        onClose={closeNewListModal}
+        onAdd={handleAddNewList}
+      />
       <ListItemMenuModal
-          isVisible={isVisible}
-          selectedId={selectedId}
-          menuButtonLayout={menuButtonLayout}
-          onMenuClose={onMenuClose}
-          onItemPress={handleItemMenu}
-          activeTab={activeTab}
+        isVisible={isVisible}
+        selectedId={selectedId}
+        menuButtonLayout={menuButtonLayout}
+        onMenuClose={onMenuClose}
+        onItemPress={handleItemMenu}
+        activeTab={activeTab}
+        detailTab=''
       />
       <ListItemEditModal
         visible={editModalVisible}
@@ -310,16 +311,20 @@ export default function ListScreen() {
   );
 }
 
-const getStyles = (colors: any) =>
-  StyleSheet.create({
+const getStyles = (colors: any) => {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+  const isSmallScreen = screenWidth < 375;
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-      alignItems: 'center',
     },
     scrollContainer: {
-      paddingHorizontal: 20,
+      paddingHorizontal: isSmallScreen ? 10 : 20,
     },
     header: {
       flexDirection: 'row',
@@ -330,37 +335,39 @@ const getStyles = (colors: any) =>
     },
     headerLogo: {
       flexDirection: 'row',
-      gap: 10,
+      alignItems: 'center',
+      gap: isSmallScreen ? 5 : 10,
     },
     headerButtons: {
       flexDirection: 'row',
       alignItems: 'center',
     },
     title: {
-      fontSize: 24,
+      fontSize: baseFontSize * 1.5,
       fontWeight: 'bold',
     },
     newlist: {
       backgroundColor: '#007bff',
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 12 : 16,
       borderRadius: 5,
-      marginRight: 10,
     },
     newlistText: {
       color: '#fff',
       fontWeight: 'bold',
+      fontSize: baseFontSize,
     },
     signout: {
-      backgroundColor: '#ddd',
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      backgroundColor: '#007bff',
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 12 : 16,
       borderRadius: 5,
-      marginRight: 10,
+      marginRight: isSmallScreen ? 5 : 10,
     },
     signoutText: {
-      color: '#333',
+      color: '#fff',
       fontWeight: 'bold',
+      fontSize: baseFontSize,
     },
     tabContainer: {
       flexDirection: 'row',
@@ -370,28 +377,26 @@ const getStyles = (colors: any) =>
       marginVertical: 10,
       alignSelf: 'flex-start',
       width: 200,
-      padding: 5
+      padding: 5,
     },
     tabButton: {
       flex: 1,
-      paddingVertical: 8,
+      paddingVertical: isSmallScreen ? 6 : 8,
       alignItems: 'center',
       backgroundColor: colors.tabBg,
+      borderRadius: 8
     },
     activeTabButton: {
       backgroundColor: colors.background,
     },
     tabText: {
-      fontSize: 16,
+      fontSize: baseFontSize,
       color: colors.text,
     },
     activeTabText: {
       fontWeight: 'bold',
+      fontSize: baseFontSize,
       color: colors.text,
-    },
-    //Theme
-    bgColor: {
-      backgroundColor: colors.background,
     },
     textColor: {
       color: colors.text,
@@ -404,7 +409,8 @@ const getStyles = (colors: any) =>
       borderRadius: 5,
     },
     themeToggleImage: {
-
+      width: baseFontSize * 1.1,
+      height: baseFontSize * 1.1,
     },
     modalListOverlay: {
       flex: 1,
@@ -434,7 +440,6 @@ const getStyles = (colors: any) =>
       color: colors.textSecondary,
     },
     listCardMenuButton: {
-
     },
     listCardTotal: {
       fontSize: 14,
@@ -452,3 +457,4 @@ const getStyles = (colors: any) =>
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
   });
+}

@@ -8,6 +8,7 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
+  Dimensions, // Import Dimensions
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -28,7 +29,6 @@ interface ListCardProps {
 
 interface Styles {
   listCard: StyleProp<ViewStyle>;
-  listCardIndicator: StyleProp<ViewStyle>;
   listCardTitle: StyleProp<TextStyle>;
   listCardItemCount: StyleProp<TextStyle>;
   listCardMenuButton: StyleProp<ViewStyle>;
@@ -73,8 +73,7 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
   };
 
   return (
-    <TouchableOpacity style={[styles.listCard]} onPress={movePage} activeOpacity={0.7}>
-      <View style={[styles.listCardIndicator, { backgroundColor: typeColors[list.type] }]} />
+    <TouchableOpacity style={[styles.listCard, { borderLeftColor: typeColors[list.type] }]} onPress={movePage} activeOpacity={0.7}>
       <View style={{ flex: 1 }} >
         <View style={styles.listCardHeader}>
           <Text style={[styles.listCardItemCount, styles.textColor]}>{itemCount()}</Text>
@@ -96,42 +95,47 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
   );
 };
 
-const getStyles = (colors: any): Styles =>
-  StyleSheet.create({
+const getStyles = (colors: any): Styles => {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04; // Responsive font size
+
+  return StyleSheet.create({
     listCard: {
       backgroundColor: colors.tabBg,
       borderRadius: 8,
       padding: 16,
       marginBottom: 10,
       flexDirection: 'row',
-      // Shadow properties for iOS
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      // Elevation for Android
-      elevation: 3,
-    },
-    listCardIndicator: {
-      width: 8,
-      height: '100%',
-      borderRadius: 4,
-      marginRight: 16,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3.84,
+        },
+        android: {
+          elevation: 3, // Android shadow
+        },
+        web: {
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)', // Web shadow
+        },
+      }),
+      borderLeftWidth: 5,
     },
     listCardTitle: {
-      fontSize: 18,
+      fontSize: baseFontSize * 1.2, // Responsive title
       fontWeight: 'bold',
     },
     listCardItemCount: {
-      fontSize: 14,
+      fontSize: baseFontSize, // Responsive item count
       color: colors.textSecondary,
     },
     listCardMenuButton: {
-       // Increased padding for a bigger touch target
-      padding: 0,
+      padding: 0, // Increased padding for a bigger touch target
     },
     listCardTotal: {
-      fontSize: 14,
+      fontSize: baseFontSize, // Responsive total
       marginTop: 5,
     },
     listCardHeader: {
@@ -148,5 +152,6 @@ const getStyles = (colors: any): Styles =>
       color: colors.text,
     },
   });
+};
 
 export default ListCard;

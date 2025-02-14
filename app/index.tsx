@@ -10,92 +10,89 @@ import {
   SafeAreaView,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { Link } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
-import ThemeModal from '@/components/modals/ThemeModal'; // Import the ThemeModal 
+import ThemeModal from '@/components/modals/ThemeModal';
 import { images } from '@/constants/Resources';
 
 export default function DashboardScreen() {
+  const dispatch = useDispatch();
+  const themeMode = useSelector(selectThemeMode);
+  const scrollViewRef = useRef(null);
+  const [keyFeaturesY, setKeyFeaturesY] = useState(0);
 
-    const dispatch = useDispatch();
-    const themeMode = useSelector(selectThemeMode);
-    const scrollViewRef = useRef(null);
-    const [keyFeaturesY, setKeyFeaturesY] = useState(0);
+  const colorScheme = useColorScheme();
 
-    const colorScheme = useColorScheme();
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
 
-    const { colors } = useTheme();
-    const styles = getStyles(colors);
+  const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
+  const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
-    const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
-    const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const handleToggleTheme = useCallback((event: any) => {
+    if (event == "system") event = colorScheme;
+    dispatch(toggleTheme(event));
+  }, [colorScheme, dispatch]);
 
-    const handleToggleTheme = (event: any) => {
-        if (event == "system") event = colorScheme;
-        dispatch(toggleTheme(event));
-    };
+  const openThemeModal = useCallback(() => {
+    setIsThemeModalVisible(true);
+  }, [setIsThemeModalVisible]);
 
-    const openThemeModal = () => {
-        setIsThemeModalVisible(true);
-    };
+  const closeThemeModal = useCallback(() => {
+    setIsThemeModalVisible(false);
+  }, [setIsThemeModalVisible]);
 
-    const closeThemeModal = () => {
-        setIsThemeModalVisible(false);
-    };
+  const onButtonLayout = useCallback((event: any) => {
+    const { x, y, width, height } = event.nativeEvent.layout;
+    setButtonLayout({ x, y, width, height });
+  }, [setButtonLayout]);
 
-    const onButtonLayout = (event: any) => {
-        const { x, y, width, height } = event.nativeEvent.layout;
-        setButtonLayout({ x, y, width, height });
-    };
-
-    const scrollToKeyFeatures = useCallback(() => {
-        if (scrollViewRef.current && keyFeaturesY) {
-            scrollViewRef.current.scrollTo({
-                x: 0,
-                y: keyFeaturesY,
-                animated: true,
-            });
-        }
-    }, [keyFeaturesY]);
+  const scrollToKeyFeatures = useCallback(() => {
+    if (scrollViewRef.current && keyFeaturesY) {
+      (scrollViewRef.current as any).scrollTo({
+        x: 0,
+        y: keyFeaturesY,
+        animated: true,
+      });
+    }
+  }, [keyFeaturesY]);
 
   return (
     <SafeAreaView style={[styles.container]}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        ref={scrollViewRef} 
+        ref={scrollViewRef}
         scrollEventThrottle={16}
       >
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.logo, { color: colors.text }]}>Listii</Text>
+          <Text style={[styles.logo, styles.textColor]}>Listii</Text>
           <View style={styles.headerButtons}>
             <Link href='/signin' style={styles.signInButton}>
-              <Text style={[styles.signInButtonText]}>Sign In</Text>
+              <Text style={styles.signInButtonText}>Sign In</Text>
             </Link>
             <Link href='/list' style={styles.anonymousModeButton}>
-              <Text style={[styles.anonymousModeButtonText, styles.textColor]}>Anonymous Mode</Text>
+              <Text style={styles.anonymousModeButtonText}>Anonymous Mode</Text>
             </Link>
             {/* Theme Toggle Button */}
             <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-              <Text>
-                <Image
-                  source={ images[themeMode].theme }
-                  style={styles.themeToggleImage}
-                  resizeMode="contain"
-                />
-              </Text>
+              <Image
+                source={images[themeMode].theme}
+                style={styles.themeToggleImage}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
 
             <ThemeModal
               visible={isThemeModalVisible}
               onClose={closeThemeModal}
               setTheme={handleToggleTheme}
-              buttonLayout={ buttonLayout }
+              buttonLayout={buttonLayout}
             />
           </View>
         </View>
@@ -107,10 +104,10 @@ export default function DashboardScreen() {
             style={styles.heroImage}
             resizeMode="contain"
           />
-          <Text style={ styles.title }>
+          <Text style={[styles.title, styles.textColor]}>
             Unlock the magic of organization with Listii
           </Text>
-          <Text style={[styles.description]}>
+          <Text style={[styles.description, styles.textColor]}>
             Ditch the sticky notes and endless notebooks. Manage all your lists and tasks
             seamlessly in one powerful platform.
           </Text>
@@ -132,98 +129,98 @@ export default function DashboardScreen() {
             setKeyFeaturesY(y);
           }}
         >
-            <View style={styles.featureSection}>
-                <Text style={[styles.newFeaturesLabel]}>What can you do on Listii?</Text>
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Key Features</Text>
-                <Text style={[styles.sectionDescription]}>
-                    Explore the powerful features that make us stand out among other task management tools.
-                </Text>
-                <Image
-                    source={require('@/assets/images/lists.png')}
-                    style={styles.listsImage}
-                    resizeMode="cover"
-                />
-            </View>
-
-            {/* Organize Groceries Card */}
-            <View style={styles.featureCard}>
-                <Text style={[styles.featureTitle, { color: colors.text }]}>Organize Groceries</Text>
-                <Text style={[styles.featureDescription]}>
-                    Never forget an item at the store again! Organize your grocery lists and watch your checkout totals stay on track.
-                </Text>
-            </View>
-
-            {/* Share Your Lists Card */}
-            <View style={styles.featureCard}>
-                <Text style={[styles.featureTitle, { color: colors.text }]}>Share Your Lists</Text>
-                <Text style={[styles.featureDescription]}>
-                    Plan the perfect vacation together, in real-time. Share your travel wishlist and see each other's dream destinations appear.
-                </Text>
-            </View>
-
-            {/* View Updates Instantly Card */}
-            <View style={styles.featureCard}>
-            <Text style={[styles.featureTitle, { color: colors.text }]}>View Updates Instantly</Text>
-            <Text style={[styles.featureDescription]}>
-                Never wait for an update again. Real-time magic means your list is always in sync, everywhere.
+          <View style={styles.featureSection}>
+            <Text style={[styles.newFeaturesLabel, styles.textColor]}>What can you do on Listii?</Text>
+            <Text style={[styles.sectionTitle, styles.textColor]}>Key Features</Text>
+            <Text style={[styles.sectionDescription, styles.textColor]}>
+              Explore the powerful features that make us stand out among other task management tools.
             </Text>
-            </View>
+            <Image
+              source={require('@/assets/images/lists.png')}
+              style={styles.listsImage}
+              resizeMode="cover"
+            />
+          </View>
+
+          {/* Organize Groceries Card */}
+          <View style={styles.featureCard}>
+            <Text style={[styles.featureTitle, styles.textColor]}>Organize Groceries</Text>
+            <Text style={[styles.featureDescription, styles.textColor]}>
+              Never forget an item at the store again! Organize your grocery lists and watch your checkout totals stay on track.
+            </Text>
+          </View>
+
+          {/* Share Your Lists Card */}
+          <View style={styles.featureCard}>
+            <Text style={[styles.featureTitle, styles.textColor]}>Share Your Lists</Text>
+            <Text style={[styles.featureDescription, styles.textColor]}>
+              Plan the perfect vacation together, in real-time. Share your travel wishlist and see each other's dream destinations appear.
+            </Text>
+          </View>
+
+          {/* View Updates Instantly Card */}
+          <View style={styles.featureCard}>
+            <Text style={[styles.featureTitle, styles.textColor]}>View Updates Instantly</Text>
+            <Text style={[styles.featureDescription, styles.textColor]}>
+              Never wait for an update again. Real-time magic means your list is always in sync, everywhere.
+            </Text>
+          </View>
         </View>
 
         {/* Discover What's New Section */}
         <View style={styles.discoverSection}>
-            <Text style={[styles.newFeaturesLabel]}>New Features</Text>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Discover What's New</Text>
-            <Text style={[styles.sectionDescription]}>
-                Explore our latest features designed to improve your productivity.
-            </Text>
-            <View style={styles.discoverCard}>
-                <Image
-                    source={require('@/assets/images/click.png')} // Replace with your image path
-                    style={styles.discoverImage}
-                    resizeMode="cover"
-                />
-                <View style={ styles.discoverContent }>
-                    <Text style={[styles.featureTitle, { color: colors.text }]}>One-Click Bookmarks</Text>
-                    <Text style={[styles.featureDescription]}>
-                        Access your favorite websites instantly with one-click bookmarks. No more sifting through tabs.
-                    </Text>
-                </View>
+          <Text style={[styles.newFeaturesLabel, styles.textColor]}>New Features</Text>
+          <Text style={[styles.sectionTitle, styles.textColor]}>Discover What's New</Text>
+          <Text style={[styles.sectionDescription, styles.textColor]}>
+            Explore our latest features designed to improve your productivity.
+          </Text>
+          <View style={styles.discoverCard}>
+            <Image
+              source={require('@/assets/images/click.png')}
+              style={styles.discoverImage}
+              resizeMode="cover"
+            />
+            <View style={styles.discoverContent}>
+              <Text style={[styles.featureTitle, styles.textColor]}>One-Click Bookmarks</Text>
+              <Text style={[styles.featureDescription, styles.textColor]}>
+                Access your favorite websites instantly with one-click bookmarks. No more sifting through tabs.
+              </Text>
             </View>
+          </View>
 
-            <View style={styles.discoverCard}>
-                <Image
-                    source={require('@/assets/images/anon.png')} // Replace with your image path
-                    style={styles.discoverImage}
-                    resizeMode="cover"
-                />
-                <View style={ styles.discoverContent }>
-                    <Text style={[styles.featureTitle, { color: colors.text }]}>Anonymous Mode</Text>
-                    <Text style={[styles.featureDescription]}>
-                        Skip the sign-up and dive right in! Use Anonymous Mode to keep your lists and bookmarks private.
-                    </Text>
-                </View>
+          <View style={styles.discoverCard}>
+            <Image
+              source={require('@/assets/images/anon.png')}
+              style={styles.discoverImage}
+              resizeMode="cover"
+            />
+            <View style={styles.discoverContent}>
+              <Text style={[styles.featureTitle, styles.textColor]}>Anonymous Mode</Text>
+              <Text style={[styles.featureDescription, styles.textColor]}>
+                Skip the sign-up and dive right in! Use Anonymous Mode to keep your lists and bookmarks private.
+              </Text>
             </View>
+          </View>
 
-            <View style={styles.discoverCard}>
-                <Image
-                    source={require('@/assets/images/dark1.png')} // Replace with your image path
-                    style={styles.discoverImage}
-                    resizeMode="cover"
-                />
-                <View style={ styles.discoverContent }>
-                    <Text style={[styles.featureTitle, { color: colors.text }]}>Customize Display</Text>
-                    <Text style={[styles.featureDescription]}>
-                        Customize your screen for day or night with a simple tap.
-                    </Text>
-                </View>
+          <View style={styles.discoverCard}>
+            <Image
+              source={require('@/assets/images/dark1.png')}
+              style={styles.discoverImage}
+              resizeMode="cover"
+            />
+            <View style={styles.discoverContent}>
+              <Text style={[styles.featureTitle, styles.textColor]}>Customize Display</Text>
+              <Text style={[styles.featureDescription, styles.textColor]}>
+                Customize your screen for day or night with a simple tap.
+              </Text>
             </View>
+          </View>
         </View>
 
         {/* Start Using Listii Today Section */}
         <View style={styles.startUsingSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Start Using Listii Today!</Text>
-          <Text style={[styles.sectionDescription]}>
+          <Text style={[styles.sectionTitle, styles.textColor]}>Start Using Listii Today!</Text>
+          <Text style={[styles.sectionDescription, styles.textColor]}>
             Join the many individuals and teams who are becoming more organized and productive with Listii.
           </Text>
           <View style={styles.buttonContainer}>
@@ -241,8 +238,13 @@ export default function DashboardScreen() {
   );
 }
 
-const getStyles = (colors) =>
-  StyleSheet.create({
+const getStyles = (colors: any) => {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+  const isSmallScreen = screenWidth < 375;
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -256,13 +258,12 @@ const getStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 15,
+      padding: isSmallScreen ? 10 : 15,
       width: '100%',
     },
     logo: {
-      fontSize: 24,
+      fontSize: baseFontSize * 1.5,
       fontWeight: 'bold',
-      color: colors.text,
     },
     headerButtons: {
       flexDirection: 'row',
@@ -270,37 +271,40 @@ const getStyles = (colors) =>
     },
     signInButton: {
       backgroundColor: '#007bff',
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 12 : 16,
       borderRadius: 5,
       marginRight: 10,
     },
     signInButtonText: {
       color: '#fff',
       fontWeight: 'bold',
+      fontSize: baseFontSize,
     },
     anonymousModeButton: {
       backgroundColor: colors.background,
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 5,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 12 : 16,
       marginRight: 10,
     },
     anonymousModeButtonText: {
-      color: '#333',
+      color: colors.text,
       fontWeight: 'bold',
+      fontSize: baseFontSize,
     },
     themeToggleImage: {
-
+      width: baseFontSize * 1.1,
+      height: baseFontSize * 1.1,
     },
     themeToggleButton: {
-        backgroundColor: colors.background,
-        borderWidth: 1,
-        borderColor: colors.border,
-        padding: 10,
-        borderRadius: 5,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 10,
+      borderRadius: 5,
     },
     topSection: {
       alignItems: 'center',
@@ -308,21 +312,19 @@ const getStyles = (colors) =>
       width: '100%',
     },
     heroImage: {
-      width: Dimensions.get('window').width * 0.8,
+      width: screenWidth * 0.8,
       height: 200,
       marginBottom: 20,
     },
     title: {
-      fontSize: 24,
+      fontSize: baseFontSize * 2,
       fontWeight: 'bold',
       textAlign: 'center',
       marginBottom: 10,
-      color: colors.text,
     },
     description: {
-      fontSize: 16,
+      fontSize: baseFontSize,
       textAlign: 'center',
-      color: colors.secondaryText,
       marginBottom: 20,
     },
     buttonContainer: {
@@ -332,25 +334,25 @@ const getStyles = (colors) =>
     },
     getStartedButton: {
       backgroundColor: '#007bff',
-      paddingVertical: 12,
-      paddingHorizontal: 24,
+      paddingVertical: isSmallScreen ? 8 : 12,
+      paddingHorizontal: isSmallScreen ? 16 : 24,
       borderRadius: 5,
       marginRight: 10,
     },
     getStartedButtonText: {
       color: '#fff',
-      fontSize: 16,
+      fontSize: baseFontSize,
       fontWeight: 'bold',
     },
     learnMoreButton: {
       backgroundColor: '#ddd',
-      paddingVertical: 12,
-      paddingHorizontal: 24,
+      paddingVertical: isSmallScreen ? 8 : 12,
+      paddingHorizontal: isSmallScreen ? 16 : 24,
       borderRadius: 5,
     },
     learnMoreButtonText: {
       color: '#333',
-      fontSize: 16,
+      fontSize: baseFontSize,
       fontWeight: 'bold',
     },
     keyFeaturesSection: {
@@ -360,43 +362,38 @@ const getStyles = (colors) =>
       backgroundColor: colors.secondaryBg,
     },
     sectionTitle: {
-      fontSize: 22,
+      fontSize: baseFontSize * 1.5,
       fontWeight: 'bold',
       marginBottom: 15,
-      color: colors.secondaryText,
       textAlign: 'center',
     },
     sectionDescription: {
-      fontSize: 16,
+      fontSize: baseFontSize,
       textAlign: 'center',
-      color: colors.secondaryText,
       marginBottom: 20,
     },
     listsImage: {
-        width: '100%',
-        height: 200,
-        borderRadius: 12,
-        resizeMode: 'cover',
+      width: '100%',
+      height: 200,
+      borderRadius: 12,
     },
     featureSection: {
       width: '100%',
       alignItems: 'center',
     },
     featureCard: {
-        paddingVertical: 20,
-        width: '100%',
+      paddingVertical: 20,
+      width: '100%',
     },
     featureTitle: {
-      fontSize: 18,
+      fontSize: baseFontSize * 1.2,
       fontWeight: 'bold',
       marginBottom: 10,
-      color: colors.text,
       textAlign: 'left',
     },
     featureDescription: {
-      fontSize: 16,
+      fontSize: baseFontSize,
       textAlign: 'left',
-      color: colors.secondaryText,
     },
     discoverSection: {
       padding: 20,
@@ -404,16 +401,15 @@ const getStyles = (colors) =>
       alignItems: 'center',
     },
     newFeaturesLabel: {
-      fontSize: 14,
-      color: colors.text,
+      fontSize: baseFontSize,
       marginBottom: 5,
     },
     discoverCard: {
-        width: '100%',
-        borderWidth: 1,
-        borderColor: colors.border,
-        marginVertical: 15,
-        borderRadius: 20
+      width: '100%',
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginVertical: 15,
+      borderRadius: 20,
     },
     discoverContent: {
       padding: 20,
@@ -422,11 +418,10 @@ const getStyles = (colors) =>
       borderBottomLeftRadius: 20,
     },
     discoverImage: {
-        width: '100%',
-        height: 200,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        resizeMode: 'cover',
+      width: '100%',
+      height: 200,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
     },
     startUsingSection: {
       padding: 20,
@@ -436,17 +431,16 @@ const getStyles = (colors) =>
     },
     signUpButton: {
       backgroundColor: '#007bff',
-      paddingVertical: 12,
-      paddingHorizontal: 24,
+      paddingVertical: isSmallScreen ? 8 : 12,
+      paddingHorizontal: isSmallScreen ? 16 : 24,
       borderRadius: 5,
       marginRight: 10,
     },
     signUpButtonText: {
       color: '#fff',
-      fontSize: 16,
+      fontSize: baseFontSize,
       fontWeight: 'bold',
     },
-    // Global
     textColor: {
       color: colors.text,
     },
@@ -454,3 +448,4 @@ const getStyles = (colors) =>
       backgroundColor: colors.background
     }
   });
+}

@@ -1,7 +1,12 @@
 import React, { useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
+
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+const isSmallScreen = screenWidth < 375;
 
 interface TodoItemProps {
   item: {
@@ -26,15 +31,14 @@ const TodoItem: React.FC<TodoItemProps> = ({ item, openMenuModal, handleToggleCa
   };
 
   return (
-    <View style={[styles.itemContainer, { backgroundColor: colors.tabBg }]}>
+    <View style={[styles.itemContainer, { backgroundColor: colors.tabBg, borderLeftColor: typeColors[item.priority] }]}>
       <View style={styles.row}>
-        <View style={[styles.listCardIndicator, { backgroundColor: typeColors[item.priority] }]} />
         <View style={styles.header}>
           <View style={styles.content}>
             <TouchableOpacity onPress={() => handleToggleCart(item.id)} style={styles.checkboxContainer}>
               <Ionicons
                 name={item.isCart ? "checkbox-outline" : "square-outline"}
-                size={24}
+                size={baseFontSize * 1.5}
                 color={colors.text}
               />
             </TouchableOpacity>
@@ -45,7 +49,7 @@ const TodoItem: React.FC<TodoItemProps> = ({ item, openMenuModal, handleToggleCa
             </View>
           </View>
           <TouchableOpacity onPress={() => openMenuModal(menuButtonRef, item.id)} ref={menuButtonRef}>
-            <Ionicons name="ellipsis-vertical" size={24} color={colors.text} />
+            <Ionicons name="ellipsis-vertical" size={baseFontSize * 1.5} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -55,43 +59,44 @@ const TodoItem: React.FC<TodoItemProps> = ({ item, openMenuModal, handleToggleCa
 
 const styles = StyleSheet.create({
   itemContainer: {
-    padding: 10,
+    padding: isSmallScreen ? 8 : 10,
     borderRadius: 8,
     marginBottom: 20,
+    borderLeftWidth: 5,
   },
-  row: { // Added row style
+  row: {
     flexDirection: 'row',
-    paddingVertical: 5
+    paddingVertical: isSmallScreen ? 3 : 5,
   },
   listCardIndicator: {
-    width: 8,
+    width: isSmallScreen ? 5 : 8,
     height: '100%',
     borderRadius: 4,
-    marginRight: 16,
+    marginRight: isSmallScreen ? 8 : 16,
   },
   header: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start', // Changed to flex-start
+    alignItems: 'flex-start',
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexShrink: 1, // Added flexShrink to content
+    flexShrink: 1,
   },
   checkboxContainer: {
-    marginRight: 10,
+    marginRight: isSmallScreen ? 5 : 10,
   },
   itemDetails: {
-    marginLeft: 10,
+    marginLeft: isSmallScreen ? 5 : 10,
     flexShrink: 1,
     flexBasis: 'auto',
   },
   name: {
-    fontSize: 16,
+    fontSize: baseFontSize * 1.1,
     fontWeight: 'bold',
-    flexWrap: 'wrap', // Add flexWrap to allow text to wrap
+    flexWrap: 'wrap',
   },
 });
 

@@ -1,9 +1,25 @@
 import React, { useRef, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 
-const BookmarkItem = ({ item, openMenuModal, handleToggleCart }) => {
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+const isSmallScreen = screenWidth < 375;
+
+interface BookmarkItemProps {
+  item: {
+    id: string;
+    name: string;
+    note: string;
+    isCart: boolean;
+  };
+  openMenuModal: (ref: React.RefObject<TouchableOpacity>, itemId: string) => void;
+  handleToggleCart: (itemId: string) => void;
+}
+
+const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handleToggleCart }) => {
   const { colors } = useTheme();
   const menuButtonRef = useRef(null);
   const [isNoteVisible, setIsNoteVisible] = useState(false);
@@ -23,7 +39,7 @@ const BookmarkItem = ({ item, openMenuModal, handleToggleCart }) => {
             >
               <Ionicons
                 name={item.isCart ? 'checkbox-outline' : 'square-outline'}
-                size={24}
+                size={baseFontSize * 1.5}
                 color={colors.text}
               />
             </TouchableOpacity>
@@ -41,12 +57,12 @@ const BookmarkItem = ({ item, openMenuModal, handleToggleCart }) => {
             onPress={() => openMenuModal(menuButtonRef, item.id)}
             ref={menuButtonRef}
           >
-            <Ionicons name="ellipsis-vertical" size={24} color={colors.text} />
+            <Ionicons name="ellipsis-vertical" size={baseFontSize * 1.5} color={colors.text} />
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={[styles.toggleButton, { backgroundColor: colors.background }]} onPress={toggleNoteVisibility}>
-          <Text style={{ color: colors.text, fontSize: 12 }}>
+          <Text style={[styles.toggleButtonText, { color: colors.text }]}>
             {isNoteVisible ? 'Hide Note' : 'Show Note'}
           </Text>
         </TouchableOpacity>
@@ -65,7 +81,7 @@ const BookmarkItem = ({ item, openMenuModal, handleToggleCart }) => {
 
 const styles = StyleSheet.create({
   itemContainer: {
-    padding: 10,
+    padding: isSmallScreen ? 8 : 10,
     borderRadius: 8,
     marginBottom: 20,
   },
@@ -74,7 +90,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: isSmallScreen ? 5 : 10,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -85,31 +101,34 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   checkboxContainer: {
-    marginRight: 10,
+    marginRight: isSmallScreen ? 5 : 10,
   },
   itemDetails: {
-    marginLeft: 10,
+    marginLeft: isSmallScreen ? 5 : 10,
     flexShrink: 1,
     flexBasis: 'auto',
     flex: 1,
     overflow: 'hidden',
   },
   name: {
-    fontSize: 16,
+    fontSize: baseFontSize * 1.1,
     fontWeight: 'bold',
   },
   note: {
-    fontSize: 14,
+    fontSize: baseFontSize,
     lineHeight: 20,
     wordWrap: 'break-word',
   },
   toggleButton: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: isSmallScreen ? 3 : 5,
+    paddingHorizontal: isSmallScreen ? 5 : 10,
     borderRadius: 5,
-    alignSelf: 'flex-start', // Aligns the button to the start (left)
+    alignSelf: 'flex-start',
     marginTop: 5,
     marginBottom: 5,
+  },
+  toggleButtonText: {
+    fontSize: baseFontSize * 0.8,
   },
 });
 

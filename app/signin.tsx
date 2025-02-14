@@ -9,8 +9,8 @@ import {
   StatusBar,
   Platform,
   Image,
-  ImageSourcePropType,
   LayoutChangeEvent,
+  Dimensions,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,62 +20,9 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import ThemeModal from '@/components/modals/ThemeModal';
 import { images } from '@/constants/Resources';
 
-interface Styles {
-  container: ViewStyle;
-  header: ViewStyle;
-  logo: ImageStyle;
-  headerButtons: ViewStyle;
-  signInButton: ViewStyle;
-  signInButtonText: TextStyle;
-  placeholder: TextStyle;
-  anonymousModeButton: ViewStyle;
-  anonymousModeButtonText: TextStyle;
-  themeToggleImage: ImageStyle;
-  themeToggleButton: ViewStyle;
-  content: ViewStyle;
-  label: TextStyle;
-  input: TextStyle;
-  description: TextStyle;
-  loginButton: ViewStyle;
-  loginButtonText: TextStyle;
-  errorText: TextStyle;
-  bgColor: ViewStyle;
-  textColor: TextStyle;
-}
-
-interface ViewStyle {
-    flex?: number;
-    flexDirection?: 'row' | 'column';
-    justifyContent?: 'flex-start' | 'space-between' | 'center';
-    alignItems?: 'center';
-    padding?: number;
-    width?: string | number;
-    backgroundColor?: string;
-    paddingTop?: number;
-    borderColor?: string;
-    borderWidth?: number;
-    borderRadius?: number;
-    marginTop?: number;
-    paddingVertical?: number;
-    paddingHorizontal?: number;
-  }
-  
-  interface TextStyle {
-    fontSize?: number;
-    fontWeight?: 'bold';
-    color?: string;
-    marginBottom?: number;
-  }
-  
-  interface ImageStyle {
-    width?: number;
-    height?: number;
-    resizeMode?: 'contain' | 'cover' | 'stretch' | 'repeat' | 'center';
-  }
-
 export default function LoginScreen() {
   const { colors } = useTheme();
-  const styles: Styles = getStyles(colors);
+  const styles = getStyles(colors);
   const dispatch = useDispatch();
   const themeMode = useSelector(selectThemeMode);
 
@@ -146,10 +93,8 @@ export default function LoginScreen() {
     setButtonLayout({ x, y, width, height });
   }, [setButtonLayout]);
 
-  const statusBarHeight = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
-
   return (
-    <SafeAreaView style={[styles.container, styles.bgColor, { paddingTop: statusBarHeight }]}>
+    <SafeAreaView style={[styles.container, styles.bgColor]}>
       {/* Header */}
       <View style={styles.header}>
         <Link href='/'>
@@ -215,26 +160,30 @@ export default function LoginScreen() {
   );
 }
 
-const getStyles = (colors: any): Styles =>
-  StyleSheet.create<Styles>({
+const getStyles = (colors: any) => {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+  const isSmallScreen = screenWidth < 375;
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors?.background,
       alignItems: 'center',
       justifyContent: 'flex-start',
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 15,
+      padding: isSmallScreen ? 10 : 15,
       width: '100%',
     },
     logo: {
-      width: 24,
-      height: 24,
-      resizeMode: 'contain',
-      tintColor: colors?.text, // Example: Dynamically style the logo's tint color
+      width: baseFontSize * 1.5,
+      height: baseFontSize * 1.5,
     },
     headerButtons: {
       flexDirection: 'row',
@@ -242,34 +191,23 @@ const getStyles = (colors: any): Styles =>
     },
     signInButton: {
       backgroundColor: '#007bff',
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 12 : 16,
       borderRadius: 5,
       marginRight: 10,
     },
     signInButtonText: {
       color: '#fff',
       fontWeight: 'bold',
+      fontSize: baseFontSize,
     },
     placeholder: {
       color: '#999',
-    },
-    anonymousModeButton: {
-      backgroundColor: colors?.background,
-      borderWidth: 1,
-      borderColor: colors?.border,
-      borderRadius: 5,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      marginRight: 10,
-    },
-    anonymousModeButtonText: {
-      color: '#333',
-      fontWeight: 'bold',
+      fontSize: baseFontSize,
     },
     themeToggleImage: {
-      width: 20,
-      height: 20,
+      width: baseFontSize * 1.1, // Set the desired width
+      height: baseFontSize * 1.1, // Set the desired height
     },
     themeToggleButton: {
       backgroundColor: colors?.background,
@@ -281,44 +219,45 @@ const getStyles = (colors: any): Styles =>
     content: {
       width: '90%',
       marginTop: 20,
-      padding: 20,
+      padding: isSmallScreen ? 10 : 20,
       borderColor: colors?.border,
       borderWidth: 1,
-      borderRadius: 10
+      borderRadius: 10,
     },
     label: {
-      fontSize: 16,
-      marginBottom: 5,
-      color: colors?.text
+      fontSize: baseFontSize,
+      marginBottom: isSmallScreen ? 3 : 5,
+      color: colors?.text,
+      fontWeight: 'bold',
     },
     input: {
       borderWidth: 1,
       borderRadius: 5,
-      padding: 10,
-      fontSize: 16,
+      padding: isSmallScreen ? 8 : 10,
+      fontSize: baseFontSize,
       marginBottom: 10,
-      color: colors?.text
+      color: colors?.text,
     },
     description: {
-      fontSize: 12,
+      fontSize: baseFontSize * 0.8,
       marginBottom: 10,
       color: colors?.secondaryText,
     },
     loginButton: {
       backgroundColor: '#007bff',
-      paddingVertical: 10,
+      paddingVertical: isSmallScreen ? 8 : 10,
       borderRadius: 5,
       alignItems: 'center',
     },
     loginButtonText: {
       color: '#fff',
-      fontSize: 16,
+      fontSize: baseFontSize,
       fontWeight: 'bold',
     },
     errorText: {
       color: 'red',
-      fontSize: 12,
-      marginBottom: 20,
+      fontSize: baseFontSize * 0.8,
+      marginBottom: 10,
     },
     bgColor: {
       backgroundColor: colors?.background,
@@ -327,3 +266,4 @@ const getStyles = (colors: any): Styles =>
       color: colors?.text,
     },
   });
+};

@@ -7,32 +7,17 @@ import {
   Modal,
   TextInput,
   Pressable,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { Theme } from '@react-navigation/native';
 
 interface AddItemNoteModalProps {
   visible: boolean;
   onClose: () => void;
-  onAddItem: (item: { name: string; note: string; }, mode: 'add' | 'edit') => void;
+  onAddItem: (item: { name: string; note: string }, mode: 'add' | 'edit') => void;
   mode: 'add' | 'edit';
-  initialData?: { name: string; note: string; };
-}
-
-interface ModalStyles {
-  modalOverlay: StyleProp<ViewStyle>;
-  modalContent: StyleProp<ViewStyle>;
-  modalHeader: StyleProp<ViewStyle>;
-  modalTitle: StyleProp<TextStyle>;
-  closeButton: StyleProp<TextStyle>;
-  modalBody: StyleProp<ViewStyle>;
-  label: StyleProp<TextStyle>;
-  input: StyleProp<TextStyle>;
-  addItemButton: StyleProp<ViewStyle>;
-  addItemButtonText: StyleProp<TextStyle>;
+  initialData?: { name: string; note: string };
 }
 
 const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, onAddItem, mode, initialData }) => {
@@ -40,7 +25,7 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
   const styles = getModalStyles(colors);
 
   const [name, setName] = useState(initialData?.name || '');
-  const [note, setNote] = useState(initialData?.note || '');;
+  const [note, setNote] = useState(initialData?.note || '');
 
   useEffect(() => {
     if (mode === 'edit' && initialData) {
@@ -51,8 +36,9 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
       setNote('');
     }
   }, [mode, initialData]);
+
   const handleAddItem = () => {
-    onAddItem({ ...initialData, name, note}, mode);
+    onAddItem({ ...initialData, name, note }, mode);
     setName('');
     setNote('');
     onClose();
@@ -63,7 +49,6 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
       onClose();
     }
   };
-
 
   return (
     <Modal
@@ -76,7 +61,7 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>{mode === 'add' ? 'Add a new item' : 'Edit item'}</Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButtonContainer}>
               <Text style={[styles.closeButton, { color: colors.text }]}>×</Text>
             </TouchableOpacity>
           </View>
@@ -93,7 +78,7 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
 
             <Text style={[styles.label, { color: colors.text }]}>Note</Text>
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border, minHeight: 60 }]}
+              style={[styles.noteInput, { color: colors.text, borderColor: colors.border }]}
               value={note}
               onChangeText={setNote}
               placeholder="Note"
@@ -113,8 +98,13 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
   );
 };
 
-const getModalStyles = (colors: Theme['colors']): ModalStyles =>
-  StyleSheet.create<ModalStyles>({
+const getModalStyles = (colors: any) => {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
+  const isSmallScreen = screenWidth < 375;
+
+  return StyleSheet.create({
     modalOverlay: {
       flex: 1,
       justifyContent: 'center',
@@ -126,53 +116,89 @@ const getModalStyles = (colors: Theme['colors']): ModalStyles =>
       borderRadius: 8,
       width: '80%',
       maxWidth: 400,
-      padding: 20,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
+      padding: isSmallScreen ? 10 : 20,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+        },
+        android: {
+          elevation: 5, // Android shadow
+        },
+        web: {
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)', // Web shadow
+        },
+      }),
     },
     modalHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 15,
+      marginBottom: isSmallScreen ? 8 : 15,
     },
     modalTitle: {
-      fontSize: 18,
+      fontSize: baseFontSize * 1.1,
       fontWeight: 'bold',
+      textAlign: 'center',
+      flex: 1,
+    },
+    closeButtonContainer: {
+      padding: isSmallScreen ? 4 : 8,
     },
     closeButton: {
-      fontSize: 20,
+      fontSize: baseFontSize * 1.2,
+      ...Platform.select({
+        ios: {
+          fontWeight: '600',
+        },
+        android: {
+          fontWeight: 'bold',
+        },
+      }),
     },
     modalBody: {
-      marginBottom: 15,
+      marginBottom: isSmallScreen ? 8 : 15,
     },
     label: {
-      fontSize: 16,
-      marginBottom: 5,
+      fontSize: baseFontSize,
+      marginBottom: isSmallScreen ? 3 : 5,
     },
     input: {
       borderWidth: 1,
       borderRadius: 4,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      marginBottom: 10,
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 8 : 12,
+      marginBottom: isSmallScreen ? 5 : 10,
+      fontSize: baseFontSize,
+    },
+    noteInput: {
+      borderWidth: 1,
+      borderRadius: 4,
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 8 : 12,
+      marginBottom: isSmallScreen ? 5 : 10,
+      fontSize: baseFontSize,
+      minHeight: 60,
+      textAlignVertical: 'top',
     },
     placeholder: {
       color: '#999',
+      fontSize: baseFontSize,
     },
     addItemButton: {
       backgroundColor: '#2962FF',
-      paddingVertical: 10,
+      paddingVertical: isSmallScreen ? 8 : 10,
       borderRadius: 5,
     },
     addItemButtonText: {
       color: 'white',
       textAlign: 'center',
       fontWeight: 'bold',
+      fontSize: baseFontSize,
     },
   });
+};
 
 export default AddItemNoteModal;
