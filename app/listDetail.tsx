@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
-  Image,
+  useWindowDimensions,
   ScrollView,
   Clipboard,
 } from 'react-native';
@@ -32,9 +32,7 @@ import AddItemTodoModal from '@/components/modals/AddItemTodoModal';
 import AddItemBookmarkModal from '@/components/modals/AddItemBookmarkModal';
 import AddItemNoteModal from '@/components/modals/AddItemNoteModal';
 
-import ThemeModal from '@/components/modals/ThemeModal';
 import AlertModal from '@/components/modals/AlertModal';
-import LogoutModal from '@/components/modals/LogoutModal';
 import ListItemMenuModal from '@/components/modals/ListItemMenuModal';
 import ListItemDeleteModal from '@/components/modals/ListItemDeleteModal';
 
@@ -43,8 +41,7 @@ import GroceryItem from '@/components/ui/GroceryItem';
 import TodoItem from '@/components/ui/TodoItem';
 import BookmarkItem from '@/components/ui/BookmarkItem';
 import NoteItem from '@/components/ui/NoteItem';
-
-import { images } from '@/constants/Resources';
+import Nav from '@/components/ui/Nav';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 // Define Types
@@ -56,19 +53,20 @@ interface LocalSearchParams {
   type: 'Grocery' | 'ToDo' | 'Bookmark' | 'Note';
   name: string;
 }
-
 // Arrow Components
-const UpArrow = (colors: ColorsType) => (
-  <Text><Ionicons name="arrow-up" size={20} color={colors.text} /></Text>
+const UpArrow = ({size, colors}) => (
+  <Text><Ionicons style={{bottom: size}} name="chevron-up-sharp" size={20} color={colors.text} /></Text>
 );
 
-const DownArrow = (colors: ColorsType) => (
-  <Text><Ionicons name="arrow-down" size={20} color={colors.text} /></Text>
+const DownArrow = ({size, colors}) => (
+  <Text><Ionicons style={{top: size}} name="chevron-down-sharp" size={20} color={colors.text} /></Text>
 );
 
 const ListDetailScreen = () => {
   const { colors } = useTheme();
-  const styles = useMemo(() => getStyles(colors), [colors]);
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 1000;
+  const styles = getStyles(colors, isLargeScreen);
   const category = useLocalSearchParams<LocalSearchParams>();
   const colorScheme = useColorScheme();
 
@@ -113,13 +111,8 @@ const ListDetailScreen = () => {
   const { addItemByDB, updateItemByDB, removeItemByDB, updateAllItemsTrueByDB, 
     updateAllItemsFalseByDB, removeItemsFalseByDB, removeItemsTrueByDB } = tempAction;
 
-  const themeMode = useSelector(selectThemeMode);
-
   const [selectedItem, setSelectedItem] = useState(null);
-  const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
-  const [buttonLayout, setButtonLayout] = useState<LayoutType>({ x: 0, y: 0, width: 0, height: 0 });
   const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
-  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [alertModalVisible, setAlertModalVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('Are you absolutely sure?');
   const [alertContent, setAlertContent] = useState('');
@@ -130,29 +123,6 @@ const ListDetailScreen = () => {
 
   const cartItems = useMemo(() => itemlist.filter((item) => item.is_check), [itemlist]);
   const listItems = useMemo(() => itemlist.filter((item) => !item.is_check), [itemlist]);
-
-
-  const handleToggleTheme = useCallback((event: string) => {
-    const theme = event === "system" ? colorScheme : event;
-    dispatch(toggleTheme(theme));
-  }, [colorScheme, dispatch]);
-
-  const openThemeModal = useCallback(() => {
-    setIsThemeModalVisible(true);
-  }, [setIsThemeModalVisible]);
-
-  const closeThemeModal = useCallback(() => {
-    setIsThemeModalVisible(false);
-  }, [setIsThemeModalVisible]);
-
-  const onButtonLayout = useCallback((event: any) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    setButtonLayout({ x, y, width, height });
-  }, [setButtonLayout]);
-
-  const handleLogout = useCallback(() => {
-    // Implement logout logic here
-  }, []);
 
   const handleAlert = useCallback(() => {
     if (selectedStatus === 'Check items' ||
@@ -289,50 +259,15 @@ const ListDetailScreen = () => {
 
   return (
     <SafeAreaView style={[styles.container, styles.bgColor]}>
+      <Nav page='listDetail' openAddItemModal={openAddItemModal}/>
       <ScrollView style={styles.scrollContainer}>
-        <View style={[styles.header]}>
-          <View style={styles.headerLogo}>
-            <Link href='/list'>
-              <Image
-                source={images[themeMode].back}
-                style={[styles.logo, { width: baseFontSize * 1.5, height: baseFontSize * 1.5 }]}
-                resizeMode="contain"
-              />
-            </Link>
-            <TouchableOpacity style={styles.newlist} onPress={openAddItemModal}>
-              <Text style={[styles.newlistText, { fontSize: baseFontSize }]}>+ New Item</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.headerButtons}>
-            <TouchableOpacity style={styles.signout} onPress={() => setLogoutModalVisible(true)}>
-              <Text style={[styles.signoutText, { fontSize: baseFontSize }]}>Sign Out</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-              <Image
-                source={images[themeMode].theme}
-                style={styles.themeToggleImage}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-
-            <ThemeModal
-              visible={isThemeModalVisible}
-              onClose={closeThemeModal}
-              setTheme={handleToggleTheme}
-              buttonLayout={buttonLayout}
-            />
-          </View>
-        </View>
-
         <SelectInput
           label=""
           value={category.name}
           options={listTypes}
           onSelect={handleSelectListType}
           colors={colors}
-          style={{ width: screenWidth * 0.5, paddingVertical: 10 }}
+          style={{ width: 200, paddingVertical: 10 }}
         />
 
         {category.type === 'Grocery' && (
@@ -340,18 +275,41 @@ const ListDetailScreen = () => {
             {
               listItems.length > 0? (
                 <>
-                <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
-                  <Text style={{fontSize: baseFontSize}}>
-                    <Text style={{color: '#007bff'}}>{listItems.length}</Text> list items totaling: R{listTotal}</Text>
-                  {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-                </TouchableOpacity>
-                {showListItems && (
-                  <View>
-                    {listItems.map(item => (
-                      <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
-                    ))}
+                  <View style={styles.sectionHeader}>
+                    <View>
+                      <Text style={styles.groceryLabel}>
+                        <Text style={[styles.textColor]}>{listItems.length}</Text> list items totaling: R
+                        <Text style={[styles.textColor, {color: '#007bff'}]}>{listTotal}</Text></Text>
+                    </View>
+                    <View style={styles.sectionRight}>
+                      {
+                        width > 500? (
+                          <Text style={[styles.groceryLabel, {color: '#999'}]}>{cartItems.length} list items totaling: R{cartTotal}</Text>
+                        ):(<></>)
+                      }
+                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
+                        {showListItems ? (
+                          <View style={{bottom: 14}}>
+                            <DownArrow size={7} colors={colors} />
+                            <UpArrow size={7} colors={colors} />
+                          </View>
+                        ) : (
+                          <View  style={{top: -14}}>
+                            <UpArrow size={-7} colors={colors} />
+                            <DownArrow size={-7} colors={colors} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                )}
+                 
+                  {showListItems && (
+                    <View>
+                      {listItems.map(item => (
+                        <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                      ))}
+                    </View>
+                  )}
                 </>
               ): (<></>)
             }
@@ -359,11 +317,33 @@ const ListDetailScreen = () => {
             {
               cartItems.length > 0? (
                 <>
-                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
-                    <Text style={{fontSize: baseFontSize}}>
-                    <Text style={{color: '#007bff'}}>{cartItems.length}</Text> cart items totaling: R{cartTotal}</Text>
-                    {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-                  </TouchableOpacity>
+                  <View style={styles.sectionHeader}>
+                    <View>
+                      <Text style={styles.groceryLabel}>
+                          <Text style={[styles.textColor]}>{cartItems.length}</Text> cart items totaling: R
+                          <Text style={[styles.textColor, {color: '#007bff'}]}>{cartTotal}</Text></Text>
+                    </View>
+                    <View style={styles.sectionRight}>
+                      {
+                        width > 500? (
+                          <Text style={[styles.groceryLabel, {color: '#999'}]}>{listItems.length} list items totaling: R{listTotal}</Text>
+                        ): (<></>)
+                      }
+                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
+                        {showCartItems ? (
+                          <View style={{bottom: 14}}>
+                            <DownArrow size={7} colors={colors} />
+                            <UpArrow size={7} colors={colors} />
+                          </View>
+                        ) : (
+                          <View  style={{top: -14}}>
+                            <UpArrow size={-7} colors={colors} />
+                            <DownArrow size={-7} colors={colors} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   {showCartItems && (
                     <View>
                       {cartItems.map(item => (
@@ -382,11 +362,27 @@ const ListDetailScreen = () => {
             {
               listItems.length > 0? (
                 <>
-                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
-                    <Text style={{fontSize: baseFontSize}}>
-                      <Text style={{color: '#007bff'}}>{listItems.length}</Text> task in progress</Text>
-                    {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-                  </TouchableOpacity>
+                  <View style={styles.sectionHeader}>
+                    <View>
+                      <Text style={styles.label}>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> task in progress</Text>
+                    </View>
+                    <View style={styles.sectionRight}>
+                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
+                        {showListItems ? (
+                          <View style={{bottom: 14}}>
+                            <DownArrow size={7} colors={colors} />
+                            <UpArrow size={7} colors={colors} />
+                          </View>
+                        ) : (
+                          <View  style={{top: -14}}>
+                            <UpArrow size={-7} colors={colors} />
+                            <DownArrow size={-7} colors={colors} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   {showListItems && (
                     <View>
                       {listItems.map(item => (
@@ -401,11 +397,27 @@ const ListDetailScreen = () => {
             {
               cartItems.length > 0? (
                 <>
-                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
-                    <Text style={{fontSize: baseFontSize}}>
-                    <Text style={{color: '#007bff'}}>{cartItems.length}</Text> task completed</Text>
-                    {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-                  </TouchableOpacity>
+                  <View style={styles.sectionHeader}>
+                    <View>
+                      <Text style={styles.label}>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> task completed</Text>
+                    </View>
+                    <View style={styles.sectionRight}>
+                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
+                        {showCartItems ? (
+                          <View style={{bottom: 14}}>
+                            <DownArrow size={7} colors={colors} />
+                            <UpArrow size={7} colors={colors} />
+                          </View>
+                        ) : (
+                          <View  style={{top: -14}}>
+                            <UpArrow size={-7} colors={colors} />
+                            <DownArrow size={-7} colors={colors} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   {showCartItems && (
                     <View>
                       {cartItems.map(item => (
@@ -424,11 +436,27 @@ const ListDetailScreen = () => {
             {
               listItems.length > 0? (
                 <>
-                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
-                    <Text style={{fontSize: baseFontSize}}>
-                    <Text style={{color: '#007bff'}}>{listItems.length}</Text> bookmarks active</Text>
-                    {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-                  </TouchableOpacity>
+                  <View style={styles.sectionHeader}>
+                    <View>
+                      <Text style={styles.label}>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> bookmarks active</Text>
+                    </View>
+                    <View style={styles.sectionRight}>
+                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
+                        {showListItems ? (
+                          <View style={{bottom: 14}}>
+                            <DownArrow size={7} colors={colors} />
+                            <UpArrow size={7} colors={colors} />
+                          </View>
+                        ) : (
+                          <View  style={{top: -14}}>
+                            <UpArrow size={-7} colors={colors} />
+                            <DownArrow size={-7} colors={colors} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   {showListItems && (
                     <View>
                       {listItems.map(item => (
@@ -443,11 +471,27 @@ const ListDetailScreen = () => {
             {
               cartItems.length > 0? (
                 <>
-                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
-                    <Text style={{fontSize: baseFontSize}}>
-                    <Text style={{color: '#007bff'}}>{cartItems.length}</Text> bookmarks hidden</Text>
-                    {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-                  </TouchableOpacity>
+                  <View style={styles.sectionHeader}>
+                    <View>
+                      <Text style={styles.label}>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> bookmarks hidden</Text>
+                    </View>
+                    <View style={styles.sectionRight}>
+                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
+                        {showCartItems ? (
+                          <View style={{bottom: 14}}>
+                            <DownArrow size={7} colors={colors} />
+                            <UpArrow size={7} colors={colors} />
+                          </View>
+                        ) : (
+                          <View  style={{top: -14}}>
+                            <UpArrow size={-7} colors={colors} />
+                            <DownArrow size={-7} colors={colors} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   {showCartItems && (
                     <View>
                       {cartItems.map(item => (
@@ -466,11 +510,27 @@ const ListDetailScreen = () => {
             {
               listItems.length > 0? (
                 <>
-                 <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
-                  <Text style={{fontSize: baseFontSize}}>
-                  <Text style={{color: '#007bff'}}>{listItems.length}</Text> notes active</Text>
-                  {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-                </TouchableOpacity>
+                <View style={styles.sectionHeader}>
+                    <View>
+                      <Text style={styles.label}>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> notes active</Text>
+                    </View>
+                    <View style={styles.sectionRight}>
+                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
+                        {showListItems ? (
+                          <View style={{bottom: 14}}>
+                            <DownArrow size={7} colors={colors} />
+                            <UpArrow size={7} colors={colors} />
+                          </View>
+                        ) : (
+                          <View  style={{top: -14}}>
+                            <UpArrow size={-7} colors={colors} />
+                            <DownArrow size={-7} colors={colors} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 {showListItems && (
                   <View>
                     {listItems.map(item => (
@@ -485,11 +545,27 @@ const ListDetailScreen = () => {
             {
               cartItems.length > 0? (
                 <>
-                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
-                    <Text style={{fontSize: baseFontSize}}>
-                    <Text style={{color: '#007bff'}}>{cartItems.length}</Text> notes hidden</Text>
-                    {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-                  </TouchableOpacity>
+                  <View style={styles.sectionHeader}>
+                    <View>
+                      <Text style={styles.label}>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> notes hidden</Text>
+                    </View>
+                    <View style={styles.sectionRight}>
+                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
+                        {showCartItems ? (
+                          <View style={{bottom: 14}}>
+                            <DownArrow size={7} colors={colors} />
+                            <UpArrow size={7} colors={colors} />
+                          </View>
+                        ) : (
+                          <View  style={{top: -14}}>
+                            <UpArrow size={-7} colors={colors} />
+                            <DownArrow size={-7} colors={colors} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   {showCartItems && (
                     <View>
                       {cartItems.map(item => (
@@ -509,11 +585,6 @@ const ListDetailScreen = () => {
           content={alertContent}
           onClose={() => setAlertModalVisible(false)}
           onConfirm={handleAlert}
-        />
-        <LogoutModal
-          visible={logoutModalVisible}
-          onClose={() => setLogoutModalVisible(false)}
-          onLogout={handleLogout}
         />
         <ListItemDeleteModal
           visible={deleteModalVisible}
@@ -580,7 +651,7 @@ const ListDetailScreen = () => {
   );
 };
 
-const getStyles = (colors: any) => {
+const getStyles = (colors: any, isLargeScreen: boolean) => {
 
   return StyleSheet.create({
     container: {
@@ -589,7 +660,7 @@ const getStyles = (colors: any) => {
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     scrollContainer: {
-      paddingHorizontal: isSmallScreen ? 10 : 20,
+      paddingHorizontal: isLargeScreen? 40: 20,
     },
     header: {
       flexDirection: 'row',
@@ -643,25 +714,40 @@ const getStyles = (colors: any) => {
       color: colors.text,
       fontSize: baseFontSize
     },
-    themeToggleButton: {
-      backgroundColor: colors.background,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 10,
-      borderRadius: 5,
-    },
-    themeToggleImage: {
-      width: baseFontSize * 1.1,
-      height: baseFontSize * 1.1,
-    },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 10,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 20,
-        marginBottom: 18,
+        paddingVertical: 10,
+    },
+    sectionRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    sectionToggle: {
+      marginLeft: 10,
+      height: 37,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      borderRadius: 5,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    label: {
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: 8,
+      fontSize: baseFontSize,
+      color: colors.text,
+      borderRadius: 5,
+    },
+    groceryLabel: {
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: 8,
+      fontSize: baseFontSize,
+      color: colors.text,
+      borderRadius: 5,
+      backgroundColor: colors.groceryText
     },
     listItemContainer: {
       flexDirection: 'row',

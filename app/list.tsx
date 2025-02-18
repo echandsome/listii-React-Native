@@ -5,7 +5,7 @@ import {
   Text,
   View,
   ScrollView,
-  Image,
+  useWindowDimensions,
   TouchableOpacity,
   SafeAreaView,
   Platform,
@@ -16,12 +16,9 @@ import {
   ActivityIndicator 
 } from 'react-native';
 import { useTheme, useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
-import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import useBackHandler from '../hooks/useBackHandler';
-import ThemeModal from '@/components/modals/ThemeModal';
 import NewListModal from '@/components/modals/NewListModal';
 import ListCard from '@/components/ui/ListCard';
 import ListItemMenuModal from '@/components/modals/ListItemMenuModal';
@@ -29,10 +26,9 @@ import ListItemEditModal from '@/components/modals/ListItemEditModal';
 import ListItemDeleteModal from '@/components/modals/ListItemDeleteModal';
 import ListItemShareModal from '@/components/modals/ListItemShareModal';
 import ListItemArchiveModal from '@/components/modals/ListItemArchiveModal';
-import LogoutModal from '@/components/modals/LogoutModal';
-import { images } from '@/constants/Resources';
-import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
+import { baseFontSize, isSmallScreen } from '@/constants/Config';
 import { showToast } from '@/helpers/toastHelper';
+import Nav from '@/components/ui/Nav';
 
 // Import list-related actions and selectors from Redux
 import { selectLists, selectArchiveLists, selectListById } from '@/store/reducers/listSlice';
@@ -47,17 +43,13 @@ if (Platform.OS === 'android') {
 
 export default function ListScreen() {
   const { colors } = useTheme();
-  const styles = useMemo(() => getStyles(colors), [colors]);
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 1000;
+  const styles = getStyles(colors, isLargeScreen);
 
   const [activeTab, setActiveTab] = useState('Lists');
   const dispatch = useDispatch();
-  const themeMode = useSelector(selectThemeMode);
   const colorScheme = useColorScheme();
-
-  const router = useRouter();
-
-  const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
-  const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   const [isNewListModalVisible, setIsNewListModalVisible] = useState(false);
 
@@ -76,7 +68,7 @@ export default function ListScreen() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [archiveModalVisible, setArchiveModalVisible] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
-  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  
   const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -99,24 +91,6 @@ export default function ListScreen() {
       setLoading(false);
     }
   }
-
-  const handleToggleTheme = useCallback((event: any) => {
-    if (event == "system") event = colorScheme;
-    dispatch(toggleTheme(event));
-  }, [colorScheme, dispatch]);
-
-  const openThemeModal = useCallback(() => {
-    setIsThemeModalVisible(true);
-  }, [setIsThemeModalVisible]);
-
-  const closeThemeModal = useCallback(() => {
-    setIsThemeModalVisible(false);
-  }, [setIsThemeModalVisible]);
-
-  const onButtonLayout = useCallback((event: any) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    setButtonLayout({ x, y, width, height });
-  }, [setButtonLayout]);
 
   const handleTabPress = (tabName: string) => setActiveTab(tabName);
 
@@ -156,13 +130,13 @@ export default function ListScreen() {
     setArchiveModalVisible(false);
   }, [dispatch, selectedListId, activeTab, setArchiveModalVisible]);
 
-  const handleShare = useCallback(() => {
+  const handleShare = () => {
     let listToDuplicate = lists.find((list) => list.id === selectedListId);
     if (listToDuplicate == undefined)
       listToDuplicate = archiveLists.find((list) => list.id === selectedListId);
     duplicateListByDB( userId, listToDuplicate, dispatch);
     setShareModalVisible(false);
-  }, [dispatch, selectedListId, setShareModalVisible]);
+  }
 
   const handleItemMenu = useCallback((data: any) => {
     setSelectedListId(data.id);
@@ -189,10 +163,7 @@ export default function ListScreen() {
     setVisible(false);
   }, [setVisible]);
 
-  const handleLogout = useCallback(() => {
-    dispatch({ type: "RESET" });
-    router.push('/'); 
-  }, []);
+ 
 
   useEffect(() => {
     if (listItem != undefined) {
@@ -225,38 +196,8 @@ export default function ListScreen() {
 
   return (
     <SafeAreaView style={[styles.container]}>
+      <Nav page='list' openNewListModal={openNewListModal}/>
       <ScrollView style={styles.scrollContainer}>
-        <View style={styles.header}>
-          <View style={styles.headerLogo}>
-            {/* <Link href='/'> */}
-              <Text style={[styles.title, styles.textColor]}>Listii</Text>
-            {/* </Link> */}
-            <TouchableOpacity style={styles.newlist} onPress={openNewListModal}>
-              <Text style={styles.newlistText}>+ New List</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.headerButtons}>
-            <TouchableOpacity style={styles.signout} onPress={() => setLogoutModalVisible(true)}>
-              <Text style={styles.signoutText}>Sign Out</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-              <Image
-                source={images[themeMode].theme}
-                style={styles.themeToggleImage}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-
-            <ThemeModal
-              visible={isThemeModalVisible}
-              onClose={closeThemeModal}
-              setTheme={handleToggleTheme}
-              buttonLayout={buttonLayout}
-            />
-          </View>
-        </View>
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[
@@ -364,68 +305,18 @@ export default function ListScreen() {
         onArchive={handleArchive}
         activeTab={activeTab}
       />
-      <LogoutModal
-        visible={logoutModalVisible}
-        onClose={() => setLogoutModalVisible(false)}
-        onLogout={handleLogout}
-      /> 
+      
     </SafeAreaView>
   );
 }
 
-const getStyles = (colors: any) => {
+const getStyles = (colors: any, isLargeScreen: boolean) => {
 
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-    },
-    scrollContainer: {
-      paddingHorizontal: isSmallScreen ? 10 : 20,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      width: '100%',
-      paddingTop: 15,
-    },
-    headerLogo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: isSmallScreen ? 5 : 10,
-    },
-    headerButtons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    title: {
-      fontSize: baseFontSize * 1.5,
-      fontWeight: 'bold',
-    },
-    newlist: {
-      backgroundColor: '#007bff',
-      paddingVertical: isSmallScreen ? 6 : 8,
-      paddingHorizontal: isSmallScreen ? 12 : 16,
-      borderRadius: 5,
-    },
-    newlistText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      fontSize: baseFontSize,
-    },
-    signout: {
-      backgroundColor: '#007bff',
-      paddingVertical: isSmallScreen ? 6 : 8,
-      paddingHorizontal: isSmallScreen ? 12 : 16,
-      borderRadius: 5,
-      marginRight: isSmallScreen ? 5 : 10,
-    },
-    signoutText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      fontSize: baseFontSize,
     },
     tabContainer: {
       flexDirection: 'row',
@@ -516,6 +407,9 @@ const getStyles = (colors: any) => {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    scrollContainer: {
+      paddingHorizontal: isLargeScreen? 40: 20,
     },
     loadingText: {
       marginTop: 10,

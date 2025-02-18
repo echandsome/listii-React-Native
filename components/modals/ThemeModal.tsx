@@ -15,6 +15,7 @@ const ThemeModal = ({ visible, onClose, setTheme, buttonLayout }) => {
   const styles = getModalStyles(colors);
 
   const modalTop = buttonLayout.y + buttonLayout.height + 26;
+  const modalRight = buttonLayout.x + buttonLayout.width;
 
   const handleModalPress = (event: any) => {
     if (event.target === event.currentTarget) {
@@ -30,7 +31,7 @@ const ThemeModal = ({ visible, onClose, setTheme, buttonLayout }) => {
       onRequestClose={onClose}
     >
       <Pressable style={styles.modalOverlay} onPress={handleModalPress}>
-        <View style={[styles.modalContent, { top: modalTop }]}>
+        <View style={[styles.modalContent, { top: modalTop, right: modalRight }]}>
           <TouchableOpacity
             style={styles.modalOption}
             onPress={() => {

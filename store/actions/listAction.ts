@@ -113,19 +113,19 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
     let item_table_name = '';
     switch (type) {
         case 'Note':
-        listItems = store.getState().note.listitems[id];
+        listItems = store.getState().note.listitems[id] || [];
         item_table_name = 'note_items';
         break;
         case 'Bookmark':
-        listItems = store.getState().bookmark.listitems[id];
+        listItems = store.getState().bookmark.listitems[id] || [];
         item_table_name = 'bookmark_items';
         break;
         case 'ToDo':
-        listItems = store.getState().todo.listitems[id];
+        listItems = store.getState().todo.listitems[id] || [];
         item_table_name = 'todo_items';
         break;
         case 'Grocery':
-        listItems = store.getState().grocery.listitems[id];
+        listItems = store.getState().grocery.listitems[id] || [];
         item_table_name = 'grocery_items';
         break;
     }

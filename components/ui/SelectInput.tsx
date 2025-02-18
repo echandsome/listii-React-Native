@@ -113,7 +113,7 @@ const getSelectInputStyles = (colors: any) => {
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      zIndex: 100
+      zIndex: 100,
     },
     selectContainer: {
       flexDirection: 'row',
@@ -136,7 +136,7 @@ const getSelectInputStyles = (colors: any) => {
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 4,
-      zIndex: 100,
+      zIndex: 100000,
       ...Platform.select({
         ios: {
           shadowColor: '#000',

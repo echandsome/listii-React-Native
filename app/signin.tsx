@@ -8,33 +8,21 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-  Image,
-  LayoutChangeEvent,
-  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, useRouter  } from 'expo-router';
-import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import ThemeModal from '@/components/modals/ThemeModal';
-import { images } from '@/constants/Resources';
+import { useDispatch } from 'react-redux';
+import { useRouter  } from 'expo-router';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 import { loginWithEmailAndPassword } from '@/store/actions/authAction';
 import { showToast } from '@/helpers/toastHelper';
+import Nav from '@/components/ui/Nav';
 
 export default function LoginScreen() {
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const dispatch = useDispatch();
-  const themeMode = useSelector(selectThemeMode);
 
   const router = useRouter();
-
-  const colorScheme = useColorScheme();
-  const [isThemeModalVisible, setIsThemeModalVisible] = useState<boolean>(false);
-  const [buttonLayout, setButtonLayout] = useState<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
-
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [emailError, setEmailError] = useState<string>('');
@@ -129,57 +117,10 @@ export default function LoginScreen() {
     }
   }, [countdown]);
 
-  const handleToggleTheme = useCallback((event: 'light' | 'dark' | 'system') => {
-    let theme = event;
-    if (event === "system") theme = colorScheme as 'light' | 'dark';
-    dispatch(toggleTheme(theme));
-  }, [colorScheme, dispatch]);
-
-  const openThemeModal = useCallback(() => {
-    setIsThemeModalVisible(true);
-  }, [setIsThemeModalVisible]);
-
-  const closeThemeModal = useCallback(() => {
-    setIsThemeModalVisible(false);
-  }, [setIsThemeModalVisible]);
-
-  const onButtonLayout = useCallback((event: LayoutChangeEvent) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    setButtonLayout({ x, y, width, height });
-  }, [setButtonLayout]);
-
   return (
     <SafeAreaView style={[styles.container, styles.bgColor]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Link href='/'>
-          <Image
-            source={images[themeMode].back}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </Link>
-        <View style={styles.headerButtons}>
-          <Link href='/signup' style={styles.signInButton}>
-            <Text style={[styles.signInButtonText]}>Sign up</Text>
-          </Link>
-          {/* Theme Toggle Button */}
-          <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-            <Image
-              source={images[themeMode].theme}
-              style={styles.themeToggleImage}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-
-          <ThemeModal
-            visible={isThemeModalVisible}
-            onClose={closeThemeModal}
-            setTheme={handleToggleTheme}
-            buttonLayout={buttonLayout}
-          />
-        </View>
-      </View>
+      <Nav page='signin' />
 
       <View style={styles.content}>
         <Text style={[styles.label, styles.textColor]}>Email</Text>
@@ -231,47 +172,9 @@ const getStyles = (colors: any) => {
       justifyContent: 'flex-start',
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: isSmallScreen ? 10 : 15,
-      width: '100%',
-    },
-    logo: {
-      width: baseFontSize * 1.5,
-      height: baseFontSize * 1.5,
-    },
-    headerButtons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    signInButton: {
-      backgroundColor: '#007bff',
-      paddingVertical: isSmallScreen ? 6 : 8,
-      paddingHorizontal: isSmallScreen ? 12 : 16,
-      borderRadius: 5,
-      marginRight: 10,
-    },
-    signInButtonText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      fontSize: baseFontSize,
-    },
     placeholder: {
       color: '#999',
       fontSize: baseFontSize,
-    },
-    themeToggleImage: {
-      width: baseFontSize * 1.1, // Set the desired width
-      height: baseFontSize * 1.1, // Set the desired height
-    },
-    themeToggleButton: {
-      backgroundColor: colors?.background,
-      borderWidth: 1,
-      borderColor: colors?.border,
-      padding: 10,
-      borderRadius: 5,
     },
     content: {
       width: '90%',

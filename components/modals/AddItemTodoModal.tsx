@@ -195,6 +195,7 @@ const getModalStyles = (colors: any) => {
       backgroundColor: '#2962FF',
       paddingVertical: isSmallScreen ? 8 : 10,
       borderRadius: 5,
+      zIndex: -1
     },
     addItemButtonText: {
       color: 'white',

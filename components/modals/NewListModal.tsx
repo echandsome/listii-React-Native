@@ -171,7 +171,8 @@ const getModalStyles = (colors: any) => {
       paddingHorizontal: isSmallScreen ? 12 : 16,
       borderRadius: 5,
       alignSelf: 'center', // Center the button
-      marginTop: isSmallScreen ? 5 : 10, // Add some space above the button
+      marginTop: isSmallScreen ? 5 : 10, // Add some space above the 
+      zIndex: -1
     },
     newlistText: {
       textAlign: 'center',

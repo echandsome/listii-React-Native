@@ -17,6 +17,7 @@ export const MyLightTheme = {
     myCustomColor: '#007AFF',  
     badge: '#BFDBFE',
     badgeText: '#3370ED',
+    groceryText: '#fff'
   },
 };
 
@@ -37,5 +38,6 @@ export const MyDarkTheme = {
     myCustomColor: '#007AFF',  
     badge: '#3B82F6',
     badgeText: '#fff',
+    groceryText: '#0F172A'
   },
 };

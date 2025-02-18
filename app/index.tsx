@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   StyleSheet,
   Text,
@@ -10,46 +9,23 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
+  useWindowDimensions,
+  ImageBackground
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { Link } from 'expo-router';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
-import ThemeModal from '@/components/modals/ThemeModal';
-import { images } from '@/constants/Resources';
+import Nav from '@/components/ui/Nav';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 export default function DashboardScreen() {
-  const dispatch = useDispatch();
-  const themeMode = useSelector(selectThemeMode);
+
   const scrollViewRef = useRef(null);
   const [keyFeaturesY, setKeyFeaturesY] = useState(0);
 
-  const colorScheme = useColorScheme();
-
   const { colors } = useTheme();
-  const styles = getStyles(colors);
-
-  const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
-  const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
-
-  const handleToggleTheme = useCallback((event: any) => {
-    if (event == "system") event = colorScheme;
-    dispatch(toggleTheme(event));
-  }, [colorScheme, dispatch]);
-
-  const openThemeModal = useCallback(() => {
-    setIsThemeModalVisible(true);
-  }, [setIsThemeModalVisible]);
-
-  const closeThemeModal = useCallback(() => {
-    setIsThemeModalVisible(false);
-  }, [setIsThemeModalVisible]);
-
-  const onButtonLayout = useCallback((event: any) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    setButtonLayout({ x, y, width, height });
-  }, [setButtonLayout]);
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width >= 1000;
+  const styles = getStyles(colors, isLargeScreen);
 
   const scrollToKeyFeatures = useCallback(() => {
     if (scrollViewRef.current && keyFeaturesY) {
@@ -59,7 +35,7 @@ export default function DashboardScreen() {
         animated: true,
       });
     }
-  }, [keyFeaturesY]);
+  }, [keyFeaturesY, scrollViewRef]);
 
   return (
     <SafeAreaView style={[styles.container]}>
@@ -68,59 +44,33 @@ export default function DashboardScreen() {
         ref={scrollViewRef}
         scrollEventThrottle={16}
       >
-
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.logo, styles.textColor]}>Listii</Text>
-          <View style={styles.headerButtons}>
-            <Link href='/signin' style={styles.signInButton}>
-              <Text style={styles.signInButtonText}>Sign In</Text>
-            </Link>
-            <Link href='/list' style={styles.anonymousModeButton}>
-              <Text style={styles.anonymousModeButtonText}>Anonymous Mode</Text>
-            </Link>
-            {/* Theme Toggle Button */}
-            <TouchableOpacity style={styles.themeToggleButton} onPress={openThemeModal} onLayout={onButtonLayout}>
-              <Image
-                source={images[themeMode].theme}
-                style={styles.themeToggleImage}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-
-            <ThemeModal
-              visible={isThemeModalVisible}
-              onClose={closeThemeModal}
-              setTheme={handleToggleTheme}
-              buttonLayout={buttonLayout}
-            />
-          </View>
-        </View>
+        <Nav page='index' />
 
         {/* Top Section (Image, Title, Description, Buttons) */}
         <View style={styles.topSection}>
-          <Image
+          <ImageBackground
             source={require('@/assets/images/hero.png')}
             style={styles.heroImage}
-            resizeMode="contain"
+            resizeMode="cover"
           />
-          <View> 
-          <Text style={[styles.title, styles.textColor]}>
-            Unlock the magic of organization with Listii
-          </Text>
-          <Text style={[styles.description, styles.textColor]}>
-            Ditch the sticky notes and endless notebooks. Manage all your lists and tasks
-            seamlessly in one powerful platform.
-          </Text>
-          
-          <View style={styles.buttonContainer}>
-            <Link href='/signin' style={styles.getStartedButton}>
-              <Text style={styles.getStartedButtonText}>Get Started</Text>
-            </Link>
-            <TouchableOpacity style={styles.learnMoreButton} onPress={scrollToKeyFeatures}>
-              <Text style={styles.learnMoreButtonText}>Learn More</Text>
-            </TouchableOpacity>
-          </View>
+          <View style={styles.topSectionContent}>
+            <Text style={[styles.title, styles.textColor]}>
+              Unlock the magic of organization with Listii
+            </Text>
+            <Text style={[styles.description, styles.textColor]}>
+              Ditch the sticky notes and endless notebooks. Manage all your lists and tasks
+              seamlessly in one powerful platform.
+            </Text>
+
+            <View style={styles.buttonContainer}>
+              <Link href='/signin' style={styles.getStartedButton}>
+                <Text style={styles.getStartedButtonText}>Get Started</Text>
+              </Link>
+              <TouchableOpacity style={styles.learnMoreButton} onPress={scrollToKeyFeatures}>
+                <Text style={styles.learnMoreButtonText}>Learn More</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -138,35 +88,36 @@ export default function DashboardScreen() {
             <Text style={[styles.sectionDescription, styles.textColor]}>
               Explore the powerful features that make us stand out among other task management tools.
             </Text>
-            <Image
-              source={require('@/assets/images/lists.png')}
-              style={styles.listsImage}
-              resizeMode="cover"
-            />
-          </View>
+            <View style={styles.featureCardsContainer}>
+              <Image
+                  source={require('@/assets/images/lists.png')}
+                  style={styles.listsImage}
+                  resizeMode="cover"
+              />
 
-          {/* Organize Groceries Card */}
-          <View style={styles.featureCard}>
-            <Text style={[styles.featureTitle, styles.textColor]}>Organize Groceries</Text>
-            <Text style={[styles.featureDescription, styles.textColor]}>
-              Never forget an item at the store again! Organize your grocery lists and watch your checkout totals stay on track.
-            </Text>
-          </View>
+              <View style={styles.featureCardsLeft}>
+                <View style={styles.featureCard}>
+                  <Text style={[styles.featureTitle, styles.textColor]}>Organize Groceries</Text>
+                  <Text style={[styles.featureDescription, styles.textColor]}>
+                    Never forget an item at the store again! Organize your grocery lists and watch your checkout totals stay on track.
+                  </Text>
+                </View>
 
-          {/* Share Your Lists Card */}
-          <View style={styles.featureCard}>
-            <Text style={[styles.featureTitle, styles.textColor]}>Share Your Lists</Text>
-            <Text style={[styles.featureDescription, styles.textColor]}>
-              Plan the perfect vacation together, in real-time. Share your travel wishlist and see each other's dream destinations appear.
-            </Text>
-          </View>
+                <View style={styles.featureCard}>
+                  <Text style={[styles.featureTitle, styles.textColor]}>Share Your Lists</Text>
+                  <Text style={[styles.featureDescription, styles.textColor]}>
+                    Plan the perfect vacation together, in real-time. Share your travel wishlist and see each other's dream destinations appear.
+                  </Text>
+                </View>
 
-          {/* View Updates Instantly Card */}
-          <View style={styles.featureCard}>
-            <Text style={[styles.featureTitle, styles.textColor]}>View Updates Instantly</Text>
-            <Text style={[styles.featureDescription, styles.textColor]}>
-              Never wait for an update again. Real-time magic means your list is always in sync, everywhere.
-            </Text>
+                <View style={styles.featureCard}>
+                  <Text style={[styles.featureTitle, styles.textColor]}>View Updates Instantly</Text>
+                  <Text style={[styles.featureDescription, styles.textColor]}>
+                    Never wait for an update again. Real-time magic means your list is always in sync, everywhere.
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -177,55 +128,59 @@ export default function DashboardScreen() {
           <Text style={[styles.sectionDescription, styles.textColor]}>
             Explore our latest features designed to improve your productivity.
           </Text>
-          <View style={styles.discoverCard}>
-            <Image
-              source={require('@/assets/images/click.png')}
-              style={styles.discoverImage}
-              resizeMode="cover"
-            />
-            <View style={styles.discoverContent}>
-              <Text style={[styles.featureTitle, styles.textColor]}>One-Click Bookmarks</Text>
-              <Text style={[styles.featureDescription, styles.textColor]}>
-                Access your favorite websites instantly with one-click bookmarks. No more sifting through tabs.
-              </Text>
+          <View style={styles.discoverCardsContainer}>
+            <View style={styles.discoverCard}>
+              <Image
+                source={require('@/assets/images/click.png')}
+                style={styles.discoverImage}
+                resizeMode="cover"
+              />
+              <View style={styles.discoverContent}>
+                <Text style={[styles.featureTitle, styles.textColor]}>One-Click Bookmarks</Text>
+                <Text style={[styles.featureDescription, styles.textColor]}>
+                  Access your favorite websites instantly with one-click bookmarks. No more sifting through tabs.
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.discoverCard}>
-            <Image
-              source={require('@/assets/images/anon.png')}
-              style={styles.discoverImage}
-              resizeMode="cover"
-            />
-            <View style={styles.discoverContent}>
-              <Text style={[styles.featureTitle, styles.textColor]}>Anonymous Mode</Text>
-              <Text style={[styles.featureDescription, styles.textColor]}>
-                Skip the sign-up and dive right in! Use Anonymous Mode to keep your lists and bookmarks private.
-              </Text>
+            <View style={styles.discoverCard}>
+              <Image
+                source={require('@/assets/images/anon.png')}
+                style={styles.discoverImage}
+                resizeMode="cover"
+              />
+              <View style={styles.discoverContent}>
+                <Text style={[styles.featureTitle, styles.textColor]}>Anonymous Mode</Text>
+                <Text style={[styles.featureDescription, styles.textColor]}>
+                  Skip the sign-up and dive right in! Use Anonymous Mode to keep your lists and bookmarks private.
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.discoverCard}>
-            <Image
-              source={require('@/assets/images/dark1.png')}
-              style={styles.discoverImage}
-              resizeMode="cover"
-            />
-            <View style={styles.discoverContent}>
-              <Text style={[styles.featureTitle, styles.textColor]}>Customize Display</Text>
-              <Text style={[styles.featureDescription, styles.textColor]}>
-                Customize your screen for day or night with a simple tap.
-              </Text>
+            <View style={styles.discoverCard}>
+              <Image
+                source={require('@/assets/images/dark1.png')}
+                style={styles.discoverImage}
+                resizeMode="cover"
+              />
+              <View style={styles.discoverContent}>
+                <Text style={[styles.featureTitle, styles.textColor]}>Customize Display</Text>
+                <Text style={[styles.featureDescription, styles.textColor]}>
+                  Customize your screen for day or night with a simple tap.
+                </Text>
+              </View>
             </View>
           </View>
         </View>
 
         {/* Start Using Listii Today Section */}
         <View style={styles.startUsingSection}>
-          <Text style={[styles.sectionTitle, styles.textColor]}>Start Using Listii Today!</Text>
-          <Text style={[styles.sectionDescription, styles.textColor]}>
-            Join the many individuals and teams who are becoming more organized and productive with Listii.
-          </Text>
+          <View>
+            <Text style={[styles.startUsingTitle, styles.textColor]}>Start Using Listii Today!</Text>
+            <Text style={[styles.startUsingDescription, styles.textColor]}>
+              Join the many individuals and teams who are becoming more organized and productive with Listii.
+            </Text>
+          </View>
           <View style={styles.buttonContainer}>
             <Link href='/signup' style={styles.signUpButton}>
               <Text style={styles.signUpButtonText}>Sign Up</Text>
@@ -241,98 +196,53 @@ export default function DashboardScreen() {
   );
 }
 
-const getStyles = (colors: any) => {
+const getStyles = (colors: any, isLargeScreen: boolean) => {
 
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+      
     },
     scrollContainer: {
       paddingBottom: 20,
       alignItems: 'center',
     },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: isSmallScreen ? 10 : 15,
-      width: '100%',
-    },
-    logo: {
-      fontSize: baseFontSize * 1.5,
-      fontWeight: 'bold',
-    },
-    headerButtons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    signInButton: {
-      backgroundColor: '#007bff',
-      paddingVertical: isSmallScreen ? 6 : 8,
-      paddingHorizontal: isSmallScreen ? 12 : 16,
-      borderRadius: 5,
-      marginRight: 10,
-    },
-    signInButtonText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      fontSize: baseFontSize,
-    },
-    anonymousModeButton: {
-      backgroundColor: colors.background,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 5,
-      paddingVertical: isSmallScreen ? 6 : 8,
-      paddingHorizontal: isSmallScreen ? 12 : 16,
-      marginRight: 10,
-    },
-    anonymousModeButtonText: {
-      color: colors.text,
-      fontWeight: 'bold',
-      fontSize: baseFontSize,
-    },
-    themeToggleImage: {
-      width: baseFontSize * 1.1,
-      height: baseFontSize * 1.1,
-    },
-    themeToggleButton: {
-      backgroundColor: colors.background,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 10,
-      borderRadius: 5,
-    },
     topSection: {
+      flexDirection: isLargeScreen ? 'row-reverse' : 'column',
       alignItems: 'center',
-      paddingHorizontal: 20,
       width: '100%',
+      justifyContent: 'space-around',
+      paddingVertical: isLargeScreen? screenWidth * 0.07: 10,
+      paddingHorizontal: isLargeScreen? 40: 20
+    },
+    topSectionContent: {
+      flex: 1,
+      paddingRight: isLargeScreen ? 40 : 0,
+      maxWidth: isLargeScreen ? screenWidth * 0.5 : '100%',
     },
     heroImage: {
-      width: screenWidth * 0.8,
-      height: 200,
+      width: isLargeScreen ? screenWidth * 0.4 : '100%',
+      height: isLargeScreen? screenWidth * 0.25: screenWidth * 0.5,
+      marginBottom: isLargeScreen ? 0 : 20,
     },
     title: {
-      fontSize: baseFontSize * 2,
+      fontSize: baseFontSize * (isLargeScreen ? 2.5 : 2),
       fontWeight: 'bold',
       textAlign: 'left',
       marginBottom: 10,
     },
     description: {
-      fontSize: baseFontSize,
+      fontSize: baseFontSize * (isLargeScreen ? 1.2 : 1),
       textAlign: 'left',
       marginBottom: 20,
     },
     buttonContainer: {
-      justifyContent: 'center',
+      flexDirection: isLargeScreen ? 'row' : 'column',
+      justifyContent: 'flex-start',
+      alignItems: isLargeScreen? 'center': undefined,
       marginBottom: 20,
-      // ...Platform.select({
-      //   web: {
-      //     flexDirection: screenWidth > 500? 'row': 'column',
-      //   },
-      // }),
     },
     getStartedButton: {
       backgroundColor: '#007bff',
@@ -340,13 +250,8 @@ const getStyles = (colors: any) => {
       paddingHorizontal: isSmallScreen ? 16 : 24,
       borderRadius: 5,
       textAlign: 'center',
-      marginBottom: 10,
-      // ...Platform.select({
-      //   web: {
-      //     flex: 1,
-      //     marginRight: 10,
-      //   },
-      // }),
+      marginBottom: isLargeScreen ? 0 : 10,
+      marginRight: isLargeScreen ? 10 : 0,
     },
     getStartedButtonText: {
       color: '#fff',
@@ -370,6 +275,7 @@ const getStyles = (colors: any) => {
       width: '100%',
       alignItems: 'center',
       backgroundColor: colors.secondaryBg,
+      paddingVertical: isLargeScreen? screenWidth * 0.07: 20,
     },
     sectionTitle: {
       fontSize: baseFontSize * 1.5,
@@ -379,21 +285,36 @@ const getStyles = (colors: any) => {
     },
     sectionDescription: {
       fontSize: baseFontSize,
-      // textAlign: 'center',
       marginBottom: 20,
-    },
-    listsImage: {
-      width: '100%',
-      height: 200,
-      borderRadius: 12,
+      textAlign: 'center',
     },
     featureSection: {
       width: '100%',
       alignItems: 'center',
     },
+    featureCardsContainer: { // Add this container
+        ...Platform.select({
+          web: {
+            width: isLargeScreen ? '70%': '100%',
+          }
+        }),
+        justifyContent: 'center',
+        alignItems: isLargeScreen? 'flex-start': 'center',
+        marginTop: 20,
+        flexDirection: isLargeScreen ? 'row-reverse' : 'column',
+    },
+    listsImage: {
+      maxWidth: isLargeScreen ? screenWidth * 0.4 : '100%',
+      maxHeight: 280,
+      borderRadius: 12,
+      paddingBottom: 20,
+    },
+    featureCardsLeft: {
+      maxWidth: isLargeScreen ? screenWidth * 0.4 : '100%',
+      paddingRight: isLargeScreen? 20: 0,
+    },
     featureCard: {
-      paddingVertical: 20,
-      width: '100%',
+      paddingBottom: 20,
     },
     featureTitle: {
       fontSize: baseFontSize * 1.2,
@@ -406,16 +327,22 @@ const getStyles = (colors: any) => {
       textAlign: 'left',
     },
     discoverSection: {
-      padding: 20,
       width: '100%',
       alignItems: 'center',
+      paddingVertical: isLargeScreen? screenWidth * 0.07: 20,
+      paddingHorizontal: isLargeScreen? 40: 20
     },
     newFeaturesLabel: {
       fontSize: baseFontSize,
       marginBottom: 5,
     },
+    discoverCardsContainer: {
+      flexDirection: isLargeScreen ? 'row' : 'column',
+      gap: isLargeScreen? 20: undefined,
+      justifyContent: 'center'
+    },
     discoverCard: {
-      width: '100%',
+      width: isLargeScreen ? '30%' : undefined,
       borderWidth: 1,
       borderColor: colors.border,
       marginVertical: 15,
@@ -434,19 +361,32 @@ const getStyles = (colors: any) => {
       borderTopRightRadius: 20,
     },
     startUsingSection: {
-      padding: 20,
       width: '100%',
-      // alignItems: 'center',
-      backgroundColor: colors.secondaryBg
+      backgroundColor: colors.secondaryBg,
+      flexDirection: isLargeScreen ? 'row' : 'column',
+      justifyContent: 'space-between',
+      paddingVertical: isLargeScreen? screenWidth * 0.07: 20,
+      paddingHorizontal: isLargeScreen? 40: 20
+    },
+    startUsingTitle: {
+      fontSize: baseFontSize * 1.5,
+      fontWeight: 'bold',
+      marginBottom: 15,
+      textAlign: isLargeScreen? 'left':'center',
+    },
+    startUsingDescription: {
+      fontSize: baseFontSize,
+      marginBottom: 20,
+      textAlign: isLargeScreen? 'left':'center',
     },
     signUpButton: {
       backgroundColor: '#007bff',
       paddingVertical: isSmallScreen ? 8 : 12,
       paddingHorizontal: isSmallScreen ? 16 : 24,
       borderRadius: 5,
-      // marginRight: 10,
       textAlign: 'center',
-      marginBottom: 10
+      marginBottom: isLargeScreen? 0: 10,
+      marginRight: isLargeScreen? 10: 0
     },
     signUpButtonText: {
       color: '#fff',
@@ -460,4 +400,4 @@ const getStyles = (colors: any) => {
       backgroundColor: colors.background
     }
   });
-}
+};
