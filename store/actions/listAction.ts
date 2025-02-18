@@ -1,11 +1,13 @@
 import supabase from '@/supabase';
 import { Dispatch } from 'redux';
+import store from '@/store';
+import { v4 as uuidv4 } from 'uuid';
 import { setList, addList, deleteList,
-    updateList, duplicateList, archiveList, restoreList } from '@/store/reducers/listSlice';
-import { setItems as setItemsGrocery } from '@/store/reducers/groceryReducer';
-import { setItems as setItemsBookmark } from '@/store/reducers/bookmarkReducer';
-import { setItems as setItemsTodo } from '@/store/reducers/todoReducer';
-import { setItems as setItemsNote } from '@/store/reducers/noteReducer';
+    updateList, archiveList, restoreList } from '@/store/reducers/listSlice';
+import { setItems as setItemsGrocery, addItems as addItemsGrocery } from '@/store/reducers/groceryReducer';
+import { setItems as setItemsBookmark, addItems as addItemsBookmark } from '@/store/reducers/bookmarkReducer';
+import { setItems as setItemsTodo, addItems as addItemsTodo } from '@/store/reducers/todoReducer';
+import { setItems as setItemsNote, addItems as addItemsNote } from '@/store/reducers/noteReducer';
 
 const table_name = 'lists';
 
@@ -107,19 +109,94 @@ export async function updateListByDB(nData: any, dispatch: Dispatch) {
 
 export async function duplicateListByDB(userId: string, nData: any, dispatch: Dispatch) {
     const {id, name, type, is_archive} = nData;
+    let listItems: any = [];
+    let item_table_name = '';
+    switch (type) {
+        case 'Note':
+        listItems = store.getState().note.listitems[id];
+        item_table_name = 'note_items';
+        break;
+        case 'Bookmark':
+        listItems = store.getState().bookmark.listitems[id];
+        item_table_name = 'bookmark_items';
+        break;
+        case 'ToDo':
+        listItems = store.getState().todo.listitems[id];
+        item_table_name = 'todo_items';
+        break;
+        case 'Grocery':
+        listItems = store.getState().grocery.listitems[id];
+        item_table_name = 'grocery_items';
+        break;
+    }
+
     if (userId) {
         const { data, error } = await supabase
         .from(table_name)
         .insert([{ user_id: userId, name, type, is_archive }])
-        .eq("user_id", userId);
+        .select('*');
 
         if (error) {
             console.error("Error inserting user:", error);
+        }
+
+        const filteredData = listItems.map(({ created_at, id, ...rest }) => ({
+            ...rest,
+            list_id: data[0].id
+        }));
+
+        const itemLists = await supabase
+        .from(item_table_name)
+        .insert(filteredData)
+        .select('*');
+
+        if (itemLists.error) {
+            console.error("Error inserting user:", itemLists.error);
+            await supabase.from(table_name).delete().eq("user_id", userId).eq("id", data[0].id);
         } else {
-            dispatch(duplicateList(id));
+            dispatch((dispatch) => {
+                dispatch(addList(data[0]));
+                switch (type) {
+                    case 'Note':
+                        dispatch(addItemsNote({ listId: data[0].id, items: itemLists.data}));
+                    break;
+                    case 'Bookmark':
+                        dispatch(addItemsBookmark({ listId: data[0].id, items: itemLists.data}));
+                    break;
+                    case 'ToDo':
+                        dispatch(addItemsTodo({ listId: data[0].id, items: itemLists.data}));
+                    break;
+                    case 'Grocery':
+                        dispatch(addItemsGrocery({ listId: data[0].id, items: itemLists.data}));
+                    break;
+                }
+            });
         }
     }else {
-        dispatch(duplicateList(id));
+        const listId = uuidv4();
+        const filteredData = listItems.map(({ created_at, ...rest }) => ({
+            ...rest,
+            id: uuidv4(),
+            list_id: listId
+        }));
+
+        dispatch((dispatch) => {
+            dispatch(addList({...nData, id: listId}));
+            switch (type) {
+                case 'Note':
+                    dispatch(addItemsNote({ listId, items: filteredData}));
+                break;
+                case 'Bookmark':
+                    dispatch(addItemsBookmark({ listId, items: filteredData}));
+                break;
+                case 'ToDo':
+                    dispatch(addItemsTodo({ listId, items: filteredData}));
+                break;
+                case 'Grocery':
+                    dispatch(addItemsGrocery({ listId, items: filteredData}));
+                break;
+            }
+        });
     }
 }
 

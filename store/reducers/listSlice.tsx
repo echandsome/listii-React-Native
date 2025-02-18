@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { v4 as uuidv4 } from 'uuid';
 import { createSelector } from 'reselect'
 
 interface List {
@@ -35,21 +34,6 @@ const listSlice = createSlice({
                 list.id === id ? { ...list, ...updates } : list
             );
         },
-        duplicateList: (state, action: PayloadAction<string>) => {
-            const idToDuplicate = action.payload;
-            const listToDuplicate = state.lists.find((list) => list.id === idToDuplicate);
-
-            if (listToDuplicate) {
-                // Generate a new ID for the duplicated item
-                const newId = uuidv4();
-
-                // Create a deep copy of the list item (to avoid modifying the original)
-                const duplicatedList = { ...listToDuplicate, id: newId };
-
-                state.lists = [...state.lists, duplicatedList];
-            }
-        },
-
         // Modified: reducer to archive a list (set is_archive to true)
         archiveList: (state, action: PayloadAction<string>) => {
             const itemId = action.payload;
@@ -71,7 +55,7 @@ const listSlice = createSlice({
     },
 });
 
-export const { setList, addList, deleteList, updateList, duplicateList, archiveList, restoreList } = listSlice.actions;
+export const { setList, addList, deleteList, updateList, archiveList, restoreList } = listSlice.actions;
 
 export const selectListById = (state: any, itemId: string) => {
     return state.list.lists.find((list: any) => list.id === itemId);
@@ -81,12 +65,12 @@ const selectListsState = (state: any) => state.list.lists;
 
 export const selectLists = createSelector(
   [selectListsState],
-  (lists) => lists.filter((list) => !list.is_archive).reverse()
+  (lists) => lists.filter((list: any) => !list.is_archive).reverse()
 );
 
 export const selectArchiveLists = createSelector(
   [selectListsState],
-  (lists) => lists.filter((list) => list.is_archive).reverse()
+  (lists) => lists.filter((list: any) => list.is_archive).reverse()
 );
 
 

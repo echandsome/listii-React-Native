@@ -22,6 +22,15 @@ const noteSlice = createSlice({
     setItems: (state, action) => {
       state.listitems = action.payload;
     },
+    addItems: (state, action) => {
+      const { listId, items } = action.payload;
+    
+      if (!state.listitems[listId]) {
+        state.listitems[listId] = [];
+      }
+      
+      state.listitems[listId] = state.listitems[listId].concat(items);
+    },
     addItem: (state, action: PayloadAction<{ listId: string, item: NoteItem }>) => {
       const { listId, item } = action.payload;
       if (state.listitems[listId]) {
@@ -93,6 +102,7 @@ const noteSlice = createSlice({
 
 export const {
   setItems,
+  addItems,
   addItem,
   removeItem,
   updateItem,

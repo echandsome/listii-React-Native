@@ -24,6 +24,15 @@ const grocerySlice = createSlice({
     setItems: (state, action) => {
       state.listitems = action.payload;
     },
+    addItems: (state, action) => {
+      const { listId, items } = action.payload;
+    
+      if (!state.listitems[listId]) {
+        state.listitems[listId] = [];
+      }
+      
+      state.listitems[listId] = state.listitems[listId].concat(items);
+    },
     addItem: (state, action: PayloadAction<{ listId: string, item: GroceryItem }>) => {
       const { listId, item } = action.payload;
       if (state.listitems[listId]) {
@@ -103,6 +112,7 @@ const grocerySlice = createSlice({
 
 export const {
   setItems,
+  addItems,
   addItem,
   removeItem,
   updateItem,
