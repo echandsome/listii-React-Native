@@ -7,12 +7,12 @@ import {
   Modal,
   TextInput,
   Pressable,
-  Dimensions,
   Platform
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 
 import SelectInput from '@/components/ui/SelectInput';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface NewListModalProps {
   visible: boolean;
@@ -66,14 +66,16 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
           </View>
 
           <View style={styles.newListModalBody}>
-            <Text style={[styles.textColor, styles.label]}>Name</Text>
-            <TextInput
-              style={[styles.input, styles.textColor]}
-              value={listName}
-              onChangeText={setListName}
-              placeholder="List Name"
-              placeholderTextColor={(styles.placeholder as any).color}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={[styles.textColor, styles.label]}>Name</Text>
+              <TextInput
+                style={[styles.input, styles.textColor]}
+                value={listName}
+                onChangeText={setListName}
+                placeholder="List Name"
+                placeholderTextColor={(styles.placeholder as any).color}
+              />
+            </View>
 
             <SelectInput
               label="List Type"
@@ -95,10 +97,6 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
 };
 
 const getModalStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     modalListOverlay: {
@@ -143,17 +141,23 @@ const getModalStyles = (colors: any) => {
     newListModalBody: {
       marginBottom: isSmallScreen ? 8 : 15,
     },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center', // Added to vertically align label and input
+      marginBottom: isSmallScreen ? 5 : 10,
+    },
     label: {
       fontSize: baseFontSize,
-      marginBottom: isSmallScreen ? 3 : 5,
+      marginRight: 10, // Added to create space between label and input
+      width: '25%', // Adjust as needed for label width
     },
     input: {
+      flex: 1,
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 4,
       paddingVertical: isSmallScreen ? 6 : 8,
       paddingHorizontal: isSmallScreen ? 8 : 12,
-      marginBottom: isSmallScreen ? 5 : 10,
       fontSize: baseFontSize,
       color: colors.text,
     },

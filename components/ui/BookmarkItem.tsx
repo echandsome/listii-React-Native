@@ -5,29 +5,24 @@ import {
   View,
   TouchableOpacity,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
 import { ExternalLink } from '../ExternalLink';
-
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
-const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-const isSmallScreen = screenWidth < 375;
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface BookmarkItemProps {
   item: {
     id: string;
     name: string;
     path?: string; // Optional path
-    isCart: boolean;
+    is_check: boolean;
   };
   openMenuModal: (ref: React.RefObject<TouchableOpacity>, itemId: string) => void;
-  handleToggleCart: (itemId: string) => void;
+  handleToggleCheck: (itemId: string) => void;
 }
 
-const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handleToggleCart }) => {
+const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handleToggleCheck }) => {
   const { colors } = useTheme();
   const menuButtonRef = useRef<TouchableOpacity>(null);
 
@@ -37,11 +32,11 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
         <View style={styles.header}>
           <View style={styles.content}>
             <TouchableOpacity
-              onPress={() => handleToggleCart(item.id)}
+              onPress={() => handleToggleCheck(item.id)}
               style={styles.checkboxContainer}
             >
               <Ionicons
-                name={item.isCart ? 'checkbox-outline' : 'square-outline'}
+                name={item.is_check ? 'checkbox-outline' : 'square-outline'}
                 size={baseFontSize * 1.5}
                 color={colors.text}
               />

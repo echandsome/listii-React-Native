@@ -8,9 +8,9 @@ import {
   TextInput,
   Pressable,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface AddItemNoteModalProps {
   visible: boolean;
@@ -67,26 +67,30 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
           </View>
 
           <View style={styles.modalBody}>
-            <Text style={[styles.label, { color: colors.text }]}>Name</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={name}
-              onChangeText={setName}
-              placeholder="Name"
-              placeholderTextColor={(styles.placeholder as any).color}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Name</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                value={name}
+                onChangeText={setName}
+                placeholder="Name"
+                placeholderTextColor={(styles.placeholder as any).color}
+              />
+            </View>
 
-            <Text style={[styles.label, { color: colors.text }]}>Note</Text>
-            <TextInput
-              style={[styles.noteInput, { color: colors.text, borderColor: colors.border }]}
-              value={note}
-              onChangeText={setNote}
-              placeholder="Note"
-              placeholderTextColor={(styles.placeholder as any).color}
-              multiline={true}
-              numberOfLines={5}
-              textAlignVertical="top"
-            />
+            <View style={styles.noteInputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Note</Text>
+              <TextInput
+                style={[styles.noteInput, { color: colors.text, borderColor: colors.border }]}
+                value={note}
+                onChangeText={setNote}
+                placeholder="Note"
+                placeholderTextColor={(styles.placeholder as any).color}
+                multiline={true}
+                numberOfLines={5}
+                textAlignVertical="top"
+              />
+            </View>
           </View>
 
           <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
@@ -99,10 +103,6 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
 };
 
 const getModalStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     modalOverlay: {
@@ -161,24 +161,36 @@ const getModalStyles = (colors: any) => {
     modalBody: {
       marginBottom: isSmallScreen ? 8 : 15,
     },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 5 : 10,
+    },
+    noteInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start', // Important for multiline TextInput
+      marginBottom: isSmallScreen ? 5 : 10,
+    },
     label: {
       fontSize: baseFontSize,
-      marginBottom: isSmallScreen ? 3 : 5,
+      marginBottom: 0,
+      marginRight: 10,
+      width: '25%',
     },
     input: {
+      flex: 1,
       borderWidth: 1,
       borderRadius: 4,
       paddingVertical: isSmallScreen ? 6 : 8,
       paddingHorizontal: isSmallScreen ? 8 : 12,
-      marginBottom: isSmallScreen ? 5 : 10,
       fontSize: baseFontSize,
     },
     noteInput: {
+      flex: 1,
       borderWidth: 1,
       borderRadius: 4,
       paddingVertical: isSmallScreen ? 6 : 8,
       paddingHorizontal: isSmallScreen ? 8 : 12,
-      marginBottom: isSmallScreen ? 5 : 10,
       fontSize: baseFontSize,
       minHeight: 60,
       textAlignVertical: 'top',

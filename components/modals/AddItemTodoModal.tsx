@@ -8,10 +8,10 @@ import {
   TextInput,
   Pressable,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import SelectInput from '@/components/ui/SelectInput';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface AddItemTodoModalProps {
   visible: boolean;
@@ -74,14 +74,16 @@ const AddItemTodoModal: React.FC<AddItemTodoModalProps> = ({ visible, onClose, o
           </View>
 
           <View style={styles.modalBody}>
-            <Text style={[styles.label, { color: colors.text }]}>Name</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={name}
-              onChangeText={setName}
-              placeholder="Item Name"
-              placeholderTextColor={(styles.placeholder as any).color}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Name</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                value={name}
+                onChangeText={setName}
+                placeholder="Item Name"
+                placeholderTextColor={(styles.placeholder as any).color}
+              />
+            </View>
 
             <SelectInput
               label="Priority"
@@ -103,10 +105,6 @@ const AddItemTodoModal: React.FC<AddItemTodoModalProps> = ({ visible, onClose, o
 };
 
 const getModalStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     modalOverlay: {
@@ -165,16 +163,28 @@ const getModalStyles = (colors: any) => {
     modalBody: {
       marginBottom: isSmallScreen ? 8 : 15,
     },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 5 : 10,
+    },
+    selectContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 5 : 10,
+    },
     label: {
       fontSize: baseFontSize,
-      marginBottom: isSmallScreen ? 3 : 5,
+      marginBottom: 0,
+      marginRight: 10,
+      width: '25%',
     },
     input: {
+      flex: 1,
       borderWidth: 1,
       borderRadius: 4,
       paddingVertical: isSmallScreen ? 6 : 8,
       paddingHorizontal: isSmallScreen ? 8 : 12,
-      marginBottom: isSmallScreen ? 5 : 10,
       fontSize: baseFontSize,
     },
     placeholder: {

@@ -6,9 +6,9 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 const ThemeModal = ({ visible, onClose, setTheme, buttonLayout }) => {
   const { colors } = useTheme();
@@ -65,10 +65,6 @@ const ThemeModal = ({ visible, onClose, setTheme, buttonLayout }) => {
 };
 
 const getModalStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     modalOverlay: {

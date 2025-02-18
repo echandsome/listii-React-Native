@@ -10,11 +10,7 @@ import {
 } from 'react-native';
 import { Theme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Example icon library - install it! (npm install react-native-vector-icons)
-
-const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface SelectInputProps {
   label: string;
@@ -70,8 +66,15 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
   }, [showOptions, handleClickOutside]);
 
   return (
-    <View style={style}>
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+    <View style={[style, styles.container]}>
+      {
+        label != ''? (
+          <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        ): (
+          <></>
+        )
+      }
+      
       <TouchableOpacity
         style={styles.selectContainer}
         onPress={() => setShowOptions(!showOptions)}
@@ -107,6 +110,11 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
 const getSelectInputStyles = (colors: any) => {
 
   return StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      zIndex: 100
+    },
     selectContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -116,8 +124,8 @@ const getSelectInputStyles = (colors: any) => {
       borderRadius: 4,
       paddingVertical: isSmallScreen ? 6 : 8,
       paddingHorizontal: isSmallScreen ? 8 : 12,
-      marginBottom: 10,
       backgroundColor: colors.background,
+      flex: 1, // Take remaining space
     },
     selectText: {
       fontSize: baseFontSize,
@@ -128,7 +136,7 @@ const getSelectInputStyles = (colors: any) => {
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 4,
-      zIndex: 1,
+      zIndex: 100,
       ...Platform.select({
         ios: {
           shadowColor: '#000',
@@ -154,7 +162,8 @@ const getSelectInputStyles = (colors: any) => {
     },
     label: {
       fontSize: baseFontSize,
-      marginBottom: 5,
+      marginRight: 10,
+      width: '25%', // Adjust as needed for label width
     }
   });
 };

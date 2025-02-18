@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import 'react-native-get-random-values';
+import Toast from 'react-native-toast-message'; 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { toggleTheme, selectThemeMode } from "@/store/reducers/themeSlice";
 import { MyLightTheme, MyDarkTheme } from "@/constants/CustomTheme";
@@ -38,6 +40,7 @@ export default function AppNavigator() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style={themeMode === "light" ? "dark" : "light"} />
+        <Toast />
       </NavigationThemeProvider>
     </ThemeContext.Provider>
   );

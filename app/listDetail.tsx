@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,7 +10,6 @@ import {
   Image,
   ScrollView,
   Clipboard,
-  Dimensions
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,6 +21,10 @@ import * as groceryReducer from '@/store/reducers/groceryReducer';
 import * as todoReducer from '@/store/reducers/todoReducer';
 import * as bookmarkReducer from '@/store/reducers/bookmarkReducer';
 import * as noteReducer from '@/store/reducers/noteReducer';
+import * as groceryAction from '@/store/actions/groceryAction';
+import * as bookmarkAction from '@/store/actions/bookmarkAction';
+import * as todoAction from '@/store/actions/todoAction';
+import * as noteAction from '@/store/actions/noteAction';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 import AddItemGroceryModal from '@/components/modals/AddItemGroceryModal';
@@ -42,18 +45,11 @@ import BookmarkItem from '@/components/ui/BookmarkItem';
 import NoteItem from '@/components/ui/NoteItem';
 
 import { images } from '@/constants/Resources';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 // Define Types
 interface ColorsType {
   text: string;
-}
-
-interface ItemType {
-  id: string;
-  isCart: boolean;
-  price?: string;
-  quantity?: number;
-  note?: string;
 }
 
 interface LocalSearchParams {
@@ -78,33 +74,48 @@ const ListDetailScreen = () => {
 
   const dispatch = useDispatch();
 
-  let itemlist = [];
+  const userInfo = useSelector((state) => state.auth);
+  const userId = useMemo(() => userInfo.user? userInfo.user.id: null, [userInfo]);
+
   let tempReducer: any;
+  let tempAction: any;
 
   switch (category.type) {
     case 'Grocery':
-      itemlist = [...useSelector((state: any) => state.grocery.items)].reverse();
       tempReducer = groceryReducer;
+      tempAction = groceryAction;
       break;
     case 'ToDo':
-      itemlist = [...useSelector((state: any) => state.todo.items)].reverse();
       tempReducer = todoReducer;
+      tempAction = todoAction;
       break;
     case 'Bookmark':
-      itemlist = [...useSelector((state: any) => state.bookmark.items)].reverse();
       tempReducer = bookmarkReducer;
+      tempAction = bookmarkAction;
       break;
     case 'Note':
-      itemlist = [...useSelector((state: any) => state.note.items)].reverse();
       tempReducer = noteReducer;
+      tempAction = noteAction;
       break;
   }
 
-  const { addItem, updateItem, removeItem, setAllItemsFalse, setAllItemsTrue, removeItemsFalse, removeItemsTrue } = tempReducer;
+  let itemlist = useSelector(state => tempReducer.selectItemsByListId(state));
+  itemlist = useMemo(() => {
+    try {
+      if (itemlist == undefined) return [];
+      else return [...itemlist[category.id]].reverse();
+    }catch(e) {
+      return [];
+    }
+  }, [itemlist]);
+  
+  
+  const { addItemByDB, updateItemByDB, removeItemByDB, updateAllItemsTrueByDB, 
+    updateAllItemsFalseByDB, removeItemsFalseByDB, removeItemsTrueByDB } = tempAction;
 
   const themeMode = useSelector(selectThemeMode);
 
-  const [selectedItem, setSelectedItem] = useState<ItemType | null>(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
   const [buttonLayout, setButtonLayout] = useState<LayoutType>({ x: 0, y: 0, width: 0, height: 0 });
   const [isAddItemModalVisible, setIsAddItemModalVisible] = useState(false);
@@ -117,8 +128,8 @@ const ListDetailScreen = () => {
   const [showCartItems, setShowCartItems] = useState(true);
   const [showListItems, setShowListItems] = useState(true);
 
-  const cartItems = useMemo(() => itemlist.filter((item) => item.isCart), [itemlist]);
-  const listItems = useMemo(() => itemlist.filter((item) => !item.isCart), [itemlist]);
+  const cartItems = useMemo(() => itemlist.filter((item) => item.is_check), [itemlist]);
+  const listItems = useMemo(() => itemlist.filter((item) => !item.is_check), [itemlist]);
 
 
   const handleToggleTheme = useCallback((event: string) => {
@@ -146,19 +157,19 @@ const ListDetailScreen = () => {
   const handleAlert = useCallback(() => {
     if (selectedStatus === 'Check items' ||
       selectedStatus === 'Check bookmarks' || selectedStatus === 'Check notes') {
-      dispatch(setAllItemsTrue());
+        updateAllItemsTrueByDB({userId, listId: category.id}, dispatch);
     } else if (selectedStatus === 'Clear unchecked items' ||
       selectedStatus === 'Clear active bookmarks' || selectedStatus === 'Clear notes') {
-      dispatch(removeItemsFalse());
+        removeItemsFalseByDB({userId, listId: category.id}, dispatch);
     } else if (selectedStatus === 'Uncheck cart'
       || selectedStatus === 'Uncheck tasks' || selectedStatus === 'Uncheck bookmarks' || selectedStatus === 'Uncheck notes') {
-      dispatch(setAllItemsFalse());
+        updateAllItemsFalseByDB({userId, listId: category.id}, dispatch);
     } else if (selectedStatus === 'Clear cart'
       || selectedStatus === 'Clear completed tasks' || selectedStatus === 'Clear hidden bookmarks' || selectedStatus === 'Clear hidden notes') {
-      dispatch(removeItemsTrue());
+        removeItemsTrueByDB({userId, listId: category.id}, dispatch);
     }
     setAlertModalVisible(false);
-  }, [dispatch, selectedStatus, setAllItemsTrue, removeItemsFalse, setAllItemsFalse, removeItemsTrue, setAlertModalVisible]);
+  }, [dispatch, selectedStatus, updateAllItemsTrueByDB, removeItemsFalseByDB, updateAllItemsFalseByDB, removeItemsTrueByDB, setAlertModalVisible]);
 
   let listTypes: string[] = [];
   if (listItems.length > 0) {
@@ -217,28 +228,28 @@ const ListDetailScreen = () => {
 
   const handleAddNewItem = useCallback((item: any, mode: string) => {
     if (mode === 'add') {
-      dispatch(addItem({ ...item, id: uuidv4() }));
+      addItemByDB({ userId, listId: category.id, item: {...item, id: uuidv4()} }, dispatch);
     } else {
-      dispatch(updateItem({ ...item, id: selectedItem!.id }));
+      updateItemByDB({ userId, listId: category.id, item: {...item, id: selectedItem!.id} }, dispatch);
     }
 
     setSelectedItem(null);
     closeAddItemModal();
-  }, [dispatch, addItem, updateItem, selectedItem, closeAddItemModal]);
+  }, [dispatch, addItemByDB, updateItemByDB, selectedItem, closeAddItemModal]);
 
-  const calculateTotal = useCallback((items: ItemType[]) => {
+  const calculateTotal = useCallback((items: any[]) => {
     return items.reduce((sum, item) => sum + (parseFloat(item.price || '0') * (item.quantity || 1)), 0);
   }, []);
 
   const cartTotal = useMemo(() => calculateTotal(cartItems), [cartItems, calculateTotal]);
   const listTotal = useMemo(() => calculateTotal(listItems), [listItems, calculateTotal]);
 
-  const handleToggleCart = useCallback((itemId: string) => {
+  const handleToggleCheck = useCallback((itemId: string) => {
     const itemToUpdate = itemlist.find((item) => item.id === itemId);
     if (itemToUpdate) {
-      dispatch(updateItem({ ...itemToUpdate, isCart: !itemToUpdate.isCart }));
+      updateItemByDB({ userId, listId: category.id, item: {...itemToUpdate, is_check: !itemToUpdate.is_check} }, dispatch);
     }
-  }, [itemlist, dispatch, updateItem]);
+  }, [itemlist, dispatch, updateItemByDB]);
 
   const [isVisible, setVisible] = useState<boolean | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -262,11 +273,11 @@ const ListDetailScreen = () => {
 
   const handleDelete = useCallback(() => {
     if (selectedItem) {
-      dispatch(removeItem(selectedItem.id));
+      removeItemByDB({userId, listId: category.id, itemId: selectedItem.id}, dispatch);
       setSelectedItem(null);
       setDeleteModalVisible(false);
     }
-  }, [dispatch, removeItem, selectedItem, setAlertModalVisible, setDeleteModalVisible]);
+  }, [dispatch, removeItemByDB, selectedItem, setAlertModalVisible, setDeleteModalVisible]);
 
   const handleItemMenu = useCallback((data: any) => {
     let item = itemlist.find((item: { id: string; }) => item.id === data.id);
@@ -275,9 +286,6 @@ const ListDetailScreen = () => {
     else if (data.type == 'delete') setDeleteModalVisible(true);
     else if (data.type == 'copy') Clipboard.setString(item.note);
   }, [itemlist, setSelectedItem, openAddItemModal, setDeleteModalVisible]);
-
-  const { width } = Dimensions.get('window');
-  const baseFontSize = Math.min(width, Dimensions.get('window').height) * 0.04;
 
   return (
     <SafeAreaView style={[styles.container, styles.bgColor]}>
@@ -324,126 +332,174 @@ const ListDetailScreen = () => {
           options={listTypes}
           onSelect={handleSelectListType}
           colors={colors}
-          style={{ width: width * 0.5 }}
+          style={{ width: screenWidth * 0.5, paddingVertical: 10 }}
         />
 
         {category.type === 'Grocery' && (
           <>
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
-              <Text style={{fontSize: baseFontSize}}>
-                <Text style={{color: '#007bff'}}>{listItems.length}</Text> list items totaling: R{listTotal}</Text>
-              {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-            </TouchableOpacity>
-            {showListItems && (
-              <View>
-                {listItems.map(item => (
-                  <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCart={handleToggleCart} />
-                ))}
-              </View>
-            )}
+            {
+              listItems.length > 0? (
+                <>
+                <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
+                  <Text style={{fontSize: baseFontSize}}>
+                    <Text style={{color: '#007bff'}}>{listItems.length}</Text> list items totaling: R{listTotal}</Text>
+                  {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
+                </TouchableOpacity>
+                {showListItems && (
+                  <View>
+                    {listItems.map(item => (
+                      <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                    ))}
+                  </View>
+                )}
+                </>
+              ): (<></>)
+            }
 
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
-              <Text style={{fontSize: baseFontSize}}>
-              <Text style={{color: '#007bff'}}>{cartItems.length}</Text> cart items totaling: R{cartTotal}</Text>
-              {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-            </TouchableOpacity>
-            {showCartItems && (
-              <View>
-                {cartItems.map(item => (
-                  <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCart={handleToggleCart} />
-                ))}
-              </View>
-            )}
+            {
+              cartItems.length > 0? (
+                <>
+                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
+                    <Text style={{fontSize: baseFontSize}}>
+                    <Text style={{color: '#007bff'}}>{cartItems.length}</Text> cart items totaling: R{cartTotal}</Text>
+                    {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
+                  </TouchableOpacity>
+                  {showCartItems && (
+                    <View>
+                      {cartItems.map(item => (
+                        <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                      ))}
+                    </View>
+                  )}
+                </>
+              ): (<></>)
+            }
           </>
         )}
 
         {category.type === 'ToDo' && (
           <>
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
-              <Text style={{fontSize: baseFontSize}}>
-                <Text style={{color: '#007bff'}}>{listItems.length}</Text> task in progress</Text>
-              {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-            </TouchableOpacity>
-            {showListItems && (
-              <View>
-                {listItems.map(item => (
-                  <TodoItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCart={handleToggleCart} />
-                ))}
-              </View>
-            )}
+            {
+              listItems.length > 0? (
+                <>
+                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
+                    <Text style={{fontSize: baseFontSize}}>
+                      <Text style={{color: '#007bff'}}>{listItems.length}</Text> task in progress</Text>
+                    {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
+                  </TouchableOpacity>
+                  {showListItems && (
+                    <View>
+                      {listItems.map(item => (
+                        <TodoItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                      ))}
+                    </View>
+                  )}
+                </>
+              ): (<></>)
+            }
 
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
-              <Text style={{fontSize: baseFontSize}}>
-              <Text style={{color: '#007bff'}}>{cartItems.length}</Text> task completed</Text>
-              {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-            </TouchableOpacity>
-            {showCartItems && (
-              <View>
-                {cartItems.map(item => (
-                  <TodoItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCart={handleToggleCart} />
-                ))}
-              </View>
-            )}
+            {
+              cartItems.length > 0? (
+                <>
+                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
+                    <Text style={{fontSize: baseFontSize}}>
+                    <Text style={{color: '#007bff'}}>{cartItems.length}</Text> task completed</Text>
+                    {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
+                  </TouchableOpacity>
+                  {showCartItems && (
+                    <View>
+                      {cartItems.map(item => (
+                        <TodoItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                      ))}
+                    </View>
+                  )}
+                </>
+              ): (<></>)
+            }
           </>
         )}
 
         {category.type === 'Bookmark' && (
           <>
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
-              <Text style={{fontSize: baseFontSize}}>
-              <Text style={{color: '#007bff'}}>{listItems.length}</Text> bookmarks active</Text>
-              {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-            </TouchableOpacity>
-            {showListItems && (
-              <View>
-                {listItems.map(item => (
-                  <BookmarkItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCart={handleToggleCart} />
-                ))}
-              </View>
-            )}
+            {
+              listItems.length > 0? (
+                <>
+                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
+                    <Text style={{fontSize: baseFontSize}}>
+                    <Text style={{color: '#007bff'}}>{listItems.length}</Text> bookmarks active</Text>
+                    {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
+                  </TouchableOpacity>
+                  {showListItems && (
+                    <View>
+                      {listItems.map(item => (
+                        <BookmarkItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                      ))}
+                    </View>
+                  )}
+                </>
+              ): (<></>)
+            }
 
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
-              <Text style={{fontSize: baseFontSize}}>
-              <Text style={{color: '#007bff'}}>{cartItems.length}</Text> bookmarks hidden</Text>
-              {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-            </TouchableOpacity>
-            {showCartItems && (
-              <View>
-                {cartItems.map(item => (
-                  <BookmarkItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCart={handleToggleCart} />
-                ))}
-              </View>
-            )}
+            {
+              cartItems.length > 0? (
+                <>
+                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
+                    <Text style={{fontSize: baseFontSize}}>
+                    <Text style={{color: '#007bff'}}>{cartItems.length}</Text> bookmarks hidden</Text>
+                    {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
+                  </TouchableOpacity>
+                  {showCartItems && (
+                    <View>
+                      {cartItems.map(item => (
+                        <BookmarkItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                      ))}
+                    </View>
+                  )}
+                </>
+              ): (<></>)
+            }
           </>
         )}
 
         {category.type === 'Note' && (
           <>
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
-              <Text style={{fontSize: baseFontSize}}>
-              <Text style={{color: '#007bff'}}>{listItems.length}</Text> notes active</Text>
-              {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-            </TouchableOpacity>
-            {showListItems && (
-              <View>
-                {listItems.map(item => (
-                  <NoteItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCart={handleToggleCart} />
-                ))}
-              </View>
-            )}
+            {
+              listItems.length > 0? (
+                <>
+                 <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowListItems(!showListItems)}>
+                  <Text style={{fontSize: baseFontSize}}>
+                  <Text style={{color: '#007bff'}}>{listItems.length}</Text> notes active</Text>
+                  {showListItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
+                </TouchableOpacity>
+                {showListItems && (
+                  <View>
+                    {listItems.map(item => (
+                      <NoteItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                    ))}
+                  </View>
+                )}
+                </>
+              ): (<></>)
+            }
 
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
-              <Text style={{fontSize: baseFontSize}}>
-              <Text style={{color: '#007bff'}}>{cartItems.length}</Text> notes hidden</Text>
-              {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
-            </TouchableOpacity>
-            {showCartItems && (
-              <View>
-                {cartItems.map(item => (
-                  <NoteItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCart={handleToggleCart} />
-                ))}
-              </View>
-            )}
+            {
+              cartItems.length > 0? (
+                <>
+                  <TouchableOpacity style={styles.sectionHeader} onPress={() => setShowCartItems(!showCartItems)}>
+                    <Text style={{fontSize: baseFontSize}}>
+                    <Text style={{color: '#007bff'}}>{cartItems.length}</Text> notes hidden</Text>
+                    {showCartItems ? <UpArrow colors={colors} /> : <DownArrow colors={colors} />}
+                  </TouchableOpacity>
+                  {showCartItems && (
+                    <View>
+                      {cartItems.map(item => (
+                        <NoteItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                      ))}
+                    </View>
+                  )}
+                </>
+              ): (<></>)
+            }
           </>
         )}
 
@@ -525,10 +581,6 @@ const ListDetailScreen = () => {
 };
 
 const getStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     container: {

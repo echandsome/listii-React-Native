@@ -1,25 +1,21 @@
 import React, { useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@react-navigation/native';
-
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
-const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-const isSmallScreen = screenWidth < 375;
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface TodoItemProps {
   item: {
     id: string;
     name: string;
-    isCart: boolean;
+    is_check: boolean;
     priority: 'Low' | 'Medium' | 'High' | 'Urgent'; // Define possible priority values
   };
   openMenuModal: (ref: React.RefObject<TouchableOpacity>, itemId: string) => void;
-  handleToggleCart: (itemId: string) => void;
+  handleToggleCheck: (itemId: string) => void;
 }
 
-const TodoItem: React.FC<TodoItemProps> = ({ item, openMenuModal, handleToggleCart }) => {
+const TodoItem: React.FC<TodoItemProps> = ({ item, openMenuModal, handleToggleCheck }) => {
   const { colors } = useTheme();
   const menuButtonRef = useRef<TouchableOpacity>(null);
 
@@ -35,9 +31,9 @@ const TodoItem: React.FC<TodoItemProps> = ({ item, openMenuModal, handleToggleCa
       <View style={styles.row}>
         <View style={styles.header}>
           <View style={styles.content}>
-            <TouchableOpacity onPress={() => handleToggleCart(item.id)} style={styles.checkboxContainer}>
+            <TouchableOpacity onPress={() => handleToggleCheck(item.id)} style={styles.checkboxContainer}>
               <Ionicons
-                name={item.isCart ? "checkbox-outline" : "square-outline"}
+                name={item.is_check ? "checkbox-outline" : "square-outline"}
                 size={baseFontSize * 1.5}
                 color={colors.text}
               />

@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Pressable,
-  Dimensions,
   Platform
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface LogoutModalProps {
   visible: boolean;
@@ -69,10 +69,6 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
 };
 
 const getStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     modalListOverlay: {

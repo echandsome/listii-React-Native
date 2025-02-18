@@ -8,11 +8,11 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
-  Dimensions, // Import Dimensions
 } from 'react-native';
-import { useTheme } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useTheme, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 // Define types for better type safety
 interface List {
@@ -41,8 +41,25 @@ interface Styles {
 const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
-  const menuButtonRef = useRef<TouchableOpacity>(null);
+  const menuButtonRef = useRef(null);
   const navigation = useNavigation();
+
+  let listItems ;
+  switch (list.type) {
+    case 'Note':
+      listItems = useSelector((state: any) => state.note.listitems[list.id]);
+      break;
+    case 'Bookmark':
+      listItems = useSelector((state: any) => state.bookmark.listitems[list.id]);
+      break;
+    case 'ToDo':
+      listItems = useSelector((state: any) => state.todo.listitems[list.id]);
+      break;
+    case 'Grocery':
+      listItems = useSelector((state: any) => state.grocery.listitems[list.id]);
+      break;
+  }
+  if (!listItems) listItems = [];
 
   const typeColors: { [key in List['type']]: string } = {
     Note: '#FFDA61',
@@ -54,17 +71,26 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
   const itemCount = (): string => {
     switch (list.type) {
       case 'Note':
-        return '3 notes';
+        return listItems.length + ' notes';
       case 'Bookmark':
-        return '0 bookmarks';
+        return listItems.length + ' bookmarks';
       case 'ToDo':
-        return '4 tasks';
+        return listItems.length + ' tasks';
       case 'Grocery':
-        return '0 items';
+        return listItems.length + ' items';
       default:
-        return '0 items';
+        return listItems.length + ' items';
     }
   };
+
+  const totalPrice = () => {
+    return listItems.reduce((sum: any, item: any) =>{
+      if (!item.is_check)
+        return sum + (parseFloat(item.price) * parseInt(item.quantity));
+      else
+        return sum + 0;
+    }, 0)
+  }
 
   const movePage = () => {
     navigation.navigate('listDetail', {
@@ -88,7 +114,7 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
         </View>
         <View>
           <Text style={[styles.listCardTitle, styles.textColor]}>{list.name}</Text>
-          {list.type === 'Grocery' && <Text style={[styles.textColor, styles.listCardTotal]}>List total: R0</Text>}
+          {list.type === 'Grocery' && <Text style={[styles.textColor, styles.listCardTotal]}>List total: R{totalPrice()}</Text>}
         </View>
       </View>
     </TouchableOpacity>
@@ -96,9 +122,6 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
 };
 
 const getStyles = (colors: any): Styles => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04; // Responsive font size
 
   return StyleSheet.create({
     listCard: {

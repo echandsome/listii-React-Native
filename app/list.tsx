@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   StyleSheet,
@@ -8,16 +8,19 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
   Platform,
   StatusBar,
-  UIManager
+  UIManager,
+  BackHandler,
+  Alert,
+  ActivityIndicator 
 } from 'react-native';
-import { useTheme } from '@react-navigation/native';
-import { Link } from 'expo-router';
+import { useTheme, useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
 import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import useBackHandler from '../hooks/useBackHandler';
 import ThemeModal from '@/components/modals/ThemeModal';
 import NewListModal from '@/components/modals/NewListModal';
 import ListCard from '@/components/ui/ListCard';
@@ -28,11 +31,13 @@ import ListItemShareModal from '@/components/modals/ListItemShareModal';
 import ListItemArchiveModal from '@/components/modals/ListItemArchiveModal';
 import LogoutModal from '@/components/modals/LogoutModal';
 import { images } from '@/constants/Resources';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
+import { showToast } from '@/helpers/toastHelper';
 
 // Import list-related actions and selectors from Redux
-import { addList, deleteList,
-  updateList, duplicateList, archiveList, restoreList,
-  selectLists, selectArchiveLists, selectListById } from '@/store/reducers/listSlice';
+import { selectLists, selectArchiveLists, selectListById } from '@/store/reducers/listSlice';
+import { getLists, addNewList, deleteListByDB, 
+  updateListByDB, duplicateListByDB, archiveListByDB, restoreListByDB} from '@/store/actions/listAction';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -42,12 +47,14 @@ if (Platform.OS === 'android') {
 
 export default function ListScreen() {
   const { colors } = useTheme();
-  const styles = getStyles(colors);
+  const styles = useMemo(() => getStyles(colors), [colors]);
 
   const [activeTab, setActiveTab] = useState('Lists');
   const dispatch = useDispatch();
   const themeMode = useSelector(selectThemeMode);
   const colorScheme = useColorScheme();
+
+  const router = useRouter();
 
   const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
   const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
@@ -60,6 +67,8 @@ export default function ListScreen() {
 
   const [selectedListId, setSelectedListId] = useState('');
   const listItem = useSelector((state) => selectListById(state, selectedListId));
+  const userInfo = useSelector((state) => state.auth);
+  const userId = useMemo(() => userInfo.user? userInfo.user.id: null, [userInfo]);
 
   const [listName, setListName] = useState('');
 
@@ -68,6 +77,28 @@ export default function ListScreen() {
   const [archiveModalVisible, setArchiveModalVisible] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+
+  useEffect(() => {
+    console.log('effect----------');
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('focusEffect----------');
+      fatchData ();  
+    }, [])
+  )
+
+  const fatchData = async () => {
+    if (userId && (lists == undefined || lists == null || lists.length == 0)){
+      setLoading(true);
+      const res = await getLists(userId, dispatch);
+      if (res) showToast('success', 'Data loaded successfully.', '');
+      else showToast('error', 'Unable to connect to the server. Please try again later.', '');
+      setLoading(false);
+    }
+  }
 
   const handleToggleTheme = useCallback((event: any) => {
     if (event == "system") event = colorScheme;
@@ -87,9 +118,7 @@ export default function ListScreen() {
     setButtonLayout({ x, y, width, height });
   }, [setButtonLayout]);
 
-  const handleTabPress = useCallback((tabName: any) => {
-    setActiveTab(tabName);
-  }, [setActiveTab]);
+  const handleTabPress = (tabName: string) => setActiveTab(tabName);
 
   const openNewListModal = useCallback(() => {
     setIsNewListModalVisible(true);
@@ -104,31 +133,34 @@ export default function ListScreen() {
       ...newList,
       id: uuidv4(),
     };
-    dispatch(addList(newListWithId));
+    addNewList({userId: userId, ...newListWithId}, dispatch);
     closeNewListModal();
   }, [dispatch, closeNewListModal]);
 
   const handleSave = useCallback((newName: any) => {
-    dispatch(updateList({ id: selectedListId, updates: { name: newName } }));
+    updateListByDB({ userId: userId, id: selectedListId, updates: { name: newName } }, dispatch);
     setEditModalVisible(false);
   }, [dispatch, selectedListId, setEditModalVisible]);
 
   const handleDelete = useCallback(() => {
-    dispatch(deleteList(selectedListId));
+    deleteListByDB(userId, selectedListId, dispatch);
     setDeleteModalVisible(false);
   }, [dispatch, selectedListId, setDeleteModalVisible]);
 
   const handleArchive = useCallback(() => {
     if (activeTab === 'Lists')
-      dispatch(archiveList(selectedListId));
+      archiveListByDB(userId, selectedListId, dispatch);
     else
-      dispatch(restoreList(selectedListId));
+      restoreListByDB(userId, selectedListId, dispatch);
 
     setArchiveModalVisible(false);
   }, [dispatch, selectedListId, activeTab, setArchiveModalVisible]);
 
   const handleShare = useCallback(() => {
-    dispatch(duplicateList(selectedListId));
+    let listToDuplicate = lists.find((list) => list.id === selectedListId);
+    if (listToDuplicate == undefined)
+      listToDuplicate = archiveLists.find((list) => list.id === selectedListId);
+    duplicateListByDB( userId, listToDuplicate, dispatch);
     setShareModalVisible(false);
   }, [dispatch, selectedListId, setShareModalVisible]);
 
@@ -158,7 +190,8 @@ export default function ListScreen() {
   }, [setVisible]);
 
   const handleLogout = useCallback(() => {
-    //TODO: Implement logout functionality
+    dispatch({ type: "RESET" });
+    router.push('/'); 
   }, []);
 
   useEffect(() => {
@@ -167,14 +200,37 @@ export default function ListScreen() {
     }
   }, [listItem]);
 
+  const exitApp = () => {
+    BackHandler.exitApp();
+  };
+
+  const handleBackPress = () => {
+    Alert.alert(
+      "Exit App",
+      "Do you want to exit the app?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel"
+        },
+        { text: "OK", onPress: exitApp }
+      ],
+      { cancelable: false }
+    );
+    return true; // Return true to override the default back button behavior
+  };
+
+  useBackHandler(handleBackPress);
+
   return (
     <SafeAreaView style={[styles.container]}>
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.header}>
           <View style={styles.headerLogo}>
-            <Link href='/'>
+            {/* <Link href='/'> */}
               <Text style={[styles.title, styles.textColor]}>Listii</Text>
-            </Link>
+            {/* </Link> */}
             <TouchableOpacity style={styles.newlist} onPress={openNewListModal}>
               <Text style={styles.newlistText}>+ New List</Text>
             </TouchableOpacity>
@@ -238,32 +294,38 @@ export default function ListScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-
-        <View>
-          {
-            activeTab == 'Lists' ? (
-              <View>
-                {lists.map((list: any) => (
-                  <ListCard
-                    key={list.id}
-                    list={list}
-                    openMenuModal={openMenuModal}
-                  />
-                ))}
-              </View>
-            ) : (
-              <View>
-                {archiveLists.map((list: any) => (
-                  <ListCard
-                    key={list.id}
-                    list={list}
-                    openMenuModal={openMenuModal}
-                  />
-                ))}
-              </View>
-            )
-          }
-        </View>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.text }]}>Loading...</Text>
+          </View>
+        ) : (
+          <View>
+            {
+              activeTab == 'Lists' ? (
+                <View>
+                  {lists.map((list: any) => (
+                    <ListCard
+                      key={list.id}
+                      list={list}
+                      openMenuModal={openMenuModal}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <View>
+                  {archiveLists.map((list: any) => (
+                    <ListCard
+                      key={list.id}
+                      list={list}
+                      openMenuModal={openMenuModal}
+                    />
+                  ))}
+                </View>
+              )
+            }
+          </View>
+        )}
       </ScrollView>
 
       <NewListModal
@@ -306,16 +368,12 @@ export default function ListScreen() {
         visible={logoutModalVisible}
         onClose={() => setLogoutModalVisible(false)}
         onLogout={handleLogout}
-      />
+      /> 
     </SafeAreaView>
   );
 }
 
 const getStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     container: {
@@ -376,15 +434,13 @@ const getStyles = (colors: any) => {
       overflow: 'hidden',
       marginVertical: 10,
       alignSelf: 'flex-start',
-      width: 200,
       padding: 5,
     },
     tabButton: {
-      flex: 1,
-      paddingVertical: isSmallScreen ? 6 : 8,
+      padding: isSmallScreen ? 6 : 8,
       alignItems: 'center',
       backgroundColor: colors.tabBg,
-      borderRadius: 8
+      borderRadius: 8,
     },
     activeTabButton: {
       backgroundColor: colors.background,
@@ -455,6 +511,15 @@ const getStyles = (colors: any) => {
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 16,
     },
   });
 }

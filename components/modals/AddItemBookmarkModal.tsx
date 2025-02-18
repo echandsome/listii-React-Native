@@ -8,16 +8,16 @@ import {
   TextInput,
   Pressable,
   Platform,
-  Dimensions, 
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface AddItemGroceryModalProps {
   visible: boolean;
   onClose: () => void;
-  onAddItem: (item: { name: string; path: string; }, mode: 'add' | 'edit') => void;
+  onAddItem: (item: { name: string; path: string }, mode: 'add' | 'edit') => void;
   mode: 'add' | 'edit';
-  initialData?: { name: string; path: string; };
+  initialData?: { name: string; path: string };
 }
 
 const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onClose, onAddItem, mode, initialData }) => {
@@ -37,7 +37,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
     }
   }, [mode, initialData]);
   const handleAddItem = () => {
-    onAddItem({ ...initialData, name, path}, mode);
+    onAddItem({ ...initialData, name, path }, mode);
     setName('');
     setPath('');
     onClose();
@@ -67,23 +67,27 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
           </View>
 
           <View style={styles.modalBody}>
-            <Text style={[styles.label, { color: colors.text }]}>Name</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={name}
-              onChangeText={setName}
-              placeholder="Name"
-              placeholderTextColor={(styles.placeholder as any).color}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Name</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                value={name}
+                onChangeText={setName}
+                placeholder="Name"
+                placeholderTextColor={(styles.placeholder as any).color}
+              />
+            </View>
 
-            <Text style={[styles.label, { color: colors.text }]}>Path</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={path}
-              onChangeText={setPath}
-              placeholder="Path"
-              placeholderTextColor={(styles.placeholder as any).color}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Path</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                value={path}
+                onChangeText={setPath}
+                placeholder="Path"
+                placeholderTextColor={(styles.placeholder as any).color}
+              />
+            </View>
           </View>
 
           <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
@@ -95,12 +99,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
   );
 };
 
-const getModalStyles = (colors: any ) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
+const getModalStyles = (colors: any) => {
 
   return StyleSheet.create({
     modalOverlay: {
@@ -114,7 +113,7 @@ const getModalStyles = (colors: any ) => {
       borderRadius: 8,
       width: '80%',
       maxWidth: 400,
-      padding: isSmallScreen ? 10 : 20, 
+      padding: isSmallScreen ? 10 : 20,
       ...Platform.select({
         ios: {
           shadowColor: '#000',
@@ -137,43 +136,50 @@ const getModalStyles = (colors: any ) => {
       marginBottom: isSmallScreen ? 8 : 15,
     },
     modalTitle: {
-      fontSize: baseFontSize * 1.1, 
+      fontSize: baseFontSize * 1.1,
       fontWeight: 'bold',
       textAlign: 'center',
       flex: 1,
     },
-    closeButtonContainer: { 
-      padding: isSmallScreen ? 4 : 8, 
+    closeButtonContainer: {
+      padding: isSmallScreen ? 4 : 8,
     },
     closeButton: {
-      fontSize: baseFontSize * 1.2, 
+      fontSize: baseFontSize * 1.2,
       ...Platform.select({
         ios: {
-          fontWeight: '600', 
+          fontWeight: '600',
         },
         android: {
-          fontWeight: 'bold', 
+          fontWeight: 'bold',
         },
       }),
     },
     modalBody: {
-      marginBottom: isSmallScreen ? 8 : 15, 
+      marginBottom: isSmallScreen ? 8 : 15,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 5 : 10,
     },
     label: {
-      fontSize: baseFontSize, 
-      marginBottom: isSmallScreen ? 3 : 5, 
+      fontSize: baseFontSize,
+      marginBottom: 0, // Remove marginBottom
+      marginRight: 10,
+      width: '25%', // Adjust as needed
     },
     input: {
+      flex: 1,
       borderWidth: 1,
       borderRadius: 4,
-      paddingVertical: isSmallScreen ? 6 : 8, 
-      paddingHorizontal: isSmallScreen ? 8 : 12, 
-      marginBottom: isSmallScreen ? 5 : 10, 
-      fontSize: baseFontSize, 
+      paddingVertical: isSmallScreen ? 6 : 8,
+      paddingHorizontal: isSmallScreen ? 8 : 12,
+      fontSize: baseFontSize,
     },
     placeholder: {
       color: '#999',
-      fontSize: baseFontSize, 
+      fontSize: baseFontSize,
     },
     addItemButton: {
       backgroundColor: '#2962FF',
@@ -184,7 +190,7 @@ const getModalStyles = (colors: any ) => {
       color: 'white',
       textAlign: 'center',
       fontWeight: 'bold',
-      fontSize: baseFontSize, 
+      fontSize: baseFontSize,
     },
   });
 }

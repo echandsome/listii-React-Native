@@ -8,9 +8,9 @@ import {
   StyleSheet,
   Pressable,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface EditListModalProps {
   visible: boolean;
@@ -64,14 +64,16 @@ const EditListModal: React.FC<EditListModalProps> = ({
             Make changes to your list here. Click save when you're done.
           </Text>
 
-          <Text style={[styles.label, styles.textColor]}>Name</Text>
-          <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border }]} // Added dynamic styles
-            value={name}
-            onChangeText={setName}
-            placeholder="List Name"
-            placeholderTextColor={(styles.placeholder as any).color}
-          />
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, styles.textColor]}>Name</Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, borderColor: colors.border }]} // Added dynamic styles
+              value={name}
+              onChangeText={setName}
+              placeholder="List Name"
+              placeholderTextColor={(styles.placeholder as any).color}
+            />
+          </View>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save Changes</Text>
@@ -83,10 +85,6 @@ const EditListModal: React.FC<EditListModalProps> = ({
 };
 
 const getStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     modalListOverlay: {
@@ -141,16 +139,21 @@ const getStyles = (colors: any) => {
       color: '#555',
       fontSize: baseFontSize,
     },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+      marginBottom: isSmallScreen ? 10 : 20,
+    },
     label: {
       fontSize: baseFontSize,
-      marginBottom: isSmallScreen ? 3 : 5,
-      alignSelf: 'flex-start',
+      marginRight: 10,
+      width: '25%',
     },
     input: {
-      width: '100%',
+      flex: 1,
       height: 40,
       borderRadius: 5,
-      marginBottom: isSmallScreen ? 10 : 20,
       paddingHorizontal: 10,
       borderWidth: 1,
     },

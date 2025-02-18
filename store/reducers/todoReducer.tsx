@@ -3,57 +3,96 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface TodoItem {
   id: string;
   name: string;
-  path: string;
-  isCart: boolean;
+  priority: string;
+  is_check: boolean;
 }
 
 interface TodoState {
-  items: TodoItem[];
+  listitems: { [listId: string]: TodoItem[] };
 }
 
 const initialState: TodoState = {
-  items: [],
+  listitems: {},
 };
 
 const todoSlice = createSlice({
   name: 'todo',
   initialState,
   reducers: {
-    addItem: (state, action: PayloadAction<TodoItem>) => {
-      state.items.push(action.payload);
+    setItems: (state, action) => {
+      state.listitems = action.payload;
     },
-    removeItem: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter((item) => item.id !== action.payload);
-    },
-    updateItem: (state, action: PayloadAction<TodoItem>) => {
-      const index = state.items.findIndex((item) => item.id === action.payload.id);
-      if (index !== -1) {
-        state.items[index] = action.payload;
+    addItem: (state, action: PayloadAction<{ listId: string, item: TodoItem }>) => {
+      const { listId, item } = action.payload;
+      if (state.listitems[listId]) {
+        state.listitems[listId].push(item);
+      } else {
+        state.listitems[listId] = [item];
       }
     },
-    setAllItemsFalse: (state) => {
-      state.items = state.items.map(item =>
-        item.isCart ? { ...item, isCart: false } : item
-      );
+    removeItem: (state, action: PayloadAction<{ listId: string, itemId: string }>) => {
+      const { listId, itemId } = action.payload;
+      if (state.listitems[listId]) {
+        state.listitems[listId] = state.listitems[listId].filter((item) => item.id !== itemId);
+        if (state.listitems[listId].length === 0) {
+          delete state.listitems[listId];
+        }
+      }
+    },
+    updateItem: (state, action: PayloadAction<{ listId: string, item: TodoItem }>) => {
+      const { listId, item } = action.payload;
+      if (state.listitems[listId]) {
+        const index = state.listitems[listId].findIndex((todoItem) => todoItem.id === item.id);
+        if (index !== -1) {
+          state.listitems[listId][index] = item;
+        }
+      }
+    },
+    setAllItemsFalse: (state, action: PayloadAction<string>) => {
+      const { listId } = action.payload;
+      if (state.listitems[listId]) {
+        state.listitems[listId] = state.listitems[listId].map(item =>
+          item.is_check ? { ...item, is_check: false } : item
+        );
+      }
     },
 
-    setAllItemsTrue: (state) => {
-      state.items = state.items.map(item =>
-        !item.isCart ? { ...item, isCart: true } : item
-      );
+    setAllItemsTrue: (state, action: PayloadAction<string>) => {
+      const { listId } = action.payload;
+      if (state.listitems[listId]) {
+        state.listitems[listId] = state.listitems[listId].map(item =>
+          !item.is_check ? { ...item, is_check: true } : item
+        );
+      }
     },
 
-    removeItemsFalse: (state) => {
-      state.items = state.items.filter(item => item.isCart);
+    removeItemsFalse: (state, action: PayloadAction<string>) => {
+      const { listId } = action.payload;
+      if (state.listitems[listId]) {
+        state.listitems[listId] = state.listitems[listId].filter(item => item.is_check);
+        if (state.listitems[listId].length === 0) {
+          delete state.listitems[listId];
+        }
+      }
     },
 
-    removeItemsTrue: (state) => {
-      state.items = state.items.filter(item => !item.isCart);
+    removeItemsTrue: (state, action: PayloadAction<string>) => {
+      const { listId } = action.payload;
+      if (state.listitems[listId]) {
+        state.listitems[listId] = state.listitems[listId].filter(item => !item.is_check);
+        if (state.listitems[listId].length === 0) {
+          delete state.listitems[listId];
+        }
+      }
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase("RESET", () => initialState); 
   },
 });
 
 export const {
+  setItems,
   addItem,
   removeItem,
   updateItem,
@@ -62,5 +101,9 @@ export const {
   removeItemsFalse,
   removeItemsTrue,
 } = todoSlice.actions;
+
+export const selectItemsByListId = (state: { todo: { listitems: { [x: string]: any; }; } }) => {
+  return state.todo.listitems;
+};
 
 export default todoSlice.reducer;

@@ -20,6 +20,9 @@ const listItemMenuSlice = createSlice({
       state.selectedListId = null;
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase("RESET", () => initialState); 
+  },
 });
 
 export const { openMenu, closeMenu } = listItemMenuSlice.actions;

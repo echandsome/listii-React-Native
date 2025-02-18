@@ -8,7 +8,6 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
   Platform,
   StatusBar,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
 import ThemeModal from '@/components/modals/ThemeModal';
 import { images } from '@/constants/Resources';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 export default function DashboardScreen() {
   const dispatch = useDispatch();
@@ -104,6 +104,7 @@ export default function DashboardScreen() {
             style={styles.heroImage}
             resizeMode="contain"
           />
+          <View> 
           <Text style={[styles.title, styles.textColor]}>
             Unlock the magic of organization with Listii
           </Text>
@@ -111,6 +112,7 @@ export default function DashboardScreen() {
             Ditch the sticky notes and endless notebooks. Manage all your lists and tasks
             seamlessly in one powerful platform.
           </Text>
+          
           <View style={styles.buttonContainer}>
             <Link href='/signin' style={styles.getStartedButton}>
               <Text style={styles.getStartedButtonText}>Get Started</Text>
@@ -118,6 +120,7 @@ export default function DashboardScreen() {
             <TouchableOpacity style={styles.learnMoreButton} onPress={scrollToKeyFeatures}>
               <Text style={styles.learnMoreButtonText}>Learn More</Text>
             </TouchableOpacity>
+          </View>
           </View>
         </View>
 
@@ -239,10 +242,6 @@ export default function DashboardScreen() {
 }
 
 const getStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     container: {
@@ -314,30 +313,40 @@ const getStyles = (colors: any) => {
     heroImage: {
       width: screenWidth * 0.8,
       height: 200,
-      marginBottom: 20,
     },
     title: {
       fontSize: baseFontSize * 2,
       fontWeight: 'bold',
-      textAlign: 'center',
+      textAlign: 'left',
       marginBottom: 10,
     },
     description: {
       fontSize: baseFontSize,
-      textAlign: 'center',
+      textAlign: 'left',
       marginBottom: 20,
     },
     buttonContainer: {
-      flexDirection: 'row',
       justifyContent: 'center',
       marginBottom: 20,
+      // ...Platform.select({
+      //   web: {
+      //     flexDirection: screenWidth > 500? 'row': 'column',
+      //   },
+      // }),
     },
     getStartedButton: {
       backgroundColor: '#007bff',
       paddingVertical: isSmallScreen ? 8 : 12,
       paddingHorizontal: isSmallScreen ? 16 : 24,
       borderRadius: 5,
-      marginRight: 10,
+      textAlign: 'center',
+      marginBottom: 10,
+      // ...Platform.select({
+      //   web: {
+      //     flex: 1,
+      //     marginRight: 10,
+      //   },
+      // }),
     },
     getStartedButtonText: {
       color: '#fff',
@@ -354,6 +363,7 @@ const getStyles = (colors: any) => {
       color: '#333',
       fontSize: baseFontSize,
       fontWeight: 'bold',
+      textAlign: 'center',
     },
     keyFeaturesSection: {
       padding: 20,
@@ -369,7 +379,7 @@ const getStyles = (colors: any) => {
     },
     sectionDescription: {
       fontSize: baseFontSize,
-      textAlign: 'center',
+      // textAlign: 'center',
       marginBottom: 20,
     },
     listsImage: {
@@ -426,7 +436,7 @@ const getStyles = (colors: any) => {
     startUsingSection: {
       padding: 20,
       width: '100%',
-      alignItems: 'center',
+      // alignItems: 'center',
       backgroundColor: colors.secondaryBg
     },
     signUpButton: {
@@ -434,7 +444,9 @@ const getStyles = (colors: any) => {
       paddingVertical: isSmallScreen ? 8 : 12,
       paddingHorizontal: isSmallScreen ? 16 : 24,
       borderRadius: 5,
-      marginRight: 10,
+      // marginRight: 10,
+      textAlign: 'center',
+      marginBottom: 10
     },
     signUpButtonText: {
       color: '#fff',

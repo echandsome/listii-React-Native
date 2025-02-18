@@ -1,16 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   Modal,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Pressable,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface ShareListModalProps {
   visible: boolean;
@@ -67,10 +66,6 @@ const ShareListModal: React.FC<ShareListModalProps> = ({
 };
 
 const getStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     modalListOverlay: {

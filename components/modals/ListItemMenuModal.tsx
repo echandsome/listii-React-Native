@@ -12,8 +12,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { images } from '@/constants/Resources';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose, onItemPress, activeTab, detailTab}) => {
     const { colors } = useTheme();

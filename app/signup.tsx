@@ -9,10 +9,6 @@ import {
   StatusBar,
   Platform,
   Image,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
-  Dimensions, // Import Dimensions
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,6 +17,9 @@ import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import ThemeModal from '@/components/modals/ThemeModal'; // Import ThemeModal
 import { images } from '@/constants/Resources';
+import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
+import { signUpWithEmailAndPassword } from '@/store/actions/authAction';
+import { showToast } from '@/helpers/toastHelper';
 
 interface ButtonLayout {
   x: number;
@@ -42,6 +41,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
 
   // Use useCallback to prevent unnecessary re-renders
   const validateEmail = useCallback((text: string) => {
@@ -65,7 +65,7 @@ export default function RegisterScreen() {
     setPassword(text);
   }, []);
 
-  const handleRegister = () => {
+  const handleRegister = async () => { // Make the function async
     let isValid = true;
 
     if (email.length < 5) {
@@ -78,8 +78,21 @@ export default function RegisterScreen() {
     }
 
     if (isValid) {
-      // Perform register logic here
-      console.log('register successful');
+      setIsSubmitting(true); // Set submitting to true
+
+      const res = await signUpWithEmailAndPassword(email, password, dispatch);
+      if (res) {
+        if (res.success) {
+          showToast('success', 'Registration Successful!', 'You can now sign in.');
+        }else if (res.success == false) {
+          showToast('error', 'Registration Failed!', 'Try again');
+        }
+        
+        setIsSubmitting(false);
+      } else {
+        showToast('error', 'Registration Failed!', 'An error occurred.');
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -170,8 +183,15 @@ export default function RegisterScreen() {
         <Text style={[styles.description, styles.textColor]}>This is the key to your account. Please keep it safe.</Text>
         {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister} activeOpacity={0.7}>
-          <Text style={styles.registerButtonText}>Sign up</Text>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={handleRegister}
+          activeOpacity={0.7}
+          disabled={isSubmitting} // Disable the button while submitting
+        >
+          <Text style={styles.registerButtonText}>
+            {isSubmitting ? 'Submitting...' : 'Sign up'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -179,10 +199,6 @@ export default function RegisterScreen() {
 }
 
 const getStyles = (colors: any) => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const baseFontSize = Math.min(screenWidth, screenHeight) * 0.04;
-  const isSmallScreen = screenWidth < 375;
 
   return StyleSheet.create({
     container: {

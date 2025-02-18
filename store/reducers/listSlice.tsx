@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
+import { createSelector } from 'reselect'
 
 interface List {
     id: string;
@@ -19,6 +20,9 @@ const listSlice = createSlice({
     name: 'list',
     initialState,
     reducers: {
+        setList: (state, action) => {
+            state.lists = action.payload;
+        },
         addList: (state, action: PayloadAction<List>) => {
             state.lists = [...state.lists, action.payload];
         },
@@ -62,22 +66,29 @@ const listSlice = createSlice({
             );
         },
     },
+    extraReducers: (builder) => {
+        builder.addCase("RESET", () => initialState); 
+    },
 });
 
-export const { addList, deleteList, updateList, duplicateList, archiveList, restoreList } = listSlice.actions;
+export const { setList, addList, deleteList, updateList, duplicateList, archiveList, restoreList } = listSlice.actions;
 
 export const selectListById = (state: any, itemId: string) => {
     return state.list.lists.find((list: any) => list.id === itemId);
 };
 
-// Added: selector to get archived lists in reversed order
-export const selectArchiveLists = (state: any) => {
-    return [...state.list.lists.filter((list: any) => list.is_archive === true)].reverse();
-};
+const selectListsState = (state: any) => state.list.lists;
 
-// Added: selector to get active lists (not archived) in reversed order
-export const selectLists = (state: any) => {
-    return [...state.list.lists.filter((list: any) => list.is_archive == null || list.is_archive === false)].reverse();
-};
+export const selectLists = createSelector(
+  [selectListsState],
+  (lists) => lists.filter((list) => !list.is_archive).reverse()
+);
+
+export const selectArchiveLists = createSelector(
+  [selectListsState],
+  (lists) => lists.filter((list) => list.is_archive).reverse()
+);
+
+
 
 export default listSlice.reducer;
