@@ -400,7 +400,7 @@ const ListDetailScreen = () => {
                   <View style={styles.sectionHeader}>
                     <View>
                       <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> task completed</Text>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> task completed</Text>
                     </View>
                     <View style={styles.sectionRight}>
                       <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
@@ -474,7 +474,7 @@ const ListDetailScreen = () => {
                   <View style={styles.sectionHeader}>
                     <View>
                       <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> bookmarks hidden</Text>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> bookmarks hidden</Text>
                     </View>
                     <View style={styles.sectionRight}>
                       <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
@@ -548,7 +548,7 @@ const ListDetailScreen = () => {
                   <View style={styles.sectionHeader}>
                     <View>
                       <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> notes hidden</Text>
+                        <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> notes hidden</Text>
                     </View>
                     <View style={styles.sectionRight}>
                       <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
