@@ -188,7 +188,14 @@ const getStyles = (colors: any) => {
       fontSize: baseFontSize,
       marginBottom: isSmallScreen ? 3 : 5,
       color: colors?.text,
-      fontWeight: 'bold',
+      ...Platform.select({ //Consistent font weight across platforms
+        ios: {
+          fontWeight: '600',
+        },
+        android: {
+          fontWeight: 'bold',
+        },
+      }),
     },
     input: {
       borderWidth: 1,

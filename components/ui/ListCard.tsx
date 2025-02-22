@@ -47,19 +47,20 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
   let listItems ;
   switch (list.type) {
     case 'note':
-      listItems = useSelector((state: any) => state.note.listitems[list.id]);
+      listItems = useSelector((state: any) => state.note.listitems[list.id]) || [];
       break;
     case 'bookmark':
-      listItems = useSelector((state: any) => state.bookmark.listitems[list.id]);
+      listItems = useSelector((state: any) => state.bookmark.listitems[list.id]) || [];
       break;
     case 'todo':
-      listItems = useSelector((state: any) => state.todo.listitems[list.id]);
+      listItems = useSelector((state: any) => state.todo.listitems[list.id]) || [];
       break;
     case 'grocery':
-      listItems = useSelector((state: any) => (state.grocery.listitems[list.id] || []).filter((item: any) => item.is_check == false));
+      listItems = useSelector((state: any) => state.grocery.listitems[list.id]) || [];
       break;
   }
   if (!listItems) listItems = [];
+  listItems = listItems.filter((item: any) => item.is_check == undefined || (item.is_check == false))
 
   const typeColors: { [key in List['type']]: string } = {
     note: '#FFDA61',

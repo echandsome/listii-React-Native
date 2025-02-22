@@ -44,7 +44,7 @@ const markItemAsDeleted = (storageName: string, userId: string, id: number) => {
     storeData(storageName, store);
 };
 
-const replaceItemInStorage = (storageName: string, userId: string, id: number, newItem: any) => {
+const replaceItemInStorage = (storageName: string, userId: string, id: string, newItem: any) => {
   if (storageName.length <= 0) return;
 
   let store = getData(storageName);
@@ -53,7 +53,6 @@ const replaceItemInStorage = (storageName: string, userId: string, id: number, n
   store = store.map((item: any) => 
     item.user_id == userId && item.id == id ? newItem : item
   );
-  console.log(store);
   storeData(storageName, store);
 };
 

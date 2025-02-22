@@ -197,77 +197,80 @@ export default function ListScreen() {
 
   return (
     <SafeAreaView style={[styles.container]}>
-      <Nav page='list' openNewListModal={openNewListModal}/>
-      <ScrollView style={styles.scrollContainer}>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'Lists' && styles.activeTabButton,
-            ]}
-            onPress={() => handleTabPress('Lists')}
-          >
-            <Text
+      
+      <ScrollView >
+        <Nav page='list' openNewListModal={openNewListModal}/>
+        <View style={styles.scrollContainer}>
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
               style={[
-                styles.tabText,
-                styles.textColor,
-                activeTab === 'Lists' && styles.activeTabText,
+                styles.tabButton,
+                activeTab === 'Lists' && styles.activeTabButton,
               ]}
+              onPress={() => handleTabPress('Lists')}
             >
-              {lists.length} Lists
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.tabText,
+                  styles.textColor,
+                  activeTab === 'Lists' && styles.activeTabText,
+                ]}
+              >
+                {lists.length} Lists
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'Archive' && styles.activeTabButton,
-            ]}
-            onPress={() => handleTabPress('Archive')}
-          >
-            <Text
+            <TouchableOpacity
               style={[
-                styles.tabText,
-                styles.textColor,
-                activeTab === 'Archive' && styles.activeTabText,
+                styles.tabButton,
+                activeTab === 'Archive' && styles.activeTabButton,
               ]}
+              onPress={() => handleTabPress('Archive')}
             >
-              {archiveLists.length} Archive
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.tabText,
+                  styles.textColor,
+                  activeTab === 'Archive' && styles.activeTabText,
+                ]}
+              >
+                {archiveLists.length} Archive
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loadingText, { color: colors.text }]}>Loading...</Text>
+            </View>
+          ) : (
+            <View>
+              {
+                activeTab == 'Lists' ? (
+                  <View>
+                    {lists.map((list: any) => (
+                      <ListCard
+                        key={list.id}
+                        list={list}
+                        openMenuModal={openMenuModal}
+                      />
+                    ))}
+                  </View>
+                ) : (
+                  <View>
+                    {archiveLists.map((list: any) => (
+                      <ListCard
+                        key={list.id}
+                        list={list}
+                        openMenuModal={openMenuModal}
+                      />
+                    ))}
+                  </View>
+                )
+              }
+            </View>
+          )}
         </View>
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.text }]}>Loading...</Text>
-          </View>
-        ) : (
-          <View>
-            {
-              activeTab == 'Lists' ? (
-                <View>
-                  {lists.map((list: any) => (
-                    <ListCard
-                      key={list.id}
-                      list={list}
-                      openMenuModal={openMenuModal}
-                    />
-                  ))}
-                </View>
-              ) : (
-                <View>
-                  {archiveLists.map((list: any) => (
-                    <ListCard
-                      key={list.id}
-                      list={list}
-                      openMenuModal={openMenuModal}
-                    />
-                  ))}
-                </View>
-              )
-            }
-          </View>
-        )}
       </ScrollView>
 
       <NewListModal
@@ -365,38 +368,6 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    listCard: {
-      backgroundColor: colors.card,
-      borderRadius: 8,
-      padding: 16,
-      marginBottom: 10,
-      flexDirection: 'row',
-    },
-    listCardIndicator: {
-      width: 8,
-      height: '100%',
-      borderRadius: 4,
-      marginRight: 16,
-    },
-    listCardTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    listCardItemCount: {
-      fontSize: 14,
-      color: colors.textSecondary,
-    },
-    listCardMenuButton: {
-    },
-    listCardTotal: {
-      fontSize: 14,
-      marginTop: 5,
-    },
-    listCardHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center'
     },
     modalOverlay: {
       flex: 1,

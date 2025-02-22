@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
   Platform
 } from 'react-native';
 import { Theme } from '@react-navigation/native';
@@ -24,7 +23,6 @@ interface SelectInputProps {
 const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSelect, colors, style }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const dropdownRef = useRef<View>(null);
   const styles = getSelectInputStyles(colors);
 
   const handleSelect = useCallback((option: string) => {
@@ -37,14 +35,14 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
     setButtonLayout({ x, y, width, height });
   }, []);
 
-  const calculateDropdownPosition = useCallback(() => {
+  const calculateDropdownPosition =() => {
     const DROPDOWN_OFFSET = 5;
     return {
       top: buttonLayout.y + buttonLayout.height + DROPDOWN_OFFSET,
       left: buttonLayout.x,
       width: buttonLayout.width,
     };
-  }, [buttonLayout]);
+  };
 
   const handleClickOutside = useCallback(() => {
     setShowOptions(false);
@@ -86,7 +84,6 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
 
       {showOptions && (
         <View
-          ref={dropdownRef}
           style={[styles.dropdownOptionsContainer, calculateDropdownPosition()]}
         >
           <ScrollView>
@@ -100,7 +97,7 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
+        </View> 
       )}
     </View>
   );

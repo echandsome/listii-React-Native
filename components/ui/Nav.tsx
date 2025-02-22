@@ -44,7 +44,6 @@ export default function Nav ({ page, openNewListModal, openAddItemModal }){
         if (themeButtonRef.current) {
             themeButtonRef.current.measure((x, y, width, height, px, py) => {
                 let cx = 0, cy = 0;
-                console.log(x, y);
                 cx = -25;
                 if (isLargeScreen) {
                   cx = 0;

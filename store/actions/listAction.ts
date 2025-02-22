@@ -13,17 +13,49 @@ import { listExists, createNewCleanName, findItemByUserIdAndId } from '@/helpers
 
 import { tbl_names } from '@/constants/Config';
 
-const groupAndTransformItems = (data: any[], list: any) => {
+const groupAndTransformItems = (data: any[], list: any, type: any) => {
 
-    const transformedData = data.map(({ id, name, price, quantity, list_name, checked, store_name }) => ({
-        id,
-        name,
-        price,
-        quantity,
-        list_name,
-        is_check: checked,  
-        shop: store_name  
-    }));
+    let transformedData: any[] = [];
+    switch (type) {
+        case 'note':
+            transformedData = data.map(({ id, name, list_name, notes, checked }) => ({
+                id,
+                name,
+                list_name,
+                note: notes,
+                is_check: checked,
+            }));
+            break;
+        case 'bookmark':
+            transformedData = data.map(({ id, name, link, list_name, checked }) => ({
+                id,
+                name,
+                path: link,
+                list_name,
+                is_check: checked,
+            }));
+            break;
+        case 'todo':
+            transformedData = data.map(({ id, name, priority, list_name, checked }) => ({
+                id,
+                name,
+                priority,
+                list_name,
+                is_check: checked,
+            }));
+            break;
+        case 'grocery':
+            transformedData = data.map(({ id, name, price, quantity, list_name, checked, store_name }) => ({
+                id,
+                name,
+                price,
+                quantity,
+                list_name,
+                is_check: checked,  
+                shop: store_name  
+            }));
+            break;
+    }
 
     return transformedData.reduce((acc: any, item: any) => {
         let id = getIdsByCleanName(list, item.list_name);
@@ -39,7 +71,9 @@ const groupAndTransformItems = (data: any[], list: any) => {
 };
 
 const getIdsByCleanName = (data: any[], cleanName: string) => {
-    return (data.find(item => item.clean_name === cleanName)).id;
+    data = data.find(item => item.clean_name === cleanName);
+    if (data) return data.id;
+    else return null;
 };
 
 function transformData(data: any) {
@@ -59,8 +93,8 @@ export async function getLists(userId: string, dispatch: Dispatch) {
     try {
 
         const [lists, items] = await Promise.all([
-            supabase.from(tbl_names.lists).select().neq('deleted', true).order('created_at', { ascending: true }),
-            supabase.from(tbl_names.items).select().neq('deleted', true).order('created_at', { ascending: true })
+            supabase.from(tbl_names.lists).select().eq('user_id', userId).neq('deleted', true).order('created_at', { ascending: true }),
+            supabase.from(tbl_names.items).select().eq('user_id', userId).neq('deleted', true).order('created_at', { ascending: true })
         ]);
 
         if (lists.error || items.error) {
@@ -73,10 +107,10 @@ export async function getLists(userId: string, dispatch: Dispatch) {
 
         dispatch((dispatch) => {
             dispatch(setList(transformData(lists.data) || []));
-            dispatch(setItemsGrocery(groupAndTransformItems(items.data || [], lists.data)));
-            // dispatch(setItemsBookmark(groupByListId(bookmark_items.data || [])));
-            // dispatch(setItemsTodo(groupByListId(todo_items.data || [])));
-            // dispatch(setItemsNote(groupByListId(note_items.data || [])));
+            dispatch(setItemsGrocery(groupAndTransformItems(items.data || [], lists.data, 'grocery')));
+            dispatch(setItemsBookmark(groupAndTransformItems(items.data || [], lists.data, 'bookmark')));
+            dispatch(setItemsTodo(groupAndTransformItems(items.data || [], lists.data, 'todo')));
+            dispatch(setItemsNote(groupAndTransformItems(items.data || [], lists.data, 'note')));
         });
         storeData(tbl_names.lists, lists.data);
         return true;
@@ -176,7 +210,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
         listItems = store.getState().bookmark.listitems[id] || [];
         tbl_items = 'bookmark_items';
         break;
-        case 'tofo':
+        case 'todo':
         listItems = store.getState().todo.listitems[id] || [];
         tbl_items = 'todo_items';
         break;
@@ -203,21 +237,45 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
             "edited": false,
             "archived": is_archive?? false
         }
-        console.log(_data);
+
         let filteredData: any[] = [];
         
         switch (type) {
             case 'note':
-                listItems = store.getState().note.listitems[id] || [];
-                tbl_items = 'note_items';
+                filteredData = listItems.map((item: any) => ({
+                    "user_id": userId,
+                    "name": item.name,
+                    "list_name": clean_name,
+                    "checked": item.is_check?? false,
+                    "deleted": false,
+                    "edited": false,
+                    "notes": item.note,
+                    "shared_with": null,  
+                }));
                 break;
             case 'bookmark':
-                listItems = store.getState().bookmark.listitems[id] || [];
-                tbl_items = 'bookmark_items';
+                filteredData = listItems.map((item: any) => ({
+                    "user_id": userId,
+                    "name": item.name,
+                    "list_name": clean_name,
+                    "checked": item.is_check?? false,
+                    "deleted": false,
+                    "edited": false,
+                    "link": item.path,
+                    "shared_with": null,  
+                }));
                 break;
-            case 'tofo':
-                listItems = store.getState().todo.listitems[id] || [];
-                tbl_items = 'todo_items';
+            case 'todo':
+               filteredData = listItems.map((item: any) => ({
+                    "user_id": userId,
+                    "name": item.name,
+                    "list_name": clean_name,
+                    "checked": item.is_check?? false,
+                    "deleted": false,
+                    "edited": false,
+                    "priority": item.priority,
+                    "shared_with": null,  
+                }));
                 break;
             case 'grocery':
                 filteredData = listItems.map((item: any) => ({
@@ -234,7 +292,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
                 }));
                 break;
         }
-        console.log(filteredData);
+
         const [lists, items] = await Promise.all([
             supabase.from(tbl_names.lists).insert([_data]).select('id'),
             supabase.from(tbl_names.items).insert(filteredData).select('id')

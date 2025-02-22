@@ -217,7 +217,7 @@ const ListDetailScreen = () => {
   const handleToggleCheck = useCallback((itemId: string) => {
     const itemToUpdate = itemlist.find((item) => item.id === itemId);
     if (itemToUpdate) {
-      updateItemByDB({ userId, listId: category.id, item: {...itemToUpdate, is_check: !itemToUpdate.is_check} }, dispatch);
+      updateItemByDB({ userId, listId: category.id, item: {...itemToUpdate, is_check: !itemToUpdate.is_check}, toggle: true }, dispatch);
     }
   }, [itemlist, dispatch, updateItemByDB]);
 
@@ -259,347 +259,350 @@ const ListDetailScreen = () => {
 
   return (
     <SafeAreaView style={[styles.container, styles.bgColor]}>
-      <Nav page='listDetail' openAddItemModal={openAddItemModal}/>
-      <ScrollView style={styles.scrollContainer}>
-        <SelectInput
-          label=""
-          value={category.name}
-          options={listTypes}
-          onSelect={handleSelectListType}
-          colors={colors}
-          style={{ width: 200, paddingVertical: 10 }}
-        />
+      
+      <ScrollView >
+        <Nav page='listDetail' openAddItemModal={openAddItemModal}/>
+        <View style={styles.scrollContainer}>
+          <SelectInput
+            label=""
+            value={category.name}
+            options={listTypes}
+            onSelect={handleSelectListType}
+            colors={colors}
+            style={{ width: 200, paddingVertical: 10 }}
+          />
 
-        {category.type === 'grocery' && (
-          <>
-            {
-              listItems.length > 0? (
-                <>
+          {category.type === 'grocery' && (
+            <>
+              {
+                listItems.length > 0? (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <View>
+                        <Text style={styles.groceryLabel}>
+                          <Text style={[styles.textColor]}>{listItems.length}</Text> list items totaling: R
+                          <Text style={[styles.textColor, {color: '#007bff'}]}>{listTotal}</Text></Text>
+                      </View>
+                      <View style={styles.sectionRight}>
+                        {
+                          width > 500? (
+                            <Text style={[styles.groceryLabel, {color: '#999'}]}>{cartItems.length} list items totaling: R{cartTotal}</Text>
+                          ):(<></>)
+                        }
+                        <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
+                          {showListItems ? (
+                            <View style={{bottom: 14}}>
+                              <DownArrow size={7} colors={colors} />
+                              <UpArrow size={7} colors={colors} />
+                            </View>
+                          ) : (
+                            <View  style={{top: -14}}>
+                              <UpArrow size={-7} colors={colors} />
+                              <DownArrow size={-7} colors={colors} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  
+                    {showListItems && (
+                      <View>
+                        {listItems.map(item => (
+                          <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ): (<></>)
+              }
+
+              {
+                cartItems.length > 0? (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <View>
+                        <Text style={styles.groceryLabel}>
+                            <Text style={[styles.textColor]}>{cartItems.length}</Text> cart items totaling: R
+                            <Text style={[styles.textColor, {color: '#007bff'}]}>{cartTotal}</Text></Text>
+                      </View>
+                      <View style={styles.sectionRight}>
+                        {
+                          width > 500? (
+                            <Text style={[styles.groceryLabel, {color: '#999'}]}>{listItems.length} list items totaling: R{listTotal}</Text>
+                          ): (<></>)
+                        }
+                        <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
+                          {showCartItems ? (
+                            <View style={{bottom: 14}}>
+                              <DownArrow size={7} colors={colors} />
+                              <UpArrow size={7} colors={colors} />
+                            </View>
+                          ) : (
+                            <View  style={{top: -14}}>
+                              <UpArrow size={-7} colors={colors} />
+                              <DownArrow size={-7} colors={colors} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {showCartItems && (
+                      <View>
+                        {cartItems.map(item => (
+                          <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ): (<></>)
+              }
+            </>
+          )}
+
+          {category.type === 'todo' && (
+            <>
+              {
+                listItems.length > 0? (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <View>
+                        <Text style={styles.label}>
+                          <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> task in progress</Text>
+                      </View>
+                      <View style={styles.sectionRight}>
+                        <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
+                          {showListItems ? (
+                            <View style={{bottom: 14}}>
+                              <DownArrow size={7} colors={colors} />
+                              <UpArrow size={7} colors={colors} />
+                            </View>
+                          ) : (
+                            <View  style={{top: -14}}>
+                              <UpArrow size={-7} colors={colors} />
+                              <DownArrow size={-7} colors={colors} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {showListItems && (
+                      <View>
+                        {listItems.map(item => (
+                          <TodoItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ): (<></>)
+              }
+
+              {
+                cartItems.length > 0? (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <View>
+                        <Text style={styles.label}>
+                          <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> task completed</Text>
+                      </View>
+                      <View style={styles.sectionRight}>
+                        <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
+                          {showCartItems ? (
+                            <View style={{bottom: 14}}>
+                              <DownArrow size={7} colors={colors} />
+                              <UpArrow size={7} colors={colors} />
+                            </View>
+                          ) : (
+                            <View  style={{top: -14}}>
+                              <UpArrow size={-7} colors={colors} />
+                              <DownArrow size={-7} colors={colors} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {showCartItems && (
+                      <View>
+                        {cartItems.map(item => (
+                          <TodoItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ): (<></>)
+              }
+            </>
+          )}
+
+          {category.type === 'bookmark' && (
+            <>
+              {
+                listItems.length > 0? (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <View>
+                        <Text style={styles.label}>
+                          <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> bookmarks active</Text>
+                      </View>
+                      <View style={styles.sectionRight}>
+                        <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
+                          {showListItems ? (
+                            <View style={{bottom: 14}}>
+                              <DownArrow size={7} colors={colors} />
+                              <UpArrow size={7} colors={colors} />
+                            </View>
+                          ) : (
+                            <View  style={{top: -14}}>
+                              <UpArrow size={-7} colors={colors} />
+                              <DownArrow size={-7} colors={colors} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {showListItems && (
+                      <View>
+                        {listItems.map(item => (
+                          <BookmarkItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ): (<></>)
+              }
+
+              {
+                cartItems.length > 0? (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <View>
+                        <Text style={styles.label}>
+                          <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> bookmarks hidden</Text>
+                      </View>
+                      <View style={styles.sectionRight}>
+                        <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
+                          {showCartItems ? (
+                            <View style={{bottom: 14}}>
+                              <DownArrow size={7} colors={colors} />
+                              <UpArrow size={7} colors={colors} />
+                            </View>
+                          ) : (
+                            <View  style={{top: -14}}>
+                              <UpArrow size={-7} colors={colors} />
+                              <DownArrow size={-7} colors={colors} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {showCartItems && (
+                      <View>
+                        {cartItems.map(item => (
+                          <BookmarkItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ): (<></>)
+              }
+            </>
+          )}
+
+          {category.type === 'note' && (
+            <>
+              {
+                listItems.length > 0? (
+                  <>
                   <View style={styles.sectionHeader}>
-                    <View>
-                      <Text style={styles.groceryLabel}>
-                        <Text style={[styles.textColor]}>{listItems.length}</Text> list items totaling: R
-                        <Text style={[styles.textColor, {color: '#007bff'}]}>{listTotal}</Text></Text>
+                      <View>
+                        <Text style={styles.label}>
+                          <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> notes active</Text>
+                      </View>
+                      <View style={styles.sectionRight}>
+                        <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
+                          {showListItems ? (
+                            <View style={{bottom: 14}}>
+                              <DownArrow size={7} colors={colors} />
+                              <UpArrow size={7} colors={colors} />
+                            </View>
+                          ) : (
+                            <View  style={{top: -14}}>
+                              <UpArrow size={-7} colors={colors} />
+                              <DownArrow size={-7} colors={colors} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                    <View style={styles.sectionRight}>
-                      {
-                        width > 500? (
-                          <Text style={[styles.groceryLabel, {color: '#999'}]}>{cartItems.length} list items totaling: R{cartTotal}</Text>
-                        ):(<></>)
-                      }
-                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
-                        {showListItems ? (
-                          <View style={{bottom: 14}}>
-                            <DownArrow size={7} colors={colors} />
-                            <UpArrow size={7} colors={colors} />
-                          </View>
-                        ) : (
-                          <View  style={{top: -14}}>
-                            <UpArrow size={-7} colors={colors} />
-                            <DownArrow size={-7} colors={colors} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                 
                   {showListItems && (
                     <View>
                       {listItems.map(item => (
-                        <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
-                      ))}
-                    </View>
-                  )}
-                </>
-              ): (<></>)
-            }
-
-            {
-              cartItems.length > 0? (
-                <>
-                  <View style={styles.sectionHeader}>
-                    <View>
-                      <Text style={styles.groceryLabel}>
-                          <Text style={[styles.textColor]}>{cartItems.length}</Text> cart items totaling: R
-                          <Text style={[styles.textColor, {color: '#007bff'}]}>{cartTotal}</Text></Text>
-                    </View>
-                    <View style={styles.sectionRight}>
-                      {
-                        width > 500? (
-                          <Text style={[styles.groceryLabel, {color: '#999'}]}>{listItems.length} list items totaling: R{listTotal}</Text>
-                        ): (<></>)
-                      }
-                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
-                        {showCartItems ? (
-                          <View style={{bottom: 14}}>
-                            <DownArrow size={7} colors={colors} />
-                            <UpArrow size={7} colors={colors} />
-                          </View>
-                        ) : (
-                          <View  style={{top: -14}}>
-                            <UpArrow size={-7} colors={colors} />
-                            <DownArrow size={-7} colors={colors} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {showCartItems && (
-                    <View>
-                      {cartItems.map(item => (
-                        <GroceryItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
-                      ))}
-                    </View>
-                  )}
-                </>
-              ): (<></>)
-            }
-          </>
-        )}
-
-        {category.type === 'todo' && (
-          <>
-            {
-              listItems.length > 0? (
-                <>
-                  <View style={styles.sectionHeader}>
-                    <View>
-                      <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> task in progress</Text>
-                    </View>
-                    <View style={styles.sectionRight}>
-                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
-                        {showListItems ? (
-                          <View style={{bottom: 14}}>
-                            <DownArrow size={7} colors={colors} />
-                            <UpArrow size={7} colors={colors} />
-                          </View>
-                        ) : (
-                          <View  style={{top: -14}}>
-                            <UpArrow size={-7} colors={colors} />
-                            <DownArrow size={-7} colors={colors} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {showListItems && (
-                    <View>
-                      {listItems.map(item => (
-                        <TodoItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
-                      ))}
-                    </View>
-                  )}
-                </>
-              ): (<></>)
-            }
-
-            {
-              cartItems.length > 0? (
-                <>
-                  <View style={styles.sectionHeader}>
-                    <View>
-                      <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> task completed</Text>
-                    </View>
-                    <View style={styles.sectionRight}>
-                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
-                        {showCartItems ? (
-                          <View style={{bottom: 14}}>
-                            <DownArrow size={7} colors={colors} />
-                            <UpArrow size={7} colors={colors} />
-                          </View>
-                        ) : (
-                          <View  style={{top: -14}}>
-                            <UpArrow size={-7} colors={colors} />
-                            <DownArrow size={-7} colors={colors} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {showCartItems && (
-                    <View>
-                      {cartItems.map(item => (
-                        <TodoItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
-                      ))}
-                    </View>
-                  )}
-                </>
-              ): (<></>)
-            }
-          </>
-        )}
-
-        {category.type === 'bookmark' && (
-          <>
-            {
-              listItems.length > 0? (
-                <>
-                  <View style={styles.sectionHeader}>
-                    <View>
-                      <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> bookmarks active</Text>
-                    </View>
-                    <View style={styles.sectionRight}>
-                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
-                        {showListItems ? (
-                          <View style={{bottom: 14}}>
-                            <DownArrow size={7} colors={colors} />
-                            <UpArrow size={7} colors={colors} />
-                          </View>
-                        ) : (
-                          <View  style={{top: -14}}>
-                            <UpArrow size={-7} colors={colors} />
-                            <DownArrow size={-7} colors={colors} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {showListItems && (
-                    <View>
-                      {listItems.map(item => (
-                        <BookmarkItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
-                      ))}
-                    </View>
-                  )}
-                </>
-              ): (<></>)
-            }
-
-            {
-              cartItems.length > 0? (
-                <>
-                  <View style={styles.sectionHeader}>
-                    <View>
-                      <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> bookmarks hidden</Text>
-                    </View>
-                    <View style={styles.sectionRight}>
-                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
-                        {showCartItems ? (
-                          <View style={{bottom: 14}}>
-                            <DownArrow size={7} colors={colors} />
-                            <UpArrow size={7} colors={colors} />
-                          </View>
-                        ) : (
-                          <View  style={{top: -14}}>
-                            <UpArrow size={-7} colors={colors} />
-                            <DownArrow size={-7} colors={colors} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {showCartItems && (
-                    <View>
-                      {cartItems.map(item => (
-                        <BookmarkItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
-                      ))}
-                    </View>
-                  )}
-                </>
-              ): (<></>)
-            }
-          </>
-        )}
-
-        {category.type === 'note' && (
-          <>
-            {
-              listItems.length > 0? (
-                <>
-                <View style={styles.sectionHeader}>
-                    <View>
-                      <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{listItems.length}</Text> notes active</Text>
-                    </View>
-                    <View style={styles.sectionRight}>
-                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowListItems(!showListItems)}>
-                        {showListItems ? (
-                          <View style={{bottom: 14}}>
-                            <DownArrow size={7} colors={colors} />
-                            <UpArrow size={7} colors={colors} />
-                          </View>
-                        ) : (
-                          <View  style={{top: -14}}>
-                            <UpArrow size={-7} colors={colors} />
-                            <DownArrow size={-7} colors={colors} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                {showListItems && (
-                  <View>
-                    {listItems.map(item => (
-                      <NoteItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
-                    ))}
-                  </View>
-                )}
-                </>
-              ): (<></>)
-            }
-
-            {
-              cartItems.length > 0? (
-                <>
-                  <View style={styles.sectionHeader}>
-                    <View>
-                      <Text style={styles.label}>
-                        <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> notes hidden</Text>
-                    </View>
-                    <View style={styles.sectionRight}>
-                      <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
-                        {showCartItems ? (
-                          <View style={{bottom: 14}}>
-                            <DownArrow size={7} colors={colors} />
-                            <UpArrow size={7} colors={colors} />
-                          </View>
-                        ) : (
-                          <View  style={{top: -14}}>
-                            <UpArrow size={-7} colors={colors} />
-                            <DownArrow size={-7} colors={colors} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {showCartItems && (
-                    <View>
-                      {cartItems.map(item => (
                         <NoteItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
                       ))}
                     </View>
                   )}
-                </>
-              ): (<></>)
-            }
-          </>
-        )}
+                  </>
+                ): (<></>)
+              }
 
-        <AlertModal
-          visible={alertModalVisible}
-          title={alertTitle}
-          content={alertContent}
-          onClose={() => setAlertModalVisible(false)}
-          onConfirm={handleAlert}
-        />
-        <ListItemDeleteModal
-          visible={deleteModalVisible}
-          onClose={() => setDeleteModalVisible(false)}
-          onDelete={handleDelete}
-        />
-        <ListItemMenuModal
-          isVisible={isVisible}
-          selectedId={selectedId}
-          menuButtonLayout={menuButtonLayout}
-          onMenuClose={onMenuClose}
-          onItemPress={handleItemMenu}
-          activeTab='Detail'
-          detailTab={category.type}
-        />
+              {
+                cartItems.length > 0? (
+                  <>
+                    <View style={styles.sectionHeader}>
+                      <View>
+                        <Text style={styles.label}>
+                          <Text style={[styles.label, {color: '#007bff'}]}>{cartItems.length}</Text> notes hidden</Text>
+                      </View>
+                      <View style={styles.sectionRight}>
+                        <TouchableOpacity style={styles.sectionToggle} onPress={() => setShowCartItems(!showCartItems)}>
+                          {showCartItems ? (
+                            <View style={{bottom: 14}}>
+                              <DownArrow size={7} colors={colors} />
+                              <UpArrow size={7} colors={colors} />
+                            </View>
+                          ) : (
+                            <View  style={{top: -14}}>
+                              <UpArrow size={-7} colors={colors} />
+                              <DownArrow size={-7} colors={colors} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    {showCartItems && (
+                      <View>
+                        {cartItems.map(item => (
+                          <NoteItem key={item.id} item={item} openMenuModal={openMenuModal} handleToggleCheck={handleToggleCheck} />
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ): (<></>)
+              }
+            </>
+          )}
+
+          <AlertModal
+            visible={alertModalVisible}
+            title={alertTitle}
+            content={alertContent}
+            onClose={() => setAlertModalVisible(false)}
+            onConfirm={handleAlert}
+          />
+          <ListItemDeleteModal
+            visible={deleteModalVisible}
+            onClose={() => setDeleteModalVisible(false)}
+            onDelete={handleDelete}
+          />
+          <ListItemMenuModal
+            isVisible={isVisible}
+            selectedId={selectedId}
+            menuButtonLayout={menuButtonLayout}
+            onMenuClose={onMenuClose}
+            onItemPress={handleItemMenu}
+            activeTab='Detail'
+            detailTab={category.type}
+          />
+        </View>
       </ScrollView>
 
       {/* Render the correct AddItemModal based on the category */}
@@ -719,6 +722,7 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: 10,
+        paddingBottom: 15,
     },
     sectionRight: {
       flexDirection: 'row',
