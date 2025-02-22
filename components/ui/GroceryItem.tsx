@@ -23,7 +23,7 @@ const GroceryItem: React.FC<GroceryItemProps> = ({ item, openMenuModal, handleTo
 
   return (
     <View style={[styles.itemContainer, { backgroundColor: colors.tabBg }]}>
-      {item.shop != '' ? (
+      {item.shop != undefined && item.shop != '' ? (
         <Text
           style={[styles.shop, { backgroundColor: colors.badge, color: colors.badgeText }]}
           numberOfLines={1}

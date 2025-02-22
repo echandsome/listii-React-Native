@@ -9,9 +9,15 @@ const screenHeight = Dimensions.get('window').height;
 const baseFontSize = 15.2;
 const isSmallScreen = screenWidth < 375;
 
+const tbl_names = {
+    lists: 'lists',
+    items: 'items'
+}
+
 export  {
     screenWidth,
     screenHeight,
     baseFontSize,
-    isSmallScreen
+    isSmallScreen,
+    tbl_names
 }

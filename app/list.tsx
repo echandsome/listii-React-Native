@@ -83,7 +83,8 @@ export default function ListScreen() {
   )
 
   const fatchData = async () => {
-    if (userId && (lists == undefined || lists == null || lists.length == 0)){
+    if (userId && ((lists == undefined && archiveLists == undefined) 
+              || (lists == null && archiveLists == null) || (lists.length == 0 && archiveLists.length == 0))){
       setLoading(true);
       const res = await getLists(userId, dispatch);
       if (res) showToast('success', 'Data loaded successfully.', '');

@@ -29,7 +29,7 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
   const listTypes = ['Grocery', 'ToDo', 'Bookmark', 'Note'];
 
   const handleSelectListType = (type: string) => {
-    setListType(type);
+    setListType(type.toLowerCase());
   };
 
   const handleModalPress = (event: any) => {
@@ -42,7 +42,7 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
     if (listName !== '') {
       onAdd({
         name: listName,
-        type: listType,
+        type: listType.toLowerCase(),
       });
       setListName('');
       setListType('Grocery');

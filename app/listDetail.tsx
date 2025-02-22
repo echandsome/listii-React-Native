@@ -50,7 +50,7 @@ interface ColorsType {
 }
 
 interface LocalSearchParams {
-  type: 'Grocery' | 'ToDo' | 'Bookmark' | 'Note';
+  type: 'grocery' | 'todo' | 'bookmark' | 'note';
   name: string;
 }
 // Arrow Components
@@ -79,19 +79,19 @@ const ListDetailScreen = () => {
   let tempAction: any;
 
   switch (category.type) {
-    case 'Grocery':
+    case 'grocery':
       tempReducer = groceryReducer;
       tempAction = groceryAction;
       break;
-    case 'ToDo':
+    case 'todo':
       tempReducer = todoReducer;
       tempAction = todoAction;
       break;
-    case 'Bookmark':
+    case 'bookmark':
       tempReducer = bookmarkReducer;
       tempAction = bookmarkAction;
       break;
-    case 'Note':
+    case 'note':
       tempReducer = noteReducer;
       tempAction = noteAction;
       break;
@@ -143,10 +143,10 @@ const ListDetailScreen = () => {
 
   let listTypes: string[] = [];
   if (listItems.length > 0) {
-    if (category.type === 'Bookmark') {
+    if (category.type === 'bookmark') {
       listTypes.push('Check bookmarks');
       listTypes.push('Clear active bookmarks');
-    } else if (category.type === 'Note') {
+    } else if (category.type === 'note') {
       listTypes.push('Check notes');
       listTypes.push('Clear notes');
     } else {
@@ -155,16 +155,16 @@ const ListDetailScreen = () => {
     }
   }
   if (cartItems.length > 0) {
-    if (category.type === 'Grocery') {
+    if (category.type === 'grocery') {
       listTypes.push('Uncheck cart');
       listTypes.push('Clear cart');
-    } else if (category.type === 'ToDo') {
+    } else if (category.type === 'todo') {
       listTypes.push('Uncheck tasks');
       listTypes.push('Clear completed tasks');
-    } else if (category.type === 'Bookmark') {
+    } else if (category.type === 'bookmark') {
       listTypes.push('Uncheck bookmarks');
       listTypes.push('Clear hidden bookmarks');
-    } else if (category.type === 'Note') {
+    } else if (category.type === 'note') {
       listTypes.push('Uncheck notes');
       listTypes.push('Clear hidden notes');
     }
@@ -270,7 +270,7 @@ const ListDetailScreen = () => {
           style={{ width: 200, paddingVertical: 10 }}
         />
 
-        {category.type === 'Grocery' && (
+        {category.type === 'grocery' && (
           <>
             {
               listItems.length > 0? (
@@ -357,7 +357,7 @@ const ListDetailScreen = () => {
           </>
         )}
 
-        {category.type === 'ToDo' && (
+        {category.type === 'todo' && (
           <>
             {
               listItems.length > 0? (
@@ -431,7 +431,7 @@ const ListDetailScreen = () => {
           </>
         )}
 
-        {category.type === 'Bookmark' && (
+        {category.type === 'bookmark' && (
           <>
             {
               listItems.length > 0? (
@@ -505,7 +505,7 @@ const ListDetailScreen = () => {
           </>
         )}
 
-        {category.type === 'Note' && (
+        {category.type === 'note' && (
           <>
             {
               listItems.length > 0? (
@@ -605,7 +605,7 @@ const ListDetailScreen = () => {
       {/* Render the correct AddItemModal based on the category */}
       {(() => {
         switch (category.type) {
-          case 'Grocery':
+          case 'grocery':
             return (
               <AddItemGroceryModal
                 visible={isAddItemModalVisible}
@@ -615,7 +615,7 @@ const ListDetailScreen = () => {
                 initialData={selectedItem}
               />
             );
-          case 'ToDo':
+          case 'todo':
             return (
               <AddItemTodoModal
                 visible={isAddItemModalVisible}
@@ -625,7 +625,7 @@ const ListDetailScreen = () => {
                 initialData={selectedItem}
               />
             );
-          case 'Bookmark':
+          case 'bookmark':
             return (
               <AddItemBookmarkModal
                 visible={isAddItemModalVisible}
@@ -635,7 +635,7 @@ const ListDetailScreen = () => {
                 initialData={selectedItem}
               />
             );
-          case 'Note':
+          case 'note':
             return (
               <AddItemNoteModal
                 visible={isAddItemModalVisible}

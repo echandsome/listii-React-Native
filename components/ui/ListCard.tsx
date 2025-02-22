@@ -18,7 +18,7 @@ import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/consta
 interface List {
   id: string;
   name: string;
-  type: 'Note' | 'Bookmark' | 'ToDo' | 'Grocery';
+  type: 'note' | 'bookmark' | 'todo' | 'grocery';
   [key: string]: any; // Allow for other properties
 }
 
@@ -46,37 +46,37 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
 
   let listItems ;
   switch (list.type) {
-    case 'Note':
+    case 'note':
       listItems = useSelector((state: any) => state.note.listitems[list.id]);
       break;
-    case 'Bookmark':
+    case 'bookmark':
       listItems = useSelector((state: any) => state.bookmark.listitems[list.id]);
       break;
-    case 'ToDo':
+    case 'todo':
       listItems = useSelector((state: any) => state.todo.listitems[list.id]);
       break;
-    case 'Grocery':
-      listItems = useSelector((state: any) => state.grocery.listitems[list.id]);
+    case 'grocery':
+      listItems = useSelector((state: any) => (state.grocery.listitems[list.id] || []).filter((item: any) => item.is_check == false));
       break;
   }
   if (!listItems) listItems = [];
 
   const typeColors: { [key in List['type']]: string } = {
-    Note: '#FFDA61',
-    Bookmark: '#D0BCFF',
-    ToDo: '#96E6A6',
-    Grocery: '#79B4FF',
+    note: '#FFDA61',
+    bookmark: '#D0BCFF',
+    todo: '#96E6A6',
+    grocery: '#79B4FF',
   };
 
   const itemCount = (): string => {
     switch (list.type) {
-      case 'Note':
+      case 'note':
         return listItems.length + ' notes';
-      case 'Bookmark':
+      case 'bookmark':
         return listItems.length + ' bookmarks';
-      case 'ToDo':
+      case 'todo':
         return listItems.length + ' tasks';
-      case 'Grocery':
+      case 'grocery':
         return listItems.length + ' items';
       default:
         return listItems.length + ' items';
@@ -114,7 +114,7 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
         </View>
         <View>
           <Text style={[styles.listCardTitle, styles.textColor]}>{list.name}</Text>
-          {list.type === 'Grocery' && <Text style={[styles.textColor, styles.listCardTotal]}>List total: R{totalPrice()}</Text>}
+          {list.type === 'grocery' && <Text style={[styles.textColor, styles.listCardTotal]}>List total: R{totalPrice()}</Text>}
         </View>
       </View>
     </TouchableOpacity>

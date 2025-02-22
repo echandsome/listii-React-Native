@@ -8,49 +8,77 @@ import { setItems as setItemsGrocery, addItems as addItemsGrocery } from '@/stor
 import { setItems as setItemsBookmark, addItems as addItemsBookmark } from '@/store/reducers/bookmarkReducer';
 import { setItems as setItemsTodo, addItems as addItemsTodo } from '@/store/reducers/todoReducer';
 import { setItems as setItemsNote, addItems as addItemsNote } from '@/store/reducers/noteReducer';
+import { getData, storeData, addToData,replaceItemInStorage } from '../localstorage';
+import { listExists, createNewCleanName, findItemByUserIdAndId } from '@/helpers/utility';
 
-const table_name = 'lists';
+import { tbl_names } from '@/constants/Config';
 
-function groupByListId(data: any) {
-    return data.reduce((acc: any, item: any) => {
-        if (!acc[item.list_id]) {
-            acc[item.list_id] = [];
+const groupAndTransformItems = (data: any[], list: any) => {
+
+    const transformedData = data.map(({ id, name, price, quantity, list_name, checked, store_name }) => ({
+        id,
+        name,
+        price,
+        quantity,
+        list_name,
+        is_check: checked,  
+        shop: store_name  
+    }));
+
+    return transformedData.reduce((acc: any, item: any) => {
+        let id = getIdsByCleanName(list, item.list_name);
+
+        if (id && !acc[id]) {
+            acc[id] = [];
         }
-        acc[item.list_id].push(item);
+
+        if (id) acc[id].push(item);
+
         return acc;
     }, {});
+};
+
+const getIdsByCleanName = (data: any[], cleanName: string) => {
+    return (data.find(item => item.clean_name === cleanName)).id;
+};
+
+function transformData(data: any) {
+    return data
+        .filter(item => !item.deleted)
+        .map(item => ({
+            ...item,
+            is_archive: item.archived,
+            type: item.list_type,
+        }));
 }
+
 
 export async function getLists(userId: string, dispatch: Dispatch) {
     if (!userId) return false;
     console.log('getLists');
     try {
-        const [lists, grocery_items, bookmark_items, note_items, todo_items] = await Promise.all([
-            supabase.from(table_name).select("*").eq("user_id", userId),
-            supabase.from('grocery_items').select("*").eq("user_id", userId),
-            supabase.from('bookmark_items').select("*").eq("user_id", userId),
-            supabase.from('note_items').select("*").eq("user_id", userId),
-            supabase.from('todo_items').select("*").eq("user_id", userId)
+
+        const [lists, items] = await Promise.all([
+            supabase.from(tbl_names.lists).select().neq('deleted', true).order('created_at', { ascending: true }),
+            supabase.from(tbl_names.items).select().neq('deleted', true).order('created_at', { ascending: true })
         ]);
 
-        if (lists.error || grocery_items.error || bookmark_items.error || note_items.error || todo_items.error) {
+        if (lists.error || items.error) {
             console.error("Error fetching data:", {
                 lists: lists.error,
-                grocery_items: grocery_items.error,
-                bookmark_items: bookmark_items.error,
-                note_items: note_items.error,
-                todo_items: todo_items.error
+                items: items.error,
             });
             return false;
         }
 
         dispatch((dispatch) => {
-            dispatch(setList(lists.data || []));
-            dispatch(setItemsGrocery(groupByListId(grocery_items.data || [])));
-            dispatch(setItemsBookmark(groupByListId(bookmark_items.data || [])));
-            dispatch(setItemsTodo(groupByListId(todo_items.data || [])));
-            dispatch(setItemsNote(groupByListId(note_items.data || [])));
+            dispatch(setList(transformData(lists.data) || []));
+            dispatch(setItemsGrocery(groupAndTransformItems(items.data || [], lists.data)));
+            // dispatch(setItemsBookmark(groupByListId(bookmark_items.data || [])));
+            // dispatch(setItemsTodo(groupByListId(todo_items.data || [])));
+            // dispatch(setItemsNote(groupByListId(note_items.data || [])));
         });
+        storeData(tbl_names.lists, lists.data);
         return true;
     } catch (error) {
         console.error("Unexpected error:", error);
@@ -60,16 +88,34 @@ export async function getLists(userId: string, dispatch: Dispatch) {
 
 export async function addNewList({ userId, name, type, id }, dispatch: Dispatch) {
     if (userId) {
+        
+        type = type.toLowerCase();
+        let clean_name = name;
+        if(listExists(getData(tbl_names.lists), name)) clean_name = createNewCleanName(clean_name);
+
+        let _data = {
+            "name": name,
+            "list_type": type,
+            "clean_name": clean_name,
+            "total": 0,
+            "item_number": 0,
+            "user_id": userId,
+            "deleted": false,
+            "edited": false,
+            "archived": false
+        }
+        
         const { data, error } = await supabase
-        .from(table_name)
-        .insert([{ user_id: userId, name, type, is_archive: false }])
-        .select('*');
-  
-      if (error) {
-        console.error("Error inserting user:", error);
-      } else {
-          dispatch(addList(data[0]));
-      }
+        .from(tbl_names.lists)
+        .insert([_data])
+        .select('id');
+
+        if (error) {
+            console.error("Error inserting user:", error);
+        } else {
+            addToData({ id: data[0].id, ..._data }, tbl_names.lists);
+            dispatch(addList({id: data[0].id, name, type}));
+        }
     }else {
         dispatch(addList({id, name, type}));
     }
@@ -77,12 +123,18 @@ export async function addNewList({ userId, name, type, id }, dispatch: Dispatch)
 
 export async function deleteListByDB(userId: string, listId :string, dispatch: Dispatch) {
     if (userId) {
-        const { data, error } = await supabase.from(table_name).delete().eq("user_id", userId).eq("id", listId);
-  
-        if (error) {
-          console.error("Error deleting user:", error);
+
+        let _item = findItemByUserIdAndId(userId, listId) || [];
+
+        const [lists, items] = await Promise.all([
+            supabase.from(tbl_names.lists).update({ deleted: true }).eq('clean_name', _item.clean_name),
+            supabase.from(tbl_names.items).update({ deleted: true }).eq('list_name', _item.clean_name)
+        ]);
+
+        if (lists.error || items.error ) {
+            console.error("Error deleting user:", lists.error, items.error);
         } else {
-          dispatch(deleteList(listId));
+            dispatch(deleteList(_item.id));
         }
     }else {
         dispatch(deleteList(listId));
@@ -92,14 +144,18 @@ export async function deleteListByDB(userId: string, listId :string, dispatch: D
 export async function updateListByDB(nData: any, dispatch: Dispatch) {
     const { userId, id, updates } = nData;
     if (userId) {
-        const { data, error } = await supabase
-        .from(table_name)
-        .update({ name: updates.name })
-        .eq("user_id", userId).eq("id", id);
+        let _items = findItemByUserIdAndId(userId, id) || [];
+        _items.name = updates.name;
+
+        const {data, error} = await supabase
+                .from(tbl_names.lists)
+                .update({ name: updates.name }).eq("id", id)
+
     
         if (error) {
             console.error("Error updating user:", error);
         } else {
+            replaceItemInStorage(tbl_names.lists, userId, id, _items)
             dispatch(updateList(nData));
         }
     }else {
@@ -110,64 +166,103 @@ export async function updateListByDB(nData: any, dispatch: Dispatch) {
 export async function duplicateListByDB(userId: string, nData: any, dispatch: Dispatch) {
     const {id, name, type, is_archive} = nData;
     let listItems: any = [];
-    let item_table_name = '';
+    let tbl_items = '';
     switch (type) {
-        case 'Note':
+        case 'note':
         listItems = store.getState().note.listitems[id] || [];
-        item_table_name = 'note_items';
+        tbl_items = 'note_items';
         break;
-        case 'Bookmark':
+        case 'bookmark':
         listItems = store.getState().bookmark.listitems[id] || [];
-        item_table_name = 'bookmark_items';
+        tbl_items = 'bookmark_items';
         break;
-        case 'ToDo':
+        case 'tofo':
         listItems = store.getState().todo.listitems[id] || [];
-        item_table_name = 'todo_items';
+        tbl_items = 'todo_items';
         break;
-        case 'Grocery':
+        case 'grocery':
         listItems = store.getState().grocery.listitems[id] || [];
-        item_table_name = 'grocery_items';
+        tbl_items = 'grocery_items';
         break;
     }
 
     if (userId) {
-        const { data, error } = await supabase
-        .from(table_name)
-        .insert([{ user_id: userId, name, type, is_archive }])
-        .select('*');
 
-        if (error) {
-            console.error("Error inserting user:", error);
+        let _item = findItemByUserIdAndId(userId, id) || [];
+        let clean_name = _item.clean_name;
+        if(listExists(getData(tbl_names.lists), clean_name)) clean_name = createNewCleanName(clean_name);
+
+        let _data = {
+            "name": name,
+            "list_type": type,
+            "clean_name": clean_name,
+            "total": _item.total,
+            "item_number": _item.item_number,
+            "user_id": userId,
+            "deleted": false,
+            "edited": false,
+            "archived": is_archive?? false
         }
+        console.log(_data);
+        let filteredData: any[] = [];
+        
+        switch (type) {
+            case 'note':
+                listItems = store.getState().note.listitems[id] || [];
+                tbl_items = 'note_items';
+                break;
+            case 'bookmark':
+                listItems = store.getState().bookmark.listitems[id] || [];
+                tbl_items = 'bookmark_items';
+                break;
+            case 'tofo':
+                listItems = store.getState().todo.listitems[id] || [];
+                tbl_items = 'todo_items';
+                break;
+            case 'grocery':
+                filteredData = listItems.map((item: any) => ({
+                    "user_id": userId,
+                    "name": item.name,
+                    "list_name": clean_name,
+                    "checked": item.is_check?? false,
+                    "deleted": false,
+                    "edited": false,
+                    "price": item.price,
+                    "quantity": item.quantity,
+                    "store_name": item.shop,
+                    "shared_with": null,  
+                }));
+                break;
+        }
+        console.log(filteredData);
+        const [lists, items] = await Promise.all([
+            supabase.from(tbl_names.lists).insert([_data]).select('id'),
+            supabase.from(tbl_names.items).insert(filteredData).select('id')
+        ]);
 
-        const filteredData = listItems.map(({ created_at, id, ...rest }) => ({
-            ...rest,
-            list_id: data[0].id
-        }));
-
-        const itemLists = await supabase
-        .from(item_table_name)
-        .insert(filteredData)
-        .select('*');
-
-        if (itemLists.error) {
-            console.error("Error inserting user:", itemLists.error);
-            await supabase.from(table_name).delete().eq("user_id", userId).eq("id", data[0].id);
-        } else {
+        if (lists.error || items.error) {
+            console.error("Error inserting user:", lists.error, items.error);
+        }else {
+            addToData({ id: lists.data[0].id, ..._data }, tbl_names.lists);
+            filteredData = listItems.map((item: any, index: int) => ({
+                ...item,
+                id: items.data[index].id
+            }));
+            console.log(filteredData);
             dispatch((dispatch) => {
-                dispatch(addList(data[0]));
+                dispatch(addList({...nData, id: lists.data[0].id}));
                 switch (type) {
-                    case 'Note':
-                        dispatch(addItemsNote({ listId: data[0].id, items: itemLists.data}));
+                    case 'note':
+                        dispatch(addItemsNote({ listId: lists.data[0].id, items: filteredData}));
                     break;
-                    case 'Bookmark':
-                        dispatch(addItemsBookmark({ listId: data[0].id, items: itemLists.data}));
+                    case 'bookmark':
+                        dispatch(addItemsBookmark({ listId: lists.data[0].id, items: filteredData}));
                     break;
-                    case 'ToDo':
-                        dispatch(addItemsTodo({ listId: data[0].id, items: itemLists.data}));
+                    case 'todo':
+                        dispatch(addItemsTodo({ listId: lists.data[0].id, items: filteredData}));
                     break;
-                    case 'Grocery':
-                        dispatch(addItemsGrocery({ listId: data[0].id, items: itemLists.data}));
+                    case 'grocery':
+                        dispatch(addItemsGrocery({ listId: lists.data[0].id, items: filteredData}));
                     break;
                 }
             });
@@ -203,8 +298,8 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
 export async function archiveListByDB(userId: string, listId: string, dispatch: Dispatch) {
     if (userId) {
         const { data, error } = await supabase
-            .from(table_name)
-            .update({ is_archive: true })
+            .from(tbl_names.lists)
+            .update({ archived: true })
             .eq("user_id", userId).eq("id", listId);
         
         if (error) {
@@ -220,8 +315,8 @@ export async function archiveListByDB(userId: string, listId: string, dispatch: 
 export async function restoreListByDB(userId: string, listId: string, dispatch: Dispatch) {
     if (userId) {
         const { data, error } = await supabase
-            .from(table_name)
-            .update({ is_archive: false })
+            .from(tbl_names.lists)
+            .update({ archived: false })
             .eq("user_id", userId).eq("id", listId);
         
         if (error) {
