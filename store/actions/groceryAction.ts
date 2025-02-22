@@ -33,10 +33,8 @@ const calculateTotalAndCount = (data: any[]): { totalPrice: number; totalCount: 
 export async function addItemByDB(nData: any , dispatch: Dispatch) {
     const { userId, listId, item: { name, price, quantity, shop } } = nData
     if (userId) {
-        console.log(userId, listId);
-        
+
         let _item = findItemByUserIdAndId(userId, listId) || [];
-        return;
         _item.total = Number(_item.total || 0) + price * quantity;
         _item.item_number = Number(_item.item_number || 0) + 1;
         
@@ -52,9 +50,7 @@ export async function addItemByDB(nData: any , dispatch: Dispatch) {
             "store_name": shop,
             "shared_with": null,         
         }
-        
-        // console.log(_item);
-        // return;
+
         const {data, error} = await supabase.from(tbl_names.items).insert(_data).select('id');
 
         if (error) {

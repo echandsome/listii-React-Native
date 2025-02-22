@@ -29,6 +29,5 @@ export const createNewCleanName = (clean_name: string) =>
 }
 
 export const findItemByUserIdAndId = (userId: string, id: string) => {
-    console.log(getData(tbl_names.lists));
     return getData(tbl_names.lists).find(item => item.user_id == userId && item.id == id);
 }
