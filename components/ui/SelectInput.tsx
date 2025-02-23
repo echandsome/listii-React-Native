@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
   Text,
   StyleSheet,
   ScrollView,
-  Platform
+  Platform,
 } from 'react-native';
 import { Theme } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Example icon library - install it! (npm install react-native-vector-icons)
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
 interface SelectInputProps {
@@ -23,7 +23,11 @@ interface SelectInputProps {
 const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSelect, colors, style }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [textHeight, setTextHeight] = useState(0);
   const styles = getSelectInputStyles(colors);
+
+  let _isSmallScreen = false;
+  if (style.width == '100%') _isSmallScreen = true;
 
   const handleSelect = useCallback((option: string) => {
     onSelect(option);
@@ -37,9 +41,11 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
 
   const calculateDropdownPosition =() => {
     const DROPDOWN_OFFSET = 5;
+    let left = buttonLayout.x;
+    if (_isSmallScreen) left -= (200 - buttonLayout.width)/2;
     return {
       top: buttonLayout.y + buttonLayout.height + DROPDOWN_OFFSET,
-      left: buttonLayout.x,
+      left:left,
       width: buttonLayout.width,
     };
   };
@@ -48,20 +54,13 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
     setShowOptions(false);
   }, []);
 
-  useEffect(() => {
-    if (showOptions) {
-      const listener = () => {
-        handleClickOutside();
-      };
 
-      const touchHandler = () => {
-        listener();
-      };
+  const handleTextLayout = useCallback((event: any) => {
+      const { height } = event.nativeEvent.layout;
+      setTextHeight(height);
+  }, []);
 
-      return () => {
-      };
-    }
-  }, [showOptions, handleClickOutside]);
+  const shouldShrinkText = useMemo(()=>textHeight > 30, [textHeight]);
 
   return (
     <View style={[style, styles.container]}>
@@ -72,13 +71,18 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
           <></>
         )
       }
-      
+
       <TouchableOpacity
-        style={styles.selectContainer}
+        style={[styles.selectContainer, shouldShrinkText? styles._selectContainer: undefined]}
         onPress={() => setShowOptions(!showOptions)}
         onLayout={handleButtonLayout}
       >
-        <Text style={[styles.selectText, { color: colors.text }]}>{value}</Text>
+        <Text
+          style={shouldShrinkText? styles._selectText:styles.selectText}
+          onLayout={handleTextLayout} // Attach onLayout to Text
+        >
+          {value}
+        </Text>
         <Icon name="chevron-down" size={baseFontSize * 1.1} color={colors.text} />
       </TouchableOpacity>
 
@@ -97,12 +101,11 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View> 
+        </View>
       )}
     </View>
   );
 };
-
 
 const getSelectInputStyles = (colors: any) => {
 
@@ -124,8 +127,17 @@ const getSelectInputStyles = (colors: any) => {
       backgroundColor: colors.background,
       flex: 1, // Take remaining space
     },
+    _selectContainer: {
+      paddingVertical: 2
+    },
     selectText: {
       fontSize: baseFontSize,
+      textAlign: 'center',
+      marginRight: 1
+    },
+    _selectText: {
+      fontSize: 12,
+      textAlign: 'center',
     },
     dropdownOptionsContainer: {
       position: 'absolute',
@@ -133,6 +145,7 @@ const getSelectInputStyles = (colors: any) => {
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 4,
+      minWidth: 200,
       zIndex: 100000,
       ...Platform.select({
         ios: {

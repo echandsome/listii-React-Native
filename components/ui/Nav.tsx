@@ -16,8 +16,9 @@ import ThemeModal from '@/components/modals/ThemeModal';
 import LogoutModal from '@/components/modals/LogoutModal';
 import { images } from '@/constants/Resources';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
+import SelectInput from '@/components/ui/SelectInput';
 
-export default function Nav ({ page, openNewListModal, openAddItemModal }){
+export default function Nav ({ page, openNewListModal, openAddItemModal, selectData }){
 
     const router = useRouter();
     const themeButtonRef = useRef(null);
@@ -28,7 +29,9 @@ export default function Nav ({ page, openNewListModal, openAddItemModal }){
     const { colors } = useTheme();
     const { width } = useWindowDimensions();
     const isLargeScreen = width >= 1000;
-    const styles = getStyles(colors, isLargeScreen);
+    const _isSmallScreen = width < 500? true: false;
+
+    const styles = getStyles(colors, isLargeScreen); 
 
     const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
@@ -114,13 +117,30 @@ export default function Nav ({ page, openNewListModal, openAddItemModal }){
                                 resizeMode="contain"
                                 />
                             </Link>
-                            <TouchableOpacity style={styles.newlist} onPress={openAddItemModal}>
-                                <Text style={styles.newlistText}>+ New Item</Text>
+                            <TouchableOpacity 
+                                style={[styles.newlist, _isSmallScreen? styles._newlist: undefined]}
+                                onPress={openAddItemModal}>
+                                <Text style={[styles.newlistText, styles.plusText]}>+</Text>
+                                <Text style={[styles.newlistText, _isSmallScreen? styles._newlistText: undefined]}>New Item</Text>
                             </TouchableOpacity>
                         </View>
                     );
                 }
             })()}
+
+            {
+                page == 'listDetail'? (
+                    <SelectInput
+                        label=""
+                        value={selectData.value}
+                        options={selectData.options}
+                        onSelect={selectData.onSelect}
+                        colors={selectData.colors}
+                        style={_isSmallScreen? styles._selectInput: styles.selectInput}
+                    />
+                ): (<></>)
+            }
+            
           
             <View style={styles.navButtons}>
                 {(() => {
@@ -156,8 +176,8 @@ export default function Nav ({ page, openNewListModal, openAddItemModal }){
                         );
                     case 'listDetail':
                         return (
-                            <TouchableOpacity style={styles.signout} onPress={() => setLogoutModalVisible(true)}>
-                                <Text style={styles.signoutText}>Sign Out</Text>
+                            <TouchableOpacity style={[styles.signout, _isSmallScreen? styles._signout: undefined]} onPress={() => setLogoutModalVisible(true)}>
+                                <Text style={[styles.signoutText, _isSmallScreen? styles._signoutText: undefined]}>Sign Out</Text>
                             </TouchableOpacity>
                         );
                     }
@@ -187,8 +207,8 @@ export default function Nav ({ page, openNewListModal, openAddItemModal }){
     )
 }
 
-const getStyles = (colors: any, isLargeScreen: boolean) => {
-
+const getStyles = (colors: any, isLargeScreen: boolean) => { 
+    
     return StyleSheet.create({
       nav: {
         flexDirection: 'row',
@@ -256,11 +276,20 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
         fontWeight: 'bold',
       },
       newlist: {
+        flexDirection: 'row', // 수직 정렬로 변경
+        justifyContent: 'center',
+        alignItems: 'center',
         backgroundColor: '#007bff',
         paddingVertical: isSmallScreen ? 6 : 8,
         paddingHorizontal: isSmallScreen ? 12 : 16,
         borderRadius: 5,
-      },
+    },
+    plusText: {
+        fontWeight: 'bold',
+        fontSize: baseFontSize ,
+        paddingRight: 5,
+        textAlignVertical: 'center',
+    },
       newlistText: {
         color: '#fff',
         fontWeight: 'bold',
@@ -283,5 +312,26 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
         alignItems: 'center',
         gap: isSmallScreen ? 5 : 10,
       },
+      selectInput: {
+        minWidth: 200, 
+      },
+      _selectInput: {
+        width: '100%',
+        flex: 1,
+      },
+      _newlist: {
+        width: 70,
+        paddingVertical: 2
+      },
+      _newlistText: {
+        fontSize: 12,
+      },
+      _signout: {
+        width: 60,
+        paddingVertical: 2
+      },
+      _signoutText: {
+        fontSize: 12,
+      }
     });
   };

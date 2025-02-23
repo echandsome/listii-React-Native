@@ -261,16 +261,18 @@ const ListDetailScreen = () => {
     <SafeAreaView style={[styles.container, styles.bgColor]}>
       
       <ScrollView >
-        <Nav page='listDetail' openAddItemModal={openAddItemModal}/>
+        <Nav page='listDetail' 
+          openAddItemModal={openAddItemModal} 
+          selectData={{value: category.name, options:listTypes, onSelect:handleSelectListType, colors: colors, }}/>
         <View style={styles.scrollContainer}>
-          <SelectInput
+          {/* <SelectInput
             label=""
             value={category.name}
             options={listTypes}
             onSelect={handleSelectListType}
             colors={colors}
             style={{ width: 200, paddingVertical: 10 }}
-          />
+          /> */}
 
           {category.type === 'grocery' && (
             <>
@@ -664,6 +666,7 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
     },
     scrollContainer: {
       paddingHorizontal: isLargeScreen? 40: 20,
+      zIndex: -1,
     },
     header: {
       flexDirection: 'row',
