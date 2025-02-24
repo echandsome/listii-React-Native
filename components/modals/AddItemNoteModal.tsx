@@ -28,7 +28,7 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
   const [note, setNote] = useState(initialData?.note || '');
 
   useEffect(() => {
-    if (mode === 'edit' && initialData) {
+    if (mode == 'edit' && initialData) {
       setName(initialData.name || '');
       setNote(initialData.note || '');
     } else {
@@ -45,7 +45,7 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
   };
 
   const handleModalPress = (event: any) => {
-    if (event.target === event.currentTarget) {
+    if (event.target == event.currentTarget) {
       onClose();
     }
   };
@@ -60,7 +60,7 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
       <Pressable style={styles.modalOverlay} onPress={handleModalPress}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>{mode === 'add' ? 'Add a new item' : 'Edit item'}</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>{mode == 'add' ? 'Add a new item' : 'Edit item'}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButtonContainer}>
               <Text style={[styles.closeButton, { color: colors.text }]}>×</Text>
             </TouchableOpacity>
@@ -94,7 +94,7 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
           </View>
 
           <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
-            <Text style={styles.addItemButtonText}>{mode === 'add' ? 'Add item' : 'Save item'}</Text>
+            <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
           </TouchableOpacity>
         </View>
       </Pressable>

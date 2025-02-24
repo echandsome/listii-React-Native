@@ -35,7 +35,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
   }, [onConfirm, onClose]);
 
   const handleBackdropPress = (event: any) => {
-    if (event.target === event.currentTarget) {
+    if (event.target == event.currentTarget) {
       onClose();
     }
   };

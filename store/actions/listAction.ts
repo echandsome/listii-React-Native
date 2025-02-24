@@ -71,7 +71,7 @@ const groupAndTransformItems = (data: any[], list: any, type: any) => {
 };
 
 const getIdsByCleanName = (data: any[], cleanName: string) => {
-    data = data.find(item => item.clean_name === cleanName);
+    data = data.find(item => item.clean_name == cleanName);
     if (data) return data.id;
     else return null;
 };
@@ -89,7 +89,6 @@ function transformData(data: any) {
 
 export async function getLists(userId: string, dispatch: Dispatch) {
     if (!userId) return false;
-    console.log('getLists');
     try {
 
         const [lists, items] = await Promise.all([
@@ -105,14 +104,16 @@ export async function getLists(userId: string, dispatch: Dispatch) {
             return false;
         }
 
-        dispatch((dispatch) => {
+        // Await the dispatch call, even if it seems synchronous. This makes it more predictable and consistent.
+        await dispatch((dispatch: Dispatch) => { //Explicitly type dispatch
             dispatch(setList(transformData(lists.data) || []));
             dispatch(setItemsGrocery(groupAndTransformItems(items.data || [], lists.data, 'grocery')));
             dispatch(setItemsBookmark(groupAndTransformItems(items.data || [], lists.data, 'bookmark')));
             dispatch(setItemsTodo(groupAndTransformItems(items.data || [], lists.data, 'todo')));
             dispatch(setItemsNote(groupAndTransformItems(items.data || [], lists.data, 'note')));
         });
-        storeData(tbl_names.lists, lists.data);
+
+        await storeData(tbl_names.lists, lists.data);
         return true;
     } catch (error) {
         console.error("Unexpected error:", error);
@@ -125,7 +126,8 @@ export async function addNewList({ userId, name, type, id }, dispatch: Dispatch)
         
         type = type.toLowerCase();
         let clean_name = name;
-        if(listExists(getData(tbl_names.lists), name)) clean_name = createNewCleanName(clean_name);
+        const lists = await getData(tbl_names.lists); // Get lists before calling listExists
+        if(await listExists(lists, name)) clean_name = await createNewCleanName(clean_name);
 
         let _data = {
             "name": name,
@@ -147,7 +149,7 @@ export async function addNewList({ userId, name, type, id }, dispatch: Dispatch)
         if (error) {
             console.error("Error inserting user:", error);
         } else {
-            addToData({ id: data[0].id, ..._data }, tbl_names.lists);
+            await addToData({ id: data[0].id, ..._data }, tbl_names.lists);
             dispatch(addList({id: data[0].id, name, type}));
         }
     }else {
@@ -158,15 +160,15 @@ export async function addNewList({ userId, name, type, id }, dispatch: Dispatch)
 export async function deleteListByDB(userId: string, listId :string, dispatch: Dispatch) {
     if (userId) {
 
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
 
-        const [lists, items] = await Promise.all([
+        const [listsRes, itemsRes] = await Promise.all([
             supabase.from(tbl_names.lists).update({ deleted: true }).eq('clean_name', _item.clean_name),
             supabase.from(tbl_names.items).update({ deleted: true }).eq('list_name', _item.clean_name)
         ]);
 
-        if (lists.error || items.error ) {
-            console.error("Error deleting user:", lists.error, items.error);
+        if (listsRes.error || itemsRes.error ) {
+            console.error("Error deleting user:", listsRes.error, itemsRes.error);
         } else {
             dispatch(deleteList(_item.id));
         }
@@ -178,7 +180,9 @@ export async function deleteListByDB(userId: string, listId :string, dispatch: D
 export async function updateListByDB(nData: any, dispatch: Dispatch) {
     const { userId, id, updates } = nData;
     if (userId) {
-        let _items = findItemByUserIdAndId(userId, id) || [];
+
+        const lists = await getData(tbl_names.lists); // Get lists before calling findItemByUserIdAndId
+        let _items = await findItemByUserIdAndId(userId, id) || [];
         _items.name = updates.name;
 
         const {data, error} = await supabase
@@ -189,7 +193,7 @@ export async function updateListByDB(nData: any, dispatch: Dispatch) {
         if (error) {
             console.error("Error updating user:", error);
         } else {
-            replaceItemInStorage(tbl_names.lists, userId, id, _items)
+            await replaceItemInStorage(tbl_names.lists, userId, id, _items)
             dispatch(updateList(nData));
         }
     }else {
@@ -222,9 +226,11 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
 
     if (userId) {
 
-        let _item = findItemByUserIdAndId(userId, id) || [];
+        const _item = await findItemByUserIdAndId(userId, id) || [];
         let clean_name = _item.clean_name;
-        if(listExists(getData(tbl_names.lists), clean_name)) clean_name = createNewCleanName(clean_name);
+
+        const lists = await getData(tbl_names.lists); // Get lists before calling listExists
+        if(await listExists(lists, clean_name)) clean_name = await createNewCleanName(clean_name);
 
         let _data = {
             "name": name,
@@ -293,34 +299,35 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
                 break;
         }
 
-        const [lists, items] = await Promise.all([
+        const [listsRes, itemsRes] = await Promise.all([
             supabase.from(tbl_names.lists).insert([_data]).select('id'),
             supabase.from(tbl_names.items).insert(filteredData).select('id')
         ]);
 
-        if (lists.error || items.error) {
-            console.error("Error inserting user:", lists.error, items.error);
+        if (listsRes.error || itemsRes.error) {
+            console.error("Error inserting user:", listsRes.error, itemsRes.error);
         }else {
-            addToData({ id: lists.data[0].id, ..._data }, tbl_names.lists);
-            filteredData = listItems.map((item: any, index: int) => ({
+            await addToData({ id: listsRes.data[0].id, ..._data }, tbl_names.lists);
+            const itemsData = itemsRes.data;
+            filteredData = listItems.map((item: any, index: number) => ({
                 ...item,
-                id: items.data[index].id
+                id: itemsData[index].id
             }));
-            console.log(filteredData);
-            dispatch((dispatch) => {
-                dispatch(addList({...nData, id: lists.data[0].id}));
+
+            await dispatch((dispatch: Dispatch) => {
+                dispatch(addList({...nData, id: listsRes.data[0].id}));
                 switch (type) {
                     case 'note':
-                        dispatch(addItemsNote({ listId: lists.data[0].id, items: filteredData}));
+                         dispatch(addItemsNote({ listId: listsRes.data[0].id, items: filteredData}));
                     break;
                     case 'bookmark':
-                        dispatch(addItemsBookmark({ listId: lists.data[0].id, items: filteredData}));
+                         dispatch(addItemsBookmark({ listId: listsRes.data[0].id, items: filteredData}));
                     break;
                     case 'todo':
-                        dispatch(addItemsTodo({ listId: lists.data[0].id, items: filteredData}));
+                         dispatch(addItemsTodo({ listId: listsRes.data[0].id, items: filteredData}));
                     break;
                     case 'grocery':
-                        dispatch(addItemsGrocery({ listId: lists.data[0].id, items: filteredData}));
+                         dispatch(addItemsGrocery({ listId: listsRes.data[0].id, items: filteredData}));
                     break;
                 }
             });
@@ -333,19 +340,19 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
             list_id: listId
         }));
 
-        dispatch((dispatch) => {
+        await dispatch((dispatch: Dispatch) => {
             dispatch(addList({...nData, id: listId}));
             switch (type) {
-                case 'Note':
+                case 'note':
                     dispatch(addItemsNote({ listId, items: filteredData}));
                 break;
-                case 'Bookmark':
+                case 'bookmark':
                     dispatch(addItemsBookmark({ listId, items: filteredData}));
                 break;
-                case 'ToDo':
+                case 'toDo':
                     dispatch(addItemsTodo({ listId, items: filteredData}));
                 break;
-                case 'Grocery':
+                case 'grocery':
                     dispatch(addItemsGrocery({ listId, items: filteredData}));
                 break;
             }

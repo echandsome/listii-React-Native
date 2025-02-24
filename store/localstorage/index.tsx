@@ -1,77 +1,71 @@
-import { MMKV } from 'react-native-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-const storage = new MMKV();
 const isWeb = Platform.OS == 'web';
 
-const storeData = (key: string, value: any) => {
+const storeData = async (key: string, value: any) => {
   const data = JSON.stringify(value);
   if (isWeb) {
     localStorage.setItem(key, data);
   } else {
-    storage.set(key, data);
+    await AsyncStorage.setItem(key, data);
   }
 };
 
-const addToData = (item: any, storageName: string) => {
-    
-    if (storageName.length <= 0) return
-    let store = getData(storageName)
+const addToData = async (item: any, storageName: string) => {
+  if (storageName.length <= 0) return;
+  let store = await getData(storageName) || [];
 
-    // check if an item exists before adding it to storage
-    for(let i = 0; i < store.length; i++)
-    {
-        if(store[i].name == item.name && store[i].id == item.id)
-        {
-            return 
-        }
+  for (let i = 0; i < store.length; i++) {
+    if (store[i].name == item.name && store[i].id == item.id) {
+      return;
     }
+  }
 
-    store.push(item);
-    storeData(storageName, store);
-}
-
-const markItemAsDeleted = (storageName: string, userId: string, id: number) => {
-    if (storageName.length <= 0) return;
-
-    let store = getData(storageName);
-    if (!store) return;
-
-    store = store.map((item: any) => 
-      item.user_id == userId && item.id == id ? { ...item, deleted: true } : item
-    );
-
-    storeData(storageName, store);
+  store.push(item);
+  await storeData(storageName, store);
 };
 
-const replaceItemInStorage = (storageName: string, userId: string, id: string, newItem: any) => {
+const markItemAsDeleted = async (storageName: string, userId: string, id: number) => {
   if (storageName.length <= 0) return;
 
-  let store = getData(storageName);
+  let store = await getData(storageName);
+  if (!store) return;
+
+  store = store.map((item: any) => 
+    item.user_id == userId && item.id == id ? { ...item, deleted: true } : item
+  );
+
+  await storeData(storageName, store);
+};
+
+const replaceItemInStorage = async (storageName: string, userId: string, id: string, newItem: any) => {
+  if (storageName.length <= 0) return;
+
+  let store = await getData(storageName);
   if (!store) return;
 
   store = store.map((item: any) => 
     item.user_id == userId && item.id == id ? newItem : item
   );
-  storeData(storageName, store);
+  await storeData(storageName, store);
 };
 
-
-const getData = (key: string) => {
+const getData = async (key: string) => {
   if (isWeb) {
     const value = localStorage.getItem(key);
     return value ? JSON.parse(value) : null;
   } else {
-    const value = storage.getString(key);
+    const value = await AsyncStorage.getItem(key);
     return value ? JSON.parse(value) : null;
   }
 };
 
-const removeData = (key: string) => {
+const removeData = async (key: string) => {
   if (isWeb) {
     localStorage.removeItem(key);
   } else {
-    storage.delete(key);
+    await AsyncStorage.removeItem(key);
   }
 };
 

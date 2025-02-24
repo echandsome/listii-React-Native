@@ -28,7 +28,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
   const [path, setPath] = useState(initialData?.path || '');;
 
   useEffect(() => {
-    if (mode === 'edit' && initialData) {
+    if (mode == 'edit' && initialData) {
       setName(initialData.name || '');
       setPath(initialData.path || '');
     } else {
@@ -44,7 +44,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
   };
 
   const handleModalPress = (event: any) => {
-    if (event.target === event.currentTarget) {
+    if (event.target == event.currentTarget) {
       onClose();
     }
   };
@@ -60,7 +60,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
       <Pressable style={styles.modalOverlay} onPress={handleModalPress}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>{mode === 'add' ? 'Add a new item' : 'Edit item'}</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>{mode == 'add' ? 'Add a new item' : 'Edit item'}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButtonContainer}>
               <Text style={[styles.closeButton, { color: colors.text }]}>×</Text>
             </TouchableOpacity>
@@ -91,7 +91,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
           </View>
 
           <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
-            <Text style={styles.addItemButtonText}>{mode === 'add' ? 'Add item' : 'Save item'}</Text>
+            <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
           </TouchableOpacity>
         </View>
       </Pressable>

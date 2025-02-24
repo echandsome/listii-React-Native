@@ -33,7 +33,7 @@ const ArchiveListModal: React.FC<ArchiveListModalProps> = ({
   }, [onArchive, onClose]);
 
   const handleBackdropPress = (event: any) => {
-    if (event.target === event.currentTarget) {
+    if (event.target == event.currentTarget) {
       onClose();
     }
   };

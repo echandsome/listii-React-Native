@@ -34,7 +34,7 @@ export async function addItemByDB(nData: any , dispatch: Dispatch) {
     const { userId, listId, item: { name, price, quantity, shop } } = nData
     if (userId) {
 
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.total = Number(_item.total || 0) + price * quantity;
         _item.item_number = Number(_item.item_number || 0) + 1;
         
@@ -73,7 +73,7 @@ export async function removeItemByDB(nData: any, dispatch: Dispatch) {
         let listItems = store.getState().grocery.listitems[listId] || [];
         let item = listItems.find(item => item.id == itemId) || undefined;
         if (!item) return;
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.total = Number(_item.total || 0) - item.price * item.quantity;
         _item.item_number = Number(_item.item_number) - 1;
 
@@ -98,7 +98,7 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
         isLoading = true;
         if (toggle) {
             
-            let _item = findItemByUserIdAndId(userId, listId) || [];
+            let _item = await findItemByUserIdAndId(userId, listId) || [];
             if (newItem.is_check) {
                 _item.total = Number(_item.total || 0) - newItem.price * newItem.quantity;
                 _item.item_number = _item.item_number - 1;
@@ -124,7 +124,7 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
                 let listItems = store.getState().grocery.listitems[listId] || [];
                 let item = listItems.find(item => item.id == newItem.id) || undefined;
                 if (!item) return;
-                _item = findItemByUserIdAndId(userId, listId) || [];
+                _item = await findItemByUserIdAndId(userId, listId) || [];
                 _item.total = Number(_item.total || 0) + (newItem.price * newItem.quantity) - (item.price * item.quantity);
             }
            
@@ -150,7 +150,7 @@ export async function updateAllItemsTrueByDB(nData: any, dispatch: Dispatch) {
     if (isLoading) return;
     if (userId) {
         isLoading = true;
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.total = 0;
         _item.item_number = 0;
 
@@ -178,7 +178,7 @@ export async function updateAllItemsFalseByDB(nData: any, dispatch: Dispatch) {
         isLoading = true;
         let listItems = store.getState().grocery.listitems[listId] || [];
         let { totalCount, totalPrice } = calculateTotalAndCount(listItems);
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.total = Number(_item.total || 0) + totalPrice;
         _item.item_number = Number(_item.item_number) + totalCount;
 
@@ -204,7 +204,7 @@ export async function removeItemsFalseByDB(nData: any, dispatch: Dispatch) {
     if (isLoading) return;
     if (userId) {
         isLoading = true;
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.total = 0;
         _item.item_number = 0;
 
@@ -228,7 +228,7 @@ export async function removeItemsTrueByDB(nData: any, dispatch: Dispatch) {
     if (isLoading) return;
     if (userId) {
         isLoading = true;
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         const { data, error } = await supabase.from(tbl_names.items).update({ deleted: true })
             .eq("user_id", userId).eq("list_name", _item.clean_name).eq("checked", true);
   

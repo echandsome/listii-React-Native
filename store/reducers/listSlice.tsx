@@ -31,14 +31,14 @@ const listSlice = createSlice({
         updateList: (state, action: PayloadAction<{ id: string; updates: Partial<List> }>) => {
             const { id, updates } = action.payload;
             state.lists = state.lists.map((list) =>
-                list.id === id ? { ...list, ...updates } : list
+                list.id == id ? { ...list, ...updates } : list
             );
         },
         // Modified: reducer to archive a list (set is_archive to true)
         archiveList: (state, action: PayloadAction<string>) => {
             const itemId = action.payload;
             state.lists = state.lists.map(list =>
-                list.id === itemId ? { ...list, is_archive: true } : list
+                list.id == itemId ? { ...list, is_archive: true } : list
             );
         },
 
@@ -46,7 +46,7 @@ const listSlice = createSlice({
         restoreList: (state, action: PayloadAction<string>) => {
             const itemId = action.payload;
             state.lists = state.lists.map(list =>
-                list.id === itemId ? { ...list, is_archive: false } : list
+                list.id == itemId ? { ...list, is_archive: false } : list
             );
         },
     },
@@ -58,7 +58,7 @@ const listSlice = createSlice({
 export const { setList, addList, deleteList, updateList, archiveList, restoreList } = listSlice.actions;
 
 export const selectListById = (state: any, itemId: string) => {
-    return state.list.lists.find((list: any) => list.id === itemId);
+    return state.list.lists.find((list: any) => list.id == itemId);
 };
 
 const selectListsState = (state: any) => state.list.lists;

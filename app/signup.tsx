@@ -133,7 +133,7 @@ const getStyles = (colors: any) => {
     container: {
       flex: 1,
       backgroundColor: colors.background, // Use theme background color
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+      paddingTop: Platform.OS == 'android' ? StatusBar.currentHeight : 0,
       alignItems: 'center',
       justifyContent: 'flex-start',
     },

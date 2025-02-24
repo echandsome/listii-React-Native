@@ -20,7 +20,6 @@ export async function signUpWithEmailAndPassword(
     });
 
     if (error) {
-      console.log(error);
       return { success: false };
     }
 

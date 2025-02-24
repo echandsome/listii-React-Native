@@ -35,7 +35,7 @@ import { selectLists, selectArchiveLists, selectListById } from '@/store/reducer
 import { getLists, addNewList, deleteListByDB, 
   updateListByDB, duplicateListByDB, archiveListByDB, restoreListByDB} from '@/store/actions/listAction';
 
-if (Platform.OS === 'android') {
+if (Platform.OS == 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
@@ -71,13 +71,8 @@ export default function ListScreen() {
   
   const [isLoading, setLoading] = useState(false);
 
-  useEffect(() => {
-    console.log('effect----------');
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
-      console.log('focusEffect----------');
       fatchData ();  
     }, [])
   )
@@ -123,7 +118,7 @@ export default function ListScreen() {
   }, [dispatch, selectedListId, setDeleteModalVisible]);
 
   const handleArchive = useCallback(() => {
-    if (activeTab === 'Lists')
+    if (activeTab == 'Lists')
       archiveListByDB(userId, selectedListId, dispatch);
     else
       restoreListByDB(userId, selectedListId, dispatch);
@@ -132,9 +127,9 @@ export default function ListScreen() {
   }, [dispatch, selectedListId, activeTab, setArchiveModalVisible]);
 
   const handleShare = () => {
-    let listToDuplicate = lists.find((list) => list.id === selectedListId);
+    let listToDuplicate = lists.find((list) => list.id == selectedListId);
     if (listToDuplicate == undefined)
-      listToDuplicate = archiveLists.find((list) => list.id === selectedListId);
+      listToDuplicate = archiveLists.find((list) => list.id == selectedListId);
     duplicateListByDB( userId, listToDuplicate, dispatch);
     setShareModalVisible(false);
   }
@@ -205,7 +200,7 @@ export default function ListScreen() {
             <TouchableOpacity
               style={[
                 styles.tabButton,
-                activeTab === 'Lists' && styles.activeTabButton,
+                activeTab == 'Lists' && styles.activeTabButton,
               ]}
               onPress={() => handleTabPress('Lists')}
             >
@@ -213,7 +208,7 @@ export default function ListScreen() {
                 style={[
                   styles.tabText,
                   styles.textColor,
-                  activeTab === 'Lists' && styles.activeTabText,
+                  activeTab == 'Lists' && styles.activeTabText,
                 ]}
               >
                 {lists.length} Lists
@@ -223,7 +218,7 @@ export default function ListScreen() {
             <TouchableOpacity
               style={[
                 styles.tabButton,
-                activeTab === 'Archive' && styles.activeTabButton,
+                activeTab == 'Archive' && styles.activeTabButton,
               ]}
               onPress={() => handleTabPress('Archive')}
             >
@@ -231,7 +226,7 @@ export default function ListScreen() {
                 style={[
                   styles.tabText,
                   styles.textColor,
-                  activeTab === 'Archive' && styles.activeTabText,
+                  activeTab == 'Archive' && styles.activeTabText,
                 ]}
               >
                 {archiveLists.length} Archive
@@ -320,7 +315,7 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+      paddingTop: Platform.OS == 'android' ? StatusBar.currentHeight : 0,
     },
     tabContainer: {
       flexDirection: 'row',

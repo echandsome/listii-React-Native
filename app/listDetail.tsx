@@ -16,7 +16,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
 import { Ionicons } from '@expo/vector-icons';
-import { toggleTheme, selectThemeMode } from '@/store/reducers/themeSlice';
 import * as groceryReducer from '@/store/reducers/groceryReducer';
 import * as todoReducer from '@/store/reducers/todoReducer';
 import * as bookmarkReducer from '@/store/reducers/bookmarkReducer';
@@ -25,7 +24,6 @@ import * as groceryAction from '@/store/actions/groceryAction';
 import * as bookmarkAction from '@/store/actions/bookmarkAction';
 import * as todoAction from '@/store/actions/todoAction';
 import * as noteAction from '@/store/actions/noteAction';
-import { useColorScheme } from '@/hooks/useColorScheme';
 
 import AddItemGroceryModal from '@/components/modals/AddItemGroceryModal';
 import AddItemTodoModal from '@/components/modals/AddItemTodoModal';
@@ -36,7 +34,6 @@ import AlertModal from '@/components/modals/AlertModal';
 import ListItemMenuModal from '@/components/modals/ListItemMenuModal';
 import ListItemDeleteModal from '@/components/modals/ListItemDeleteModal';
 
-import SelectInput from '@/components/ui/SelectInput';
 import GroceryItem from '@/components/ui/GroceryItem';
 import TodoItem from '@/components/ui/TodoItem';
 import BookmarkItem from '@/components/ui/BookmarkItem';
@@ -68,7 +65,6 @@ const ListDetailScreen = () => {
   const isLargeScreen = width >= 1000;
   const styles = getStyles(colors, isLargeScreen);
   const category = useLocalSearchParams<LocalSearchParams>();
-  const colorScheme = useColorScheme();
 
   const dispatch = useDispatch();
 
@@ -125,17 +121,17 @@ const ListDetailScreen = () => {
   const listItems = useMemo(() => itemlist.filter((item) => !item.is_check), [itemlist]);
 
   const handleAlert = useCallback(() => {
-    if (selectedStatus === 'Check items' ||
-      selectedStatus === 'Check bookmarks' || selectedStatus === 'Check notes') {
+    if (selectedStatus == 'Check items' ||
+      selectedStatus == 'Check bookmarks' || selectedStatus == 'Check notes') {
         updateAllItemsTrueByDB({userId, listId: category.id}, dispatch);
-    } else if (selectedStatus === 'Clear unchecked items' ||
-      selectedStatus === 'Clear active bookmarks' || selectedStatus === 'Clear notes') {
+    } else if (selectedStatus == 'Clear unchecked items' ||
+      selectedStatus == 'Clear active bookmarks' || selectedStatus == 'Clear notes') {
         removeItemsFalseByDB({userId, listId: category.id}, dispatch);
-    } else if (selectedStatus === 'Uncheck cart'
-      || selectedStatus === 'Uncheck tasks' || selectedStatus === 'Uncheck bookmarks' || selectedStatus === 'Uncheck notes') {
+    } else if (selectedStatus == 'Uncheck cart'
+      || selectedStatus == 'Uncheck tasks' || selectedStatus == 'Uncheck bookmarks' || selectedStatus == 'Uncheck notes') {
         updateAllItemsFalseByDB({userId, listId: category.id}, dispatch);
-    } else if (selectedStatus === 'Clear cart'
-      || selectedStatus === 'Clear completed tasks' || selectedStatus === 'Clear hidden bookmarks' || selectedStatus === 'Clear hidden notes') {
+    } else if (selectedStatus == 'Clear cart'
+      || selectedStatus == 'Clear completed tasks' || selectedStatus == 'Clear hidden bookmarks' || selectedStatus == 'Clear hidden notes') {
         removeItemsTrueByDB({userId, listId: category.id}, dispatch);
     }
     setAlertModalVisible(false);
@@ -143,10 +139,10 @@ const ListDetailScreen = () => {
 
   let listTypes: string[] = [];
   if (listItems.length > 0) {
-    if (category.type === 'bookmark') {
+    if (category.type == 'bookmark') {
       listTypes.push('Check bookmarks');
       listTypes.push('Clear active bookmarks');
-    } else if (category.type === 'note') {
+    } else if (category.type == 'note') {
       listTypes.push('Check notes');
       listTypes.push('Clear notes');
     } else {
@@ -155,33 +151,33 @@ const ListDetailScreen = () => {
     }
   }
   if (cartItems.length > 0) {
-    if (category.type === 'grocery') {
+    if (category.type == 'grocery') {
       listTypes.push('Uncheck cart');
       listTypes.push('Clear cart');
-    } else if (category.type === 'todo') {
+    } else if (category.type == 'todo') {
       listTypes.push('Uncheck tasks');
       listTypes.push('Clear completed tasks');
-    } else if (category.type === 'bookmark') {
+    } else if (category.type == 'bookmark') {
       listTypes.push('Uncheck bookmarks');
       listTypes.push('Clear hidden bookmarks');
-    } else if (category.type === 'note') {
+    } else if (category.type == 'note') {
       listTypes.push('Uncheck notes');
       listTypes.push('Clear hidden notes');
     }
   }
   const handleSelectListType = useCallback((status: string) => {
     setSelectedStatus(status);
-    if (status === 'Check items' ||
-      status === 'Check bookmarks' || status === 'Check notes') {
+    if (status == 'Check items' ||
+      status == 'Check bookmarks' || status == 'Check notes') {
       setAlertContent('');
-    } else if (status === 'Clear unchecked items' ||
-      status === 'Clear active bookmarks' || status === 'Clear notes') {
+    } else if (status == 'Clear unchecked items' ||
+      status == 'Clear active bookmarks' || status == 'Clear notes') {
       setAlertContent('This action cannot be undone. This will permanently remove your unchecked items from our servers.');
-    } else if (status === 'Uncheck cart'
-      || status === 'Uncheck tasks' || status === 'Uncheck bookmarks' || status === 'Uncheck notes') {
+    } else if (status == 'Uncheck cart'
+      || status == 'Uncheck tasks' || status == 'Uncheck bookmarks' || status == 'Uncheck notes') {
       setAlertContent('');
-    } else if (status === 'Clear cart'
-      || status === 'Clear completed tasks' || status === 'Clear hidden bookmarks' || status === 'Clear hidden notes') {
+    } else if (status == 'Clear cart'
+      || status == 'Clear completed tasks' || status == 'Clear hidden bookmarks' || status == 'Clear hidden notes') {
       setAlertContent('This action cannot be undone. This will permanently remove your completed tasks from our servers.');
     }
     setAlertModalVisible(true);
@@ -197,7 +193,7 @@ const ListDetailScreen = () => {
   }, [setSelectedItem, setIsAddItemModalVisible]);
 
   const handleAddNewItem = useCallback((item: any, mode: string) => {
-    if (mode === 'add') {
+    if (mode == 'add') {
       addItemByDB({ userId, listId: category.id, item: {...item, id: uuidv4()} }, dispatch);
     } else {
       updateItemByDB({ userId, listId: category.id, item: {...item, id: selectedItem!.id} }, dispatch);
@@ -215,7 +211,7 @@ const ListDetailScreen = () => {
   const listTotal = useMemo(() => calculateTotal(listItems), [listItems, calculateTotal]);
 
   const handleToggleCheck = useCallback((itemId: string) => {
-    const itemToUpdate = itemlist.find((item) => item.id === itemId);
+    const itemToUpdate = itemlist.find((item) => item.id == itemId);
     if (itemToUpdate) {
       updateItemByDB({ userId, listId: category.id, item: {...itemToUpdate, is_check: !itemToUpdate.is_check}, toggle: true }, dispatch);
     }
@@ -250,7 +246,7 @@ const ListDetailScreen = () => {
   }, [dispatch, removeItemByDB, selectedItem, setAlertModalVisible, setDeleteModalVisible]);
 
   const handleItemMenu = useCallback((data: any) => {
-    let item = itemlist.find((item: { id: string; }) => item.id === data.id);
+    let item = itemlist.find((item: { id: string; }) => item.id == data.id);
     setSelectedItem(item);
     if (data.type == 'edit') openAddItemModal();
     else if (data.type == 'delete') setDeleteModalVisible(true);
@@ -265,16 +261,8 @@ const ListDetailScreen = () => {
           openAddItemModal={openAddItemModal} 
           selectData={{value: category.name, options:listTypes, onSelect:handleSelectListType, colors: colors, }}/>
         <View style={styles.scrollContainer}>
-          {/* <SelectInput
-            label=""
-            value={category.name}
-            options={listTypes}
-            onSelect={handleSelectListType}
-            colors={colors}
-            style={{ width: 200, paddingVertical: 10 }}
-          /> */}
 
-          {category.type === 'grocery' && (
+          {category.type == 'grocery' && (
             <>
               {
                 listItems.length > 0? (
@@ -361,7 +349,7 @@ const ListDetailScreen = () => {
             </>
           )}
 
-          {category.type === 'todo' && (
+          {category.type == 'todo' && (
             <>
               {
                 listItems.length > 0? (
@@ -435,7 +423,7 @@ const ListDetailScreen = () => {
             </>
           )}
 
-          {category.type === 'bookmark' && (
+          {category.type == 'bookmark' && (
             <>
               {
                 listItems.length > 0? (
@@ -509,7 +497,7 @@ const ListDetailScreen = () => {
             </>
           )}
 
-          {category.type === 'note' && (
+          {category.type == 'note' && (
             <>
               {
                 listItems.length > 0? (
@@ -662,7 +650,7 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+      paddingTop: Platform.OS == 'android' ? StatusBar.currentHeight : 0,
     },
     scrollContainer: {
       paddingHorizontal: isLargeScreen? 40: 20,

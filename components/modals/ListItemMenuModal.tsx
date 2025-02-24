@@ -20,24 +20,25 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose
     const [adjustedPosition, setAdjustedPosition] = useState(null);
 
     const handleModalPress = (event: any) => {
-        if (event.target === event.currentTarget) {
+        if (event.target == event.currentTarget) {
             onMenuClose();
         }
     };
 
     const calculateDropdownPosition = () => {
         if (!menuButtonLayout) return null; // Guard against null layout
-
         const DROPDOWN_OFFSET = 5;
-        let initialTop = menuButtonLayout.y + DROPDOWN_OFFSET;
+        let initialTop = menuButtonLayout.y + DROPDOWN_OFFSET ;
+        if (Platform.OS != 'web') initialTop -= menuButtonLayout.height
+        else initialTop += menuButtonLayout.height
         let initialLeft = menuButtonLayout.x - 40;
         let modalHeight;
-        if (activeTab != 'Detail') modalHeight = 200;
+        if (activeTab != 'Detail') modalHeight = 250;
         else modalHeight = 120;
         const modalWidth = 40;
 
         // Check if the modal will go off-screen at the bottom
-        if (initialTop + modalHeight > screenHeight) {
+        if (menuButtonLayout.y + modalHeight > screenHeight) {
             initialTop = screenHeight - modalHeight - 10; // Push it up so it fits, add a little margin
         }
 
@@ -107,7 +108,7 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose
                             ): (
                                 <>
                                 {
-                                    detailTab == 'Note'? (
+                                    detailTab == 'note'? (
                                         <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('copy')}>
                                             <Image source={images['dark'].copy} style={styles.listItemMenuIcon} />
                                             <Text style={[styles.listItemMenuText, styles.textColor]}></Text>

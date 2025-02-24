@@ -47,7 +47,7 @@ const rl = readline.createInterface({
 
 const moveDirectories = async (userInput) => {
   try {
-    if (userInput === "y") {
+    if (userInput == "y") {
       // Create the app-example directory
       await fs.promises.mkdir(exampleDirPath, { recursive: true });
       console.log(`📁 /${exampleDir} directory created.`);
@@ -57,7 +57,7 @@ const moveDirectories = async (userInput) => {
     for (const dir of oldDirs) {
       const oldDirPath = path.join(root, dir);
       if (fs.existsSync(oldDirPath)) {
-        if (userInput === "y") {
+        if (userInput == "y") {
           const newDirPath = path.join(root, exampleDir, dir);
           await fs.promises.rename(oldDirPath, newDirPath);
           console.log(`➡️ /${dir} moved to /${exampleDir}/${dir}.`);
@@ -88,7 +88,7 @@ const moveDirectories = async (userInput) => {
     console.log("\n✅ Project reset complete. Next steps:");
     console.log(
       `1. Run \`npx expo start\` to start a development server.\n2. Edit app/index.tsx to edit the main screen.${
-        userInput === "y"
+        userInput == "y"
           ? `\n3. Delete the /${exampleDir} directory when you're done referencing it.`
           : ""
       }`
@@ -102,7 +102,7 @@ rl.question(
   "Do you want to move existing files to /app-example instead of deleting them? (Y/n): ",
   (answer) => {
     const userInput = answer.trim().toLowerCase() || "y";
-    if (userInput === "y" || userInput === "n") {
+    if (userInput == "y" || userInput == "n") {
       moveDirectories(userInput).finally(() => rl.close());
     } else {
       console.log("❌ Invalid input. Please enter 'Y' or 'N'.");

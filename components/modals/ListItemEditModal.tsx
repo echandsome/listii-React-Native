@@ -39,7 +39,7 @@ const EditListModal: React.FC<EditListModalProps> = ({
   }, [name, onSave, onClose]);
 
   const handleBackdropPress = (event: any) => {
-    if (event.target === event.currentTarget) {
+    if (event.target == event.currentTarget) {
       onClose();
     }
   };

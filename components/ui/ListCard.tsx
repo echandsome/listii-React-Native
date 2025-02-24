@@ -115,7 +115,7 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
         </View>
         <View>
           <Text style={[styles.listCardTitle, styles.textColor]}>{list.name}</Text>
-          {list.type === 'grocery' && <Text style={[styles.textColor, styles.listCardTotal]}>List total: R{totalPrice()}</Text>}
+          {list.type == 'grocery' && <Text style={[styles.textColor, styles.listCardTotal]}>List total: R{totalPrice()}</Text>}
         </View>
       </View>
     </TouchableOpacity>

@@ -137,6 +137,7 @@ export default function Nav ({ page, openNewListModal, openAddItemModal, selectD
                         onSelect={selectData.onSelect}
                         colors={selectData.colors}
                         style={_isSmallScreen? styles._selectInput: styles.selectInput}
+                        page={page}
                     />
                 ): (<></>)
             }
@@ -325,13 +326,15 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
       },
       _newlistText: {
         fontSize: 12,
+        textAlign: 'center'
       },
       _signout: {
         width: 60,
-        paddingVertical: 2
+        paddingVertical: 2,
       },
       _signoutText: {
         fontSize: 12,
+        textAlign: 'center'
       }
     });
   };

@@ -43,7 +43,7 @@ const noteSlice = createSlice({
       const { listId, itemId } = action.payload;
       if (state.listitems[listId]) {
         state.listitems[listId] = state.listitems[listId].filter((item) => item.id !== itemId);
-        if (state.listitems[listId].length === 0) {
+        if (state.listitems[listId].length == 0) {
           delete state.listitems[listId];
         }
       }
@@ -51,7 +51,7 @@ const noteSlice = createSlice({
     updateItem: (state, action: PayloadAction<{ listId: string, item: NoteItem }>) => {
       const { listId, item } = action.payload;
       if (state.listitems[listId]) {
-        const index = state.listitems[listId].findIndex((noteItem) => noteItem.id === item.id);
+        const index = state.listitems[listId].findIndex((noteItem) => noteItem.id == item.id);
         if (index !== -1) {
           state.listitems[listId][index] = item;
         }
@@ -79,7 +79,7 @@ const noteSlice = createSlice({
       const { listId } = action.payload;
       if (state.listitems[listId]) {
         state.listitems[listId] = state.listitems[listId].filter(item => item.is_check);
-        if (state.listitems[listId].length === 0) {
+        if (state.listitems[listId].length == 0) {
           delete state.listitems[listId];
         }
       }
@@ -89,7 +89,7 @@ const noteSlice = createSlice({
       const { listId } = action.payload;
        if (state.listitems[listId]) {
         state.listitems[listId] = state.listitems[listId].filter(item => !item.is_check);
-         if (state.listitems[listId].length === 0) {
+         if (state.listitems[listId].length == 0) {
           delete state.listitems[listId];
         }
       }

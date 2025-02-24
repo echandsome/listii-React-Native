@@ -32,7 +32,7 @@ export async function addItemByDB(nData: any , dispatch: Dispatch) {
     const { userId, listId, item } = nData
     if (userId) {
        
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.item_number = _item.item_number + 1;
         
         let _data = {
@@ -68,7 +68,7 @@ export async function removeItemByDB(nData: any, dispatch: Dispatch) {
         let listItems = store.getState().todo.listitems[listId] || [];
         let item = listItems.find(item => item.id == itemId) || undefined;
         if (!item) return;
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.item_number = _item.item_number - 1;
 
         const {data, error} = await supabase.from(tbl_names.items).update({ deleted: true }).eq('id', itemId);
@@ -92,13 +92,13 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
         isLoading = true;
         if (toggle) {
             
-            let _item = findItemByUserIdAndId(userId, listId) || [];
+            let _item = await findItemByUserIdAndId(userId, listId) || [];
             if (newItem.is_check) {
                 _item.item_number = _item.item_number - 1;
             }else {
                 _item.item_number = _item.item_number + 1;
             }
-
+           
             const { data, error } = await supabase
                 .from(tbl_names.items)
                 .update({ checked: newItem.is_check?? false })
@@ -130,7 +130,7 @@ export async function updateAllItemsTrueByDB(nData: any, dispatch: Dispatch) {
     if (isLoading) return;
     if (userId) {
         isLoading = true;
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.item_number = 0;
 
         const { data, error } = await supabase
@@ -157,7 +157,7 @@ export async function updateAllItemsFalseByDB(nData: any, dispatch: Dispatch) {
         isLoading = true;
         let listItems = store.getState().todo.listitems[listId] || [];
         let { totalCount, totalPrice } = calculateTotalAndCount(listItems);
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.item_number = Number(_item.item_number) + totalCount;
 
         const { data, error } = await supabase
@@ -182,7 +182,7 @@ export async function removeItemsFalseByDB(nData: any, dispatch: Dispatch) {
     if (isLoading) return;
     if (userId) {
         isLoading = true;
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.item_number = 0;
 
         const { data, error } = await supabase.from(tbl_names.items).update({ deleted: true })
@@ -205,7 +205,7 @@ export async function removeItemsTrueByDB(nData: any, dispatch: Dispatch) {
     if (isLoading) return;
     if (userId) {
         isLoading = true;
-        let _item = findItemByUserIdAndId(userId, listId) || [];
+        let _item = await findItemByUserIdAndId(userId, listId) || [];
         const { data, error } = await supabase.from(tbl_names.items).update({ deleted: true })
             .eq("user_id", userId).eq("list_name", _item.clean_name).eq("checked", true);
   

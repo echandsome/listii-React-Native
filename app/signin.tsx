@@ -76,11 +76,11 @@ export default function LoginScreen() {
             router.push('/list'); 
           } else {
             let errorMessage = 'Login Failed!';
-            if (res.verify === false) {
+            if (res.verify == false) {
               errorMessage = 'Please confirm your email before logging in.';
-            } else if (res.invalid === false) {
+            } else if (res.invalid == false) {
               errorMessage = 'Invalid email or password.';
-            } else if (res.success === false) {
+            } else if (res.success == false) {
               errorMessage = 'Try again after 3s';
             }
             showToast('error', 'Login Failed!', errorMessage);
@@ -111,7 +111,7 @@ export default function LoginScreen() {
         setButtonText(`Invalid login, try again: ${countdown - 1}`);
       }, 1000);
       return () => clearTimeout(timer); // Clean up the timeout
-    } else if (countdown === 0) {
+    } else if (countdown == 0) {
       setButtonText('Login'); // Reset the button text
       setCountdown(null);
     }
@@ -170,7 +170,7 @@ const getStyles = (colors: any) => {
       backgroundColor: colors?.background,
       alignItems: 'center',
       justifyContent: 'flex-start',
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+      paddingTop: Platform.OS == 'android' ? StatusBar.currentHeight : 0,
     },
     placeholder: {
       color: '#999',

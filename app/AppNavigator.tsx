@@ -24,7 +24,7 @@ export default function AppNavigator() {
   }, [colorScheme]);
 
   const theme = useMemo(
-    () => (themeMode === "light" ? MyLightTheme : MyDarkTheme),
+    () => (themeMode == "light" ? MyLightTheme : MyDarkTheme),
     [themeMode]
   );
 
@@ -39,7 +39,7 @@ export default function AppNavigator() {
           <Stack.Screen name="listDetail" options={{ title: "listDetail", headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
-        <StatusBar style={themeMode === "light" ? "dark" : "light"} />
+        <StatusBar style={themeMode == "light" ? "dark" : "light"} />
         <Toast />
       </NavigationThemeProvider>
     </ThemeContext.Provider>

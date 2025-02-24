@@ -33,7 +33,7 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
   };
 
   const handleModalPress = (event: any) => {
-    if (event.target === event.currentTarget) {
+    if (event.target == event.currentTarget) {
       onClose();
     }
   };

@@ -18,7 +18,7 @@ const ThemeModal = ({ visible, onClose, setTheme, buttonLayout }) => {
   const modalRight = buttonLayout.x + buttonLayout.width;
 
   const handleModalPress = (event: any) => {
-    if (event.target === event.currentTarget) {
+    if (event.target == event.currentTarget) {
       onClose();
     }
   };

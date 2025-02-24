@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -20,10 +20,9 @@ interface SelectInputProps {
   style: any;
 }
 
-const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSelect, colors, style }) => {
+const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSelect, colors, style, page }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [textHeight, setTextHeight] = useState(0);
   const styles = getSelectInputStyles(colors);
 
   let _isSmallScreen = false;
@@ -42,7 +41,8 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
   const calculateDropdownPosition =() => {
     const DROPDOWN_OFFSET = 5;
     let left = buttonLayout.x;
-    if (_isSmallScreen) left -= (200 - buttonLayout.width)/2;
+    if (_isSmallScreen && buttonLayout.width < 200) left -= (200 - buttonLayout.width)/2;
+    
     return {
       top: buttonLayout.y + buttonLayout.height + DROPDOWN_OFFSET,
       left:left,
@@ -53,14 +53,6 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
   const handleClickOutside = useCallback(() => {
     setShowOptions(false);
   }, []);
-
-
-  const handleTextLayout = useCallback((event: any) => {
-      const { height } = event.nativeEvent.layout;
-      setTextHeight(height);
-  }, []);
-
-  const shouldShrinkText = useMemo(()=>textHeight > 30, [textHeight]);
 
   return (
     <View style={[style, styles.container]}>
@@ -73,13 +65,12 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
       }
 
       <TouchableOpacity
-        style={[styles.selectContainer, shouldShrinkText? styles._selectContainer: undefined]}
+        style={[page=='listDetail'? styles._selectContainer: styles.selectContainer, ]}
         onPress={() => setShowOptions(!showOptions)}
         onLayout={handleButtonLayout}
       >
         <Text
-          style={shouldShrinkText? styles._selectText:styles.selectText}
-          onLayout={handleTextLayout} // Attach onLayout to Text
+          style={[styles.selectText, { color: colors.text, textAlign: page=='listDetail'? 'center': undefined }]}
         >
           {value}
         </Text>
@@ -128,16 +119,18 @@ const getSelectInputStyles = (colors: any) => {
       flex: 1, // Take remaining space
     },
     _selectContainer: {
-      paddingVertical: 2
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: isSmallScreen ? 8 : 12,
+      backgroundColor: colors.background,
+      flex: 1, // Take remaining space
     },
     selectText: {
       fontSize: baseFontSize,
-      textAlign: 'center',
-      marginRight: 1
-    },
-    _selectText: {
-      fontSize: 12,
-      textAlign: 'center',
+      // textAlign: 'center',
+      marginRight: 1,
+      flex: 1
     },
     dropdownOptionsContainer: {
       position: 'absolute',
@@ -147,6 +140,7 @@ const getSelectInputStyles = (colors: any) => {
       borderRadius: 4,
       minWidth: 200,
       zIndex: 100000,
+      marginTop: 4,
       ...Platform.select({
         ios: {
           shadowColor: '#000',
