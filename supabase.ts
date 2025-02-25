@@ -7,8 +7,14 @@ const supabaseAnonKey = NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 const options = {
   auth: {
     autoRefreshToken: true,
-    persistSession: true
-  }
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
 }
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey, options);

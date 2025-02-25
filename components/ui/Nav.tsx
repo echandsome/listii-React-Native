@@ -19,8 +19,7 @@ import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/consta
 import SelectInput from '@/components/ui/SelectInput';
 import { removeData } from '@/store/localstorage';
 import { tbl_names } from '@/constants/Config';
-import { listChannel, itemChannel } from '@/supabaseChannels';
-import supabase from '@/supabase';
+import { removeChannels } from '@/supabaseChannels';
 
 export default function Nav ({ page, openNewListModal, openAddItemModal, selectData }){
 
@@ -69,8 +68,7 @@ export default function Nav ({ page, openNewListModal, openAddItemModal, selectD
 
     const handleLogout = useCallback(() => {
         removeData(tbl_names.lists);
-        supabase.removeChannel(listChannel);
-        supabase.removeChannel(itemChannel);
+        removeChannels();
         dispatch({ type: "RESET" });
         router.push('/'); 
     }, []);

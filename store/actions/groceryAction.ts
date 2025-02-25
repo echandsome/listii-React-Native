@@ -3,7 +3,7 @@ import { Dispatch } from 'redux';
 import store from '@/store';
 import {  addItem, updateItem, removeItem, 
     setAllItemsFalse, setAllItemsTrue, removeItemsFalse, removeItemsTrue } from '@/store/reducers/groceryReducer';
-import { findItemByUserIdAndId, findItemByUserIdAndCleanName } from '@/helpers/utility';
+import { findItemByUserIdAndId } from '@/helpers/utility';
 import { replaceItemInStorage } from '../localstorage';
 import { tbl_names } from '@/constants/Config';
 
@@ -92,13 +92,13 @@ export async function removeItemByDB(nData: any, dispatch: Dispatch) {
         _item.total = Number(_item.total || 0) - item.price * item.quantity;
         _item.item_number = Number(_item.item_number) - 1;
 
+        dispatch(removeItem(nData));
         const {data, error} = await supabase.from(tbl_names.items).update({ deleted: true }).eq('id', itemId);
 
         if (error) {
           console.error("Error deleting item", error);
         } else {
             updateTotalAndNumber(userId, listId, _item);
-            dispatch(removeItem(nData));
         }
     }else {
         dispatch(removeItem(nData));
@@ -121,6 +121,7 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
                 _item.total = Number(_item.total || 0) + newItem.price * newItem.quantity;
                 _item.item_number = _item.item_number + 1;
             }
+            dispatch(updateItem(nData));
 
             const { data, error } = await supabase
                 .from(tbl_names.items)
@@ -131,7 +132,6 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
                 console.error("Error updating item", error);
             } else {
                 updateTotalAndNumber(userId, listId, _item);
-                dispatch(updateItem(nData));
             }
         }else {
             let _item;
@@ -143,6 +143,7 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
                 _item.total = Number(_item.total || 0) + (newItem.price * newItem.quantity) - (item.price * item.quantity);
             }
            
+            dispatch(updateItem(nData));
 
             const {data, error} = await supabase.from(tbl_names.items).update({ name: newItem.name, 
                 price: newItem.price, quantity: newItem.quantity, store_name: newItem.shop, checked: newItem.is_check?? false }).eq('id', newItem.id);
@@ -151,7 +152,6 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
                 console.error("Error deleting item", error);
             } else {
                 if (!newItem.is_check) updateTotalAndNumber(userId, listId, _item);
-                dispatch(updateItem(nData));
             }
         }
         isLoading = false;
@@ -168,6 +168,7 @@ export async function updateAllItemsTrueByDB(nData: any, dispatch: Dispatch) {
         let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.total = 0;
         _item.item_number = 0;
+        dispatch(setAllItemsTrue(nData));
 
         const { data, error } = await supabase
         .from(tbl_names.items)
@@ -178,7 +179,6 @@ export async function updateAllItemsTrueByDB(nData: any, dispatch: Dispatch) {
             console.error("Error updating item", error);
         } else {
             updateTotalAndNumber(userId, listId, _item);
-            dispatch(setAllItemsTrue(nData));
         }
         isLoading = false;
     }else {
@@ -196,6 +196,7 @@ export async function updateAllItemsFalseByDB(nData: any, dispatch: Dispatch) {
         let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.total = Number(_item.total || 0) + totalPrice;
         _item.item_number = Number(_item.item_number) + totalCount;
+        dispatch(setAllItemsFalse(nData));
 
         const { data, error } = await supabase
         .from(tbl_names.items)
@@ -206,7 +207,6 @@ export async function updateAllItemsFalseByDB(nData: any, dispatch: Dispatch) {
             console.error("Error updating item", error);
         } else {
             updateTotalAndNumber(userId, listId, _item);
-            dispatch(setAllItemsFalse(nData));
         }
         isLoading = false;
     }else {
@@ -222,6 +222,7 @@ export async function removeItemsFalseByDB(nData: any, dispatch: Dispatch) {
         let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.total = 0;
         _item.item_number = 0;
+        dispatch(removeItemsFalse(nData));
 
         const { data, error } = await supabase.from(tbl_names.items).update({ deleted: true })
             .eq("user_id", userId).eq("list_name", _item.clean_name).eq("checked", false);
@@ -230,7 +231,6 @@ export async function removeItemsFalseByDB(nData: any, dispatch: Dispatch) {
           console.error("Error deleting item", error);
         } else {
             updateTotalAndNumber(userId, listId, _item);
-            dispatch(removeItemsFalse(nData));
         }
         isLoading = false;
     }else {
@@ -244,13 +244,14 @@ export async function removeItemsTrueByDB(nData: any, dispatch: Dispatch) {
     if (userId) {
         isLoading = true;
         let _item = await findItemByUserIdAndId(userId, listId) || [];
+        dispatch(removeItemsTrue(nData));
+
         const { data, error } = await supabase.from(tbl_names.items).update({ deleted: true })
             .eq("user_id", userId).eq("list_name", _item.clean_name).eq("checked", true);
   
         if (error) {
           console.error("Error deleting item", error);
         } else {
-          dispatch(removeItemsTrue(nData));
         }
         isLoading = false;
     }else {

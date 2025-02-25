@@ -5,7 +5,7 @@ import {
   addItem, updateItem, removeItem,
   setAllItemsFalse, setAllItemsTrue, removeItemsFalse, removeItemsTrue
 } from '@/store/reducers/bookmarkReducer';
-import { findItemByUserIdAndId, findItemByUserIdAndCleanName } from '@/helpers/utility';
+import { findItemByUserIdAndId } from '@/helpers/utility';
 import { replaceItemInStorage } from '../localstorage';
 import { tbl_names } from '@/constants/Config';
 
@@ -89,13 +89,14 @@ export async function removeItemByDB(nData: any, dispatch: Dispatch) {
     let _item = await findItemByUserIdAndId(userId, listId) || {};
     _item.item_number = _item.item_number - 1;
 
+    dispatch(removeItem(nData));
+
     const { error } = await supabase.from(tbl_names.items).update({ deleted: true }).eq('id', itemId);
 
     if (error) {
         console.error("Error deleting item", error);
     } else {
         updateTotalAndNumber(userId, listId, _item);
-        dispatch(removeItem(nData));
     }
 }
 
@@ -109,6 +110,8 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
         if (!userId) return dispatch(updateItem(nData));
 
         let _item = await findItemByUserIdAndId(userId, listId) || {};
+
+        dispatch(updateItem(nData));
         if (toggle) {
             _item.item_number += newItem.is_check ? -1 : 1;
 
@@ -122,7 +125,6 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
                 console.error("Error updating item", error);
             } else {
                 updateTotalAndNumber(userId, listId, _item);
-                dispatch(updateItem(nData));
             }
         } else {
             const { error } = await supabase
@@ -133,7 +135,7 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
             if (error) {
                 console.error("Error updating item", error);
             } else {
-                dispatch(updateItem(nData));
+
             }
         }
     } finally {
@@ -151,6 +153,8 @@ export async function updateAllItemsFalseByDB(nData: any, dispatch: Dispatch) {
         let _item = await findItemByUserIdAndId(userId, listId) || [];
         _item.item_number = Number(_item.item_number) + totalCount;
 
+        dispatch(setAllItemsFalse(nData));
+
         const { data, error } = await supabase
         .from(tbl_names.items)
         .update({ checked: false })
@@ -160,7 +164,7 @@ export async function updateAllItemsFalseByDB(nData: any, dispatch: Dispatch) {
             console.error("Error updating item", error);
         } else {
             updateTotalAndNumber(userId, listId, _item);
-            dispatch(setAllItemsFalse(nData));
+            
         }
         isLoading = false;
     }else {
@@ -176,6 +180,8 @@ export async function updateAllItemsTrueByDB(nData: any, dispatch: Dispatch) {
         const { userId, listId } = nData;
         if (!userId) return dispatch(setAllItemsTrue(nData));
 
+        dispatch(setAllItemsTrue(nData));
+
         let _item = await findItemByUserIdAndId(userId, listId) || {};
         _item.item_number = 0;
 
@@ -188,8 +194,7 @@ export async function updateAllItemsTrueByDB(nData: any, dispatch: Dispatch) {
         if (error) {
             console.error("Error updating item", error);
         } else {
-            updateTotalAndNumber(userId, listId, _item);
-            dispatch(setAllItemsTrue(nData));
+            updateTotalAndNumber(userId, listId, _item); 
         }
     } finally {
         isLoading = false;
@@ -204,6 +209,8 @@ export async function removeItemsFalseByDB(nData: any, dispatch: Dispatch) {
         const { userId, listId } = nData;
         if (!userId) return dispatch(removeItemsFalse(nData));
 
+        dispatch(removeItemsFalse(nData));
+
         let _item = await findItemByUserIdAndId(userId, listId) || {};
         _item.item_number = 0;
 
@@ -217,8 +224,7 @@ export async function removeItemsFalseByDB(nData: any, dispatch: Dispatch) {
         if (error) {
             console.error("Error deleting item", error);
         } else {
-            updateTotalAndNumber(userId, listId, _item);
-            dispatch(removeItemsFalse(nData));
+            updateTotalAndNumber(userId, listId, _item); 
         }
     } finally {
         isLoading = false;
@@ -233,6 +239,8 @@ export async function removeItemsTrueByDB(nData: any, dispatch: Dispatch) {
         const { userId, listId } = nData;
         if (!userId) return dispatch(removeItemsTrue(nData));
 
+        dispatch(removeItemsTrue(nData));
+
         let _item = await findItemByUserIdAndId(userId, listId) || {};
 
         const { error } = await supabase
@@ -245,7 +253,7 @@ export async function removeItemsTrueByDB(nData: any, dispatch: Dispatch) {
         if (error) {
             console.error("Error deleting item", error);
         } else {
-            dispatch(removeItemsTrue(nData));
+            
         }
     } finally {
         isLoading = false;

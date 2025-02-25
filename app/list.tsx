@@ -28,7 +28,8 @@ import ListItemArchiveModal from '@/components/modals/ListItemArchiveModal';
 import { baseFontSize, isSmallScreen } from '@/constants/Config';
 import { showToast } from '@/helpers/toastHelper';
 import Nav from '@/components/ui/Nav';
-import { listChannel, itemChannel } from '@/supabaseChannels';
+import { getItemChannel, getListChannel, initializeChannels } from '@/supabaseChannels';
+import supabase from "@/supabase";
 import { tbl_names } from '@/constants/Config';
 import { editStorage } from '@/store/actions/listAction';
 import { editItemStorage as editItemGStorage } from '@/store/actions/groceryAction';
@@ -92,91 +93,97 @@ export default function ListScreen() {
       else showToast('error', 'Unable to connect to the server. Please try again later.', '');
       setLoading(false);
 
-      if (!listChannel.joinedOnce) {
+      initializeChannels();
+
+        const listChannel = getListChannel();
+        const itemChannel = getItemChannel();
+
         listChannel
           .on('postgres_changes',
               {
-                  event: "UPDATE",
+                  event: "*",
                   schema: "public",
                   table: tbl_names.lists
               },
               (payload) => {
-                editStorage(payload.eventType, payload.new, payload.old, dispatch);
-              })
-          .on('postgres_changes',
-            {
-                event: "INSERT",
-                schema: "public",
-                table: tbl_names.lists
-            },
-            (payload) => {
-              editStorage(payload.eventType, payload.new, payload.old, dispatch);
-            })
-          .subscribe()
-        console.log('Subscribed for list changes')
-      }
+                console.log("LIST CHANNEL");
+                if (payload.eventType == 'INSERT' || payload.eventType == 'UPDATE') {
+                  editStorage(payload.eventType, payload.new, payload.old, dispatch);
+                }
+                
+              }) .subscribe((status) => {
+                console.log('📢 subscribe item:', status);
+              });
 
-      if (!itemChannel.joinedOnce) {
+        console.log('Subscribed for list changes');
+      
         itemChannel
           .on('postgres_changes',
               {
-                  event: "UPDATE",
+                  event: "*",
                   schema: "public",
                   table: tbl_names.items
               },
               async (payload) => {
-                let _list = await findItemByUserIdAndCleanName(payload.new.user_id, payload.new.list_name) || {};
-                if (_list) {
-                  switch (_list.list_type) {
-                    case 'note':
-                      console.log('note');
-                      editItemNStorage(payload.eventType, payload.new, _list.id, dispatch);
-                      break;
-                    case 'bookmark':
-                      console.log('bookmark');
-                      editItemBStorage(payload.eventType, payload.new, _list.id, dispatch);
-                    case 'todo':
-                      console.log('todo');
-                      editItemTStorage(payload.eventType, payload.new, _list.id, dispatch);
-                      break;
-                    case 'grocery':
-                      console.log('grocery');
-                      editItemGStorage(payload.eventType, payload.new, _list.id, dispatch);
-                      break;
+                if (payload.eventType == 'INSERT' || payload.eventType == 'UPDATE') {
+                  let _list = await findItemByUserIdAndCleanName(payload.new.user_id, payload.new.list_name);
+                  if (_list) {
+                    handleItemEvent(payload, _list); 
+                  } else {
+                    console.log("List not ready, queuing item:", payload.new);
+                    queueItemEvent(payload); 
                   }
                 }
-              })
-          .on('postgres_changes',
-            {
-                event: "INSERT",
-                schema: "public",
-                table: tbl_names.items
-            },
-            async (payload) => {
-              let _list = await findItemByUserIdAndCleanName(payload.new.user_id, payload.new.list_name) || {};
-              if (_list) {
-                switch (_list.list_type) {
-                  case 'note':
-                    console.log('note');
-                    editItemNStorage(payload.eventType, payload.new, _list.id, dispatch);
-                    break;
-                  case 'bookmark':
-                    console.log('bookmark');
-                    editItemBStorage(payload.eventType, payload.new, _list.id, dispatch);
-                  case 'todo':
-                    console.log('todo');
-                    editItemTStorage(payload.eventType, payload.new, _list.id, dispatch);
-                    break;
-                  case 'grocery':
-                    console.log('grocery');
-                    editItemGStorage(payload.eventType, payload.new, _list.id, dispatch);
-                    break;
-                }
-              }
-            })
-          .subscribe()
-        console.log('Subscribed for item changes')
-      }
+                
+              }).subscribe((status) => {
+                console.log('📢 subscribe item:', status);
+              });
+
+          console.log('Subscribed for item changes', itemChannel);
+        
+
+        function queueItemEvent(payload) {
+          const maxRetries = 3;
+          let attempts = 0;
+  
+          const interval = setInterval(async () => {
+            attempts++;
+            console.log(`Attempt ${attempts} for item:`, payload.new);
+  
+            let _list = await findItemByUserIdAndCleanName(payload.new.user_id, payload.new.list_name);
+            if (_list) {
+              console.log("List found, processing item:", payload.new);
+              handleItemEvent(payload, _list); 
+              clearInterval(interval); 
+            } else if (attempts >= maxRetries) {
+              console.log("Max retries reached, discarding item:", payload.new);
+              clearInterval(interval); 
+            }
+          }, 200); 
+        }
+
+        function handleItemEvent(payload, _list) {
+          if (_list) {
+            switch (_list.list_type) {
+              case 'note':
+                console.log('note');
+                editItemNStorage(payload.eventType, payload.new, _list.id, dispatch);
+                break;
+              case 'bookmark':
+                console.log('bookmark');
+                editItemBStorage(payload.eventType, payload.new, _list.id, dispatch);
+                break;
+              case 'todo':
+                console.log('todo');
+                editItemTStorage(payload.eventType, payload.new, _list.id, dispatch);
+                break;
+              case 'grocery':
+                console.log('grocery');
+                editItemGStorage(payload.eventType, payload.new, _list.id, dispatch);
+                break;
+            }
+          }
+        }
     }
   }
 

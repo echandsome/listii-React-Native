@@ -174,6 +174,8 @@ export async function deleteListByDB(userId: string, listId :string, dispatch: D
 
         let _item = await findItemByUserIdAndId(userId, listId) || [];
 
+        dispatch(deleteList(_item.id));
+
         const [listsRes, itemsRes] = await Promise.all([
             supabase.from(tbl_names.lists).update({ deleted: true }).eq('clean_name', _item.clean_name),
             supabase.from(tbl_names.items).update({ deleted: true }).eq('list_name', _item.clean_name)
@@ -182,7 +184,7 @@ export async function deleteListByDB(userId: string, listId :string, dispatch: D
         if (listsRes.error || itemsRes.error ) {
             console.error("Error deleting user:", listsRes.error, itemsRes.error);
         } else {
-            dispatch(deleteList(_item.id));
+           
         }
     }else {
         dispatch(deleteList(listId));
@@ -206,6 +208,8 @@ export async function updateListByDB(nData: any, dispatch: Dispatch) {
 
         _items.clean_name = clean_name;
 
+        dispatch(updateList(nData));
+
         const [listsRes, itemsRes] = await Promise.all([
             supabase.from(tbl_names.lists).update({ name: updates.name, clean_name: clean_name }).eq("id", id),
             supabase.from(tbl_names.items).update({ list_name: clean_name }).eq("list_name", prev_clean_name)
@@ -215,7 +219,6 @@ export async function updateListByDB(nData: any, dispatch: Dispatch) {
             console.error("Error updating user:", listsRes.error, itemsRes.error);
         } else {
             await replaceItemInStorage(tbl_names.lists, userId, id, _items)
-            dispatch(updateList(nData));
         }
     }else {
         dispatch(updateList(nData));
@@ -383,6 +386,8 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
 
 export async function archiveListByDB(userId: string, listId: string, dispatch: Dispatch) {
     if (userId) {
+        dispatch(archiveList(listId));
+
         const { data, error } = await supabase
             .from(tbl_names.lists)
             .update({ archived: true })
@@ -391,7 +396,7 @@ export async function archiveListByDB(userId: string, listId: string, dispatch: 
         if (error) {
             console.error("Error updating user:", error);
         } else {
-            dispatch(archiveList(listId));
+            
         }
     }else {
         dispatch(archiveList(listId));
@@ -400,6 +405,8 @@ export async function archiveListByDB(userId: string, listId: string, dispatch: 
 
 export async function restoreListByDB(userId: string, listId: string, dispatch: Dispatch) {
     if (userId) {
+        dispatch(restoreList(listId));
+        
         const { data, error } = await supabase
             .from(tbl_names.lists)
             .update({ archived: false })
@@ -408,7 +415,7 @@ export async function restoreListByDB(userId: string, listId: string, dispatch: 
         if (error) {
             console.error("Error updating user:", error);
         } else {
-            dispatch(restoreList(listId));
+           
         }
     }else {
         dispatch(restoreList(listId));
