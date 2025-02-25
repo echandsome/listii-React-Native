@@ -6,33 +6,29 @@ import {
   TouchableOpacity,
   StyleSheet,
   Pressable,
-  Platform
+  Platform,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
-interface LogoutModalProps {
+interface ShareListModalProps {
   visible: boolean;
-  title: string;
-  content: string;
   onClose: () => void;
-  onConfirm: () => void;
+  onShare: () => void;
 }
 
-const LogoutModal: React.FC<LogoutModalProps> = ({
+const ShareListModal: React.FC<ShareListModalProps> = ({
   visible,
   onClose,
-  title,
-  content,
-  onConfirm,
+  onShare,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
 
-  const handleLogout = useCallback(() => {
-    onConfirm();
+  const handleShare = useCallback(() => {
+    onShare();
     onClose();
-  }, [onConfirm, onClose]);
+  }, [onShare, onClose]);
 
   const handleBackdropPress = (event: any) => {
     if (event.target == event.currentTarget) {
@@ -51,22 +47,19 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
     >
       <Pressable style={styles.modalListOverlay} onPress={handleBackdropPress}>
         <View style={[styles.modalView]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.modalTitle, styles.textColor]}>{title}</Text>
-          {content != null && content != '' ? (
-            <Text style={[styles.modalcontent, styles.textColor]}>{content}</Text>
-          ) : (
-            <View style={{ paddingVertical: 10 }}></View>
-          )}
-          <View style={styles.btnGroup}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, styles.textColor]}>Share list</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>×</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.saveButton} onPress={handleLogout}>
-              <Text style={styles.saveButtonText}>Continue</Text>
+          </View>
+          <Text style={[styles.modalDescription]}>
+            Would you like to create a copy?
+          </Text>
+
+          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+            <TouchableOpacity style={styles.saveButton} onPress={handleShare}>
+              <Text style={styles.saveButtonText}>Duplicate list</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -107,11 +100,14 @@ const getStyles = (colors: any) => {
       width: '80%',
       maxWidth: 400,
     },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 8 : 15,
+    },
     closeButton: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      padding: isSmallScreen ? 4 : 8,
+      // padding: isSmallScreen ? 4 : 8,
     },
     closeButtonText: {
       fontSize: baseFontSize * 1.5,
@@ -123,30 +119,10 @@ const getStyles = (colors: any) => {
       fontWeight: 'bold',
       textAlign: 'left',
     },
-    modalcontent: {
+    modalDescription: {
       marginBottom: isSmallScreen ? 10 : 20,
-      textAlign: 'center',
-      color: '#555',
-      fontSize: baseFontSize,
-    },
-    btnGroup: {
-      flexDirection: 'row',
-      gap: isSmallScreen ? 5 : 10,
-      justifyContent: 'flex-end'
-    },
-    cancelButton: {
-      borderRadius: 5,
-      paddingVertical: isSmallScreen ? 6 : 10,
-      paddingHorizontal: isSmallScreen ? 10 : 20,
-      elevation: 2,
-      backgroundColor: colors.background,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    cancelButtonText: {
-      color: colors.text,
-      fontWeight: 'bold',
-      textAlign: 'center',
+      textAlign: 'left',
+      color: '#758295',
       fontSize: baseFontSize,
     },
     saveButton: {
@@ -168,4 +144,4 @@ const getStyles = (colors: any) => {
   });
 };
 
-export default LogoutModal;
+export default ShareListModal;

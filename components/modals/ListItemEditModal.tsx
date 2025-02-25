@@ -28,14 +28,23 @@ const EditListModal: React.FC<EditListModalProps> = ({
   const { colors } = useTheme();
   const styles = getStyles(colors);
   const [name, setName] = useState(initialName);
+  const [isSaveButtonDisabled, setIsSaveButtonDisabled] = useState(true);
+
 
   useEffect(() => {
     setName(initialName);
   }, [initialName]);
 
+
+  useEffect(() => {
+    setIsSaveButtonDisabled(name.length < 4);
+  }, [name]);
+
   const handleSave = useCallback(() => {
-    onSave(name);
-    onClose();
+      if (name.length >= 4) {
+        onSave(name);
+        onClose();
+      }
   }, [name, onSave, onClose]);
 
   const handleBackdropPress = (event: any) => {
@@ -55,12 +64,15 @@ const EditListModal: React.FC<EditListModalProps> = ({
     >
       <Pressable style={styles.modalListOverlay} onPress={handleBackdropPress}>
         <View style={[styles.modalView]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.modalTitle, styles.textColor]}>Edit list</Text>
-          <Text style={[styles.modalDescription, styles.textColor]}>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, styles.textColor]}>Edit list</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+          
+          </View>
+         
+          <Text style={[styles.modalDescription]}>
             Make changes to your list here. Click save when you're done.
           </Text>
 
@@ -74,10 +86,15 @@ const EditListModal: React.FC<EditListModalProps> = ({
               placeholderTextColor={(styles.placeholder as any).color}
             />
           </View>
-
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Save Changes</Text>
-          </TouchableOpacity>
+          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+            <TouchableOpacity
+                style={[styles.saveButton, isSaveButtonDisabled ? styles.saveButtonDisabled : {}]}
+                onPress={handleSave}
+                disabled={isSaveButtonDisabled}
+            >
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Pressable>
     </Modal>
@@ -98,7 +115,7 @@ const getStyles = (colors: any) => {
       backgroundColor: colors.background,
       borderRadius: 10,
       padding: isSmallScreen ? 10 : 20,
-      alignItems: 'center',
+      // alignItems: 'flex-end',
       ...Platform.select({
         ios: {
           shadowColor: '#000',
@@ -116,11 +133,14 @@ const getStyles = (colors: any) => {
       width: '80%',
       maxWidth: 400,
     },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 8 : 15,
+    },
     closeButton: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      padding: isSmallScreen ? 4 : 8,
+      // padding: isSmallScreen ? 4 : 8,
     },
     closeButtonText: {
       fontSize: baseFontSize * 1.5,
@@ -130,13 +150,12 @@ const getStyles = (colors: any) => {
     modalTitle: {
       fontSize: baseFontSize * 1.2,
       fontWeight: 'bold',
-      marginBottom: isSmallScreen ? 5 : 10,
-      textAlign: 'center',
+      textAlign: 'left',
     },
     modalDescription: {
       marginBottom: isSmallScreen ? 10 : 20,
-      textAlign: 'center',
-      color: '#555',
+      textAlign: 'left',
+      color: '#758295',
       fontSize: baseFontSize,
     },
     inputContainer: {
@@ -176,6 +195,9 @@ const getStyles = (colors: any) => {
     },
     textColor: {
       color: colors.text,
+    },
+    saveButtonDisabled: {
+      opacity: 0.5,
     },
   });
 };

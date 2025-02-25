@@ -14,6 +14,7 @@ import {
 import { useTheme } from '@react-navigation/native';
 import { images } from '@/constants/Resources';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
+import { useSelector } from 'react-redux';
 
 const ListItemMenuModal = ({isVisible, selectedId, menuButtonRef, onMenuClose, onItemPress, activeTab, detailTab, isLargeScreen}) => {
     const { colors } = useTheme();
@@ -21,6 +22,8 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonRef, onMenuClose, o
     const [adjustedPosition, setAdjustedPosition] = useState(null);
 
     const { width } = useWindowDimensions();
+
+    const userInfo = useSelector((state) => state.auth);
 
     const handleModalPress = (event: any) => {
         if (event.target == event.currentTarget) {
@@ -94,8 +97,17 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonRef, onMenuClose, o
                         {
                             activeTab != 'Detail'? (
                                 <>
-                                    <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('share')}>
-                                        <Image source={images['dark'].share} style={styles.listItemMenuIcon} />
+                                    {
+                                        userInfo.isAuthenticated? (
+                                            <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('share')}>
+                                                <Image source={images['dark'].share} style={styles.listItemMenuIcon} />
+                                                <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
+                                            </TouchableOpacity>
+                                        ): (<></>)
+                                    }
+                                    
+                                    <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('duplicate')}>
+                                        <Image source={images['dark'].duplicate} style={styles.listItemMenuIcon} />
                                         <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('archive')}>

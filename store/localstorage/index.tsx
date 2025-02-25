@@ -33,7 +33,7 @@ const markItemAsDeleted = async (storageName: string, userId: string, id: number
   if (!store) return;
 
   store = store.map((item: any) => 
-    item.user_id == userId && item.id == id ? { ...item, deleted: true } : item
+    item.id == id ? { ...item, deleted: true } : item
   );
 
   await storeData(storageName, store);
@@ -46,7 +46,7 @@ const replaceItemInStorage = async (storageName: string, userId: string, id: str
   if (!store) return;
 
   store = store.map((item: any) => 
-    item.user_id == userId && item.id == id ? newItem : item
+    item.id == id ? newItem : item
   );
   await storeData(storageName, store);
 };

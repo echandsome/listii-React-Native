@@ -52,13 +52,15 @@ const DeleteListModal: React.FC<DeleteListModalProps> = ({
           </TouchableOpacity>
 
           <Text style={[styles.modalTitle, styles.textColor]}>Delete list</Text>
-          <Text style={[styles.modalDescription, styles.textColor]}>
+          <Text style={[styles.modalDescription]}>
             Are you sure you'd like to delete this list?
           </Text>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleDeletePress}>
-            <Text style={styles.saveButtonText}>Delete list</Text>
-          </TouchableOpacity>
+          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+            <TouchableOpacity style={styles.saveButton} onPress={handleDeletePress}>
+              <Text style={styles.saveButtonText}>Delete list</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Pressable>
     </Modal>
@@ -79,7 +81,7 @@ const getStyles = (colors: any) => {
       backgroundColor: colors.background,
       borderRadius: 10,
       padding: isSmallScreen ? 10 : 20,
-      alignItems: 'center',
+      // alignItems: 'center',
       ...Platform.select({
         ios: {
           shadowColor: '#000',
@@ -112,12 +114,12 @@ const getStyles = (colors: any) => {
       fontSize: baseFontSize * 1.2,
       fontWeight: 'bold',
       marginBottom: isSmallScreen ? 5 : 10,
-      textAlign: 'center',
+      textAlign: 'left',
     },
     modalDescription: {
       marginBottom: isSmallScreen ? 10 : 20,
-      textAlign: 'center',
-      color: '#555',
+      textAlign: 'left',
+      color: '#758295',
       fontSize: baseFontSize,
     },
     saveButton: {

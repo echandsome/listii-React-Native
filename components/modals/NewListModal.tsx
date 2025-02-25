@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -27,6 +27,11 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
   const [listName, setListName] = useState('');
   const [listType, setListType] = useState('Grocery');
   const listTypes = ['Grocery', 'ToDo', 'Bookmark', 'Note'];
+  const [isAddButtonDisabled, setIsAddButtonDisabled] = useState(true); // New state
+
+  useEffect(() => {
+    setIsAddButtonDisabled(listName.length < 4);
+  }, [listName]);
 
   const handleSelectListType = (type: string) => {
     setListType(type);
@@ -39,7 +44,7 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
   };
 
   const handleAddPress = () => {
-    if (listName !== '') {
+    if (listName.length >= 4) { //Modified Validation
       onAdd({
         name: listName,
         type: listType.toLowerCase(),
@@ -86,9 +91,15 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
               style={{}}
             />
 
-            <TouchableOpacity style={styles.newlist} onPress={handleAddPress}>
-              <Text style={styles.newlistText}>Add List</Text>
-            </TouchableOpacity>
+            <View style={{flexDirection: 'row', justifyContent: 'flex-end', zIndex: -1,}}>
+              <TouchableOpacity
+                style={[styles.newlist, isAddButtonDisabled ? styles.newlistDisabled : {}]} // Conditional style
+                onPress={handleAddPress}
+                disabled={isAddButtonDisabled} // Disabled prop
+              >
+                <Text style={styles.newlistText}>Add List</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Pressable>
@@ -135,7 +146,7 @@ const getModalStyles = (colors: any) => {
     newListModalTitle: {
       fontSize: baseFontSize * 1.2,
       fontWeight: 'bold',
-      textAlign: 'center',
+      textAlign: 'left',
       flex: 1,
     },
     newListModalBody: {
@@ -171,7 +182,7 @@ const getModalStyles = (colors: any) => {
       paddingHorizontal: isSmallScreen ? 12 : 16,
       borderRadius: 5,
       alignSelf: 'center', // Center the button
-      marginTop: isSmallScreen ? 5 : 10, // Add some space above the 
+      marginTop: isSmallScreen ? 5 : 10, // Add some space above the
       zIndex: -1
     },
     newlistText: {
@@ -186,6 +197,9 @@ const getModalStyles = (colors: any) => {
     closeButton: {
       fontSize: baseFontSize * 1.5,
       fontWeight: 'bold',
+    },
+    newlistDisabled: {
+      opacity: 0.5, // Reduce opacity for visual indication
     },
   });
 }

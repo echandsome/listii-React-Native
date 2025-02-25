@@ -1,34 +1,48 @@
-import React, { useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Modal,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   Pressable,
   Platform,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
+import { baseFontSize, isSmallScreen } from '@/constants/Config';
 
-interface ShareListModalProps {
+interface EditListModalProps {
   visible: boolean;
   onClose: () => void;
-  onShare: () => void;
+  initialName?: string;
+  onSave: (newName: string) => void;
 }
 
-const ShareListModal: React.FC<ShareListModalProps> = ({
+const EditListModal: React.FC<EditListModalProps> = ({
   visible,
   onClose,
-  onShare,
+  initialName = '',
+  onSave,
 }) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
+  const [email, setEmail] = useState(initialName);
+  const [isSaveButtonDisabled, setIsSaveButtonDisabled] = useState(true);
 
-  const handleShare = useCallback(() => {
-    onShare();
-    onClose();
-  }, [onShare, onClose]);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  useEffect(() => {
+    setIsSaveButtonDisabled(!emailRegex.test(email));
+  }, [email]);
+
+  const handleSave = useCallback(() => {
+      if (emailRegex.test(email)) {
+        onSave(email);
+        onClose();
+        setEmail('');
+      }
+  }, [email, onSave, onClose]);
 
   const handleBackdropPress = (event: any) => {
     if (event.target == event.currentTarget) {
@@ -47,18 +61,47 @@ const ShareListModal: React.FC<ShareListModalProps> = ({
     >
       <Pressable style={styles.modalListOverlay} onPress={handleBackdropPress}>
         <View style={[styles.modalView]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.modalTitle, styles.textColor]}>Share list</Text>
-          <Text style={[styles.modalDescription, styles.textColor]}>
-            Would you like to create a copy?
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, styles.textColor]}>Share list</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+          
+          </View>
+         
+          <Text style={[styles.modalDescription]}>
+            Enter the email of the person you'd like to share your list with.
           </Text>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleShare}>
-            <Text style={styles.saveButtonText}>Duplicate list</Text>
-          </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, styles.textColor]}>Name</Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, borderColor: 'transparent' }]} // Added dynamic styles
+              value={initialName}
+              readOnly={true}
+              placeholderTextColor={(styles.placeholder as any).color}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, styles.textColor]}>Email</Text>
+            <TextInput
+              style={[styles.input, { color: colors.text, borderColor: colors.border }]} // Added dynamic styles
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email"
+              placeholderTextColor={(styles.placeholder as any).color}
+            />
+          </View>
+          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+            <TouchableOpacity
+                style={[styles.saveButton, isSaveButtonDisabled ? styles.saveButtonDisabled : {}]}
+                onPress={handleSave}
+                disabled={isSaveButtonDisabled}
+            >
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Pressable>
     </Modal>
@@ -79,7 +122,7 @@ const getStyles = (colors: any) => {
       backgroundColor: colors.background,
       borderRadius: 10,
       padding: isSmallScreen ? 10 : 20,
-      alignItems: 'center',
+      // alignItems: 'flex-end',
       ...Platform.select({
         ios: {
           shadowColor: '#000',
@@ -97,11 +140,14 @@ const getStyles = (colors: any) => {
       width: '80%',
       maxWidth: 400,
     },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 8 : 15,
+    },
     closeButton: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      padding: isSmallScreen ? 4 : 8,
+      // padding: isSmallScreen ? 4 : 8,
     },
     closeButtonText: {
       fontSize: baseFontSize * 1.5,
@@ -111,13 +157,34 @@ const getStyles = (colors: any) => {
     modalTitle: {
       fontSize: baseFontSize * 1.2,
       fontWeight: 'bold',
-      marginBottom: isSmallScreen ? 5 : 10,
-      textAlign: 'center',
+      textAlign: 'left',
     },
     modalDescription: {
       marginBottom: isSmallScreen ? 10 : 20,
-      textAlign: 'center',
-      color: '#555',
+      textAlign: 'left',
+      color: '#758295',
+      fontSize: baseFontSize,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+      marginBottom: isSmallScreen ? 10 : 20,
+    },
+    label: {
+      fontSize: baseFontSize,
+      marginRight: 10,
+      width: '25%',
+    },
+    input: {
+      flex: 1,
+      height: 40,
+      borderRadius: 5,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+    },
+    placeholder: {
+      color: '#999',
       fontSize: baseFontSize,
     },
     saveButton: {
@@ -136,7 +203,10 @@ const getStyles = (colors: any) => {
     textColor: {
       color: colors.text,
     },
+    saveButtonDisabled: {
+      opacity: 0.5,
+    },
   });
 };
 
-export default ShareListModal;
+export default EditListModal;

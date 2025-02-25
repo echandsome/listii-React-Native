@@ -95,9 +95,11 @@ const AddItemTodoModal: React.FC<AddItemTodoModalProps> = ({ visible, onClose, o
             />
           </View>
 
-          <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
-            <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
-          </TouchableOpacity>
+          <View style={{flexDirection: 'row', justifyContent: 'flex-end', zIndex: -1,}}>
+            <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
+              <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Pressable>
     </Modal>
@@ -143,7 +145,7 @@ const getModalStyles = (colors: any) => {
     modalTitle: {
       fontSize: baseFontSize * 1.1,
       fontWeight: 'bold',
-      textAlign: 'center',
+      textAlign: 'left',
       flex: 1,
     },
     closeButtonContainer: {
@@ -195,7 +197,7 @@ const getModalStyles = (colors: any) => {
       backgroundColor: '#2962FF',
       paddingVertical: isSmallScreen ? 8 : 10,
       borderRadius: 5,
-      zIndex: -1
+      paddingHorizontal: 10
     },
     addItemButtonText: {
       color: 'white',

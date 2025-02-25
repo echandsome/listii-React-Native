@@ -36,10 +36,10 @@ export const createNewCleanName = async (clean_name: string) => {
 
 export const findItemByUserIdAndId = async (userId: string, id: string) => {
     let lists = await getData(tbl_names.lists) || []; // Ensure lists is an array
-    return lists.find((item: any) => item.user_id == userId && item.id == id);
+    return lists.find((item: any) => item.id == id);
 };
 
 export const findItemByUserIdAndCleanName = async (userId: string, clean_name: string) => {
     let lists = await getData(tbl_names.lists) || []; // Ensure lists is an array
-    return lists.find((item: any) => item.user_id == userId && item.clean_name == clean_name);
+    return lists.find((item: any) => item.clean_name == clean_name);
 };

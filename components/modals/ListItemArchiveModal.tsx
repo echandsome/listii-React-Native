@@ -56,17 +56,19 @@ const ArchiveListModal: React.FC<ArchiveListModalProps> = ({
           <Text style={[styles.modalTitle, styles.textColor]}>
             {activeTab == 'Lists' ? 'Archive list' : 'Unarchive list'}
           </Text>
-          <Text style={[styles.modalDescription, styles.textColor]}>
+          <Text style={[styles.modalDescription]}>
             {activeTab == 'Lists'
               ? 'Archive lists that you will not be using often anymore.'
               : 'Bring your list back to your home page.'}
           </Text>
-
-          <TouchableOpacity style={styles.saveButton} onPress={handleArchive}>
-            <Text style={styles.saveButtonText}>
-              {activeTab == 'Lists' ? 'Archive list' : 'Unarchive list'}
-            </Text>
-          </TouchableOpacity>
+            
+           <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+            <TouchableOpacity style={styles.saveButton} onPress={handleArchive}>
+              <Text style={styles.saveButtonText}>
+                {activeTab == 'Lists' ? 'Archive list' : 'Unarchive list'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Pressable>
     </Modal>
@@ -87,7 +89,7 @@ const getStyles = (colors: any) => {
       backgroundColor: colors.background,
       borderRadius: 10,
       padding: isSmallScreen ? 10 : 20,
-      alignItems: 'center',
+      // alignItems: 'center',
       ...Platform.select({
         ios: {
           shadowColor: '#000',
@@ -119,13 +121,12 @@ const getStyles = (colors: any) => {
     modalTitle: {
       fontSize: baseFontSize * 1.2,
       fontWeight: 'bold',
-      marginBottom: isSmallScreen ? 5 : 10,
-      textAlign: 'center',
+      textAlign: 'left',
     },
     modalDescription: {
       marginBottom: isSmallScreen ? 10 : 20,
-      textAlign: 'center',
-      color: '#555',
+      textAlign: 'left',
+      color: '#758295',
       fontSize: baseFontSize,
     },
     saveButton: {

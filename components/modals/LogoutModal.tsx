@@ -82,7 +82,7 @@ const getStyles = (colors: any) => {
       backgroundColor: colors.background,
       borderRadius: 10,
       padding: isSmallScreen ? 10 : 20,
-      alignItems: 'center',
+      // alignItems: 'center',
       ...Platform.select({
         ios: {
           shadowColor: '#000',
@@ -114,18 +114,18 @@ const getStyles = (colors: any) => {
     modalTitle: {
       fontSize: baseFontSize * 1.2,
       fontWeight: 'bold',
-      marginBottom: isSmallScreen ? 5 : 10,
-      textAlign: 'center',
+      textAlign: 'left',
     },
     modalDescription: {
       marginBottom: isSmallScreen ? 10 : 20,
       textAlign: 'center',
-      color: '#555',
+      color: '#758295',
       fontSize: baseFontSize,
     },
     btnGroup: {
       flexDirection: 'row',
       gap: isSmallScreen ? 5 : 10,
+      justifyContent: 'flex-end'
     },
     cancelButton: {
       borderRadius: 5,

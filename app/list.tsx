@@ -23,6 +23,7 @@ import ListCard from '@/components/ui/ListCard';
 import ListItemMenuModal from '@/components/modals/ListItemMenuModal';
 import ListItemEditModal from '@/components/modals/ListItemEditModal';
 import ListItemDeleteModal from '@/components/modals/ListItemDeleteModal';
+import ListItemDuplicateModal from '@/components/modals/ListItemDuplicateModal';
 import ListItemShareModal from '@/components/modals/ListItemShareModal';
 import ListItemArchiveModal from '@/components/modals/ListItemArchiveModal';
 import { baseFontSize, isSmallScreen } from '@/constants/Config';
@@ -30,7 +31,6 @@ import { showToast } from '@/helpers/toastHelper';
 import Nav from '@/components/ui/Nav';
 import { getItemChannel, getListChannel, initializeChannels } from '@/supabaseChannels';
 import { tbl_names } from '@/constants/Config';
-import { editStorage } from '@/store/actions/listAction';
 import { editItemStorage as editItemGStorage } from '@/store/actions/groceryAction';
 import { editItemStorage as editItemBStorage } from '@/store/actions/bookmarkAction';
 import { editItemStorage as editItemTStorage } from '@/store/actions/todoAction';
@@ -40,7 +40,7 @@ import { findItemByUserIdAndCleanName } from '@/helpers/utility';
 // Import list-related actions and selectors from Redux
 import { selectLists, selectArchiveLists, selectListById } from '@/store/reducers/listSlice';
 import { getLists, addNewList, deleteListByDB, 
-  updateListByDB, duplicateListByDB, archiveListByDB, restoreListByDB} from '@/store/actions/listAction';
+  updateListByDB, duplicateListByDB, archiveListByDB, restoreListByDB, editStorage, updateShareListByDB} from '@/store/actions/listAction';
 
 if (Platform.OS == 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -73,6 +73,7 @@ export default function ListScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [archiveModalVisible, setArchiveModalVisible] = useState(false);
+  const [duplicateModalVisible, setDuplicateModalVisible] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
   
   const [isLoading, setLoading] = useState(false);
@@ -105,7 +106,6 @@ export default function ListScreen() {
                   table: tbl_names.lists
               },
               (payload) => {
-                console.log("LIST CHANNEL");
                 if (payload.eventType == 'INSERT' || payload.eventType == 'UPDATE') {
                   editStorage(payload.eventType, payload.new, payload.old, dispatch);
                 }
@@ -210,6 +210,11 @@ export default function ListScreen() {
     setEditModalVisible(false);
   }, [dispatch, selectedListId, setEditModalVisible]);
 
+  const handleShare = useCallback((newName: any) => {
+    updateShareListByDB({ userId: userId, id: selectedListId, updates: { email: newName } }, dispatch);
+    setShareModalVisible(false);
+  }, [dispatch, selectedListId, setShareModalVisible]);
+
   const handleDelete = useCallback(() => {
     deleteListByDB(userId, selectedListId, dispatch);
     setDeleteModalVisible(false);
@@ -224,12 +229,12 @@ export default function ListScreen() {
     setArchiveModalVisible(false);
   }, [dispatch, selectedListId, activeTab, setArchiveModalVisible]);
 
-  const handleShare = () => {
+  const handleDuplicate = () => {
     let listToDuplicate = lists.find((list) => list.id == selectedListId);
     if (listToDuplicate == undefined)
       listToDuplicate = archiveLists.find((list) => list.id == selectedListId);
     duplicateListByDB( userId, listToDuplicate, dispatch);
-    setShareModalVisible(false);
+    setDuplicateModalVisible(false);
   }
 
   const handleItemMenu = useCallback((data: any) => {
@@ -237,8 +242,9 @@ export default function ListScreen() {
     if (data.type == 'edit') setEditModalVisible(true);
     else if (data.type == 'delete') setDeleteModalVisible(true)
     else if (data.type == 'share') setShareModalVisible(true)
+    else if (data.type == 'duplicate') setDuplicateModalVisible(true)
     else if (data.type == 'archive') setArchiveModalVisible(true)
-  }, [setSelectedListId, setEditModalVisible, setDeleteModalVisible, setShareModalVisible, setArchiveModalVisible]);
+  }, [setSelectedListId, setEditModalVisible, setDeleteModalVisible, setDuplicateModalVisible, setArchiveModalVisible]);
 
   const [isVisible, setVisible] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -386,10 +392,16 @@ export default function ListScreen() {
         onClose={() => setDeleteModalVisible(false)}
         onDelete={handleDelete}
       />
-      <ListItemShareModal
+      <ListItemShareModal 
         visible={shareModalVisible}
         onClose={() => setShareModalVisible(false)}
-        onShare={handleShare}
+        initialName={listName}
+        onSave={handleShare}
+      />
+      <ListItemDuplicateModal
+        visible={duplicateModalVisible}
+        onClose={() => setDuplicateModalVisible(false)}
+        onShare={handleDuplicate}
       />
       <ListItemArchiveModal
         visible={archiveModalVisible}

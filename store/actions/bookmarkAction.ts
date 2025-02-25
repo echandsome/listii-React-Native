@@ -58,14 +58,14 @@ export async function addItemByDB(nData: any, dispatch: Dispatch) {
     _item.item_number = Number(_item.item_number || 0) + 1;
 
     const newItem = {
-        user_id: userId,
+        user_id: _item.user_id,
         name: item.name,
         list_name: _item.clean_name,
         checked: false,
         deleted: false,
         edited: false,
         link: item.path,
-        shared_with: null,
+        shared_with: _item.shared_with,
     };
 
     const { data, error } = await supabase.from(tbl_names.items).insert(newItem).select('id');
@@ -118,7 +118,6 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
             const { error } = await supabase
                 .from(tbl_names.items)
                 .update({ checked: newItem.is_check ?? false })
-                .eq("user_id", userId)
                 .eq("id", newItem.id);
 
             if (error) {
@@ -157,8 +156,7 @@ export async function updateAllItemsFalseByDB(nData: any, dispatch: Dispatch) {
 
         const { data, error } = await supabase
         .from(tbl_names.items)
-        .update({ checked: false })
-        .eq("user_id", userId).eq("list_name", _item.clean_name);
+        .update({ checked: false }).eq("list_name", _item.clean_name);
        
         if (error) {
             console.error("Error updating item", error);
@@ -188,7 +186,6 @@ export async function updateAllItemsTrueByDB(nData: any, dispatch: Dispatch) {
         const { error } = await supabase
             .from(tbl_names.items)
             .update({ checked: true })
-            .eq("user_id", userId)
             .eq("list_name", _item.clean_name);
 
         if (error) {
@@ -217,7 +214,6 @@ export async function removeItemsFalseByDB(nData: any, dispatch: Dispatch) {
         const { error } = await supabase
             .from(tbl_names.items)
             .update({ deleted: true })
-            .eq("user_id", userId)
             .eq("list_name", _item.clean_name)
             .eq("checked", false);
 
@@ -246,7 +242,6 @@ export async function removeItemsTrueByDB(nData: any, dispatch: Dispatch) {
         const { error } = await supabase
             .from(tbl_names.items)
             .update({ deleted: true })
-            .eq("user_id", userId)
             .eq("list_name", _item.clean_name)
             .eq("checked", true);
 

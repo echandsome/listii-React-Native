@@ -104,8 +104,8 @@ export async function getLists(userId: string, dispatch: Dispatch) {
     try {
 
         const [lists, items] = await Promise.all([
-            supabase.from(tbl_names.lists).select().eq('user_id', userId).neq('deleted', true).order('created_at', { ascending: true }),
-            supabase.from(tbl_names.items).select().eq('user_id', userId).neq('deleted', true).order('created_at', { ascending: true })
+            supabase.from(tbl_names.lists).select().neq('deleted', true).order('created_at', { ascending: true }),
+            supabase.from(tbl_names.items).select().neq('deleted', true).order('created_at', { ascending: true })
         ]);
 
         if (lists.error || items.error) {
@@ -115,7 +115,7 @@ export async function getLists(userId: string, dispatch: Dispatch) {
             });
             return false;
         }
-
+        
         // Await the dispatch call, even if it seems synchronous. This makes it more predictable and consistent.
         await dispatch((dispatch: Dispatch) => { //Explicitly type dispatch
             dispatch(setList(transformData(lists.data) || []));
@@ -191,6 +191,36 @@ export async function deleteListByDB(userId: string, listId :string, dispatch: D
     }
 }
 
+export async function updateShareListByDB(nData: any, dispatch: Dispatch) {
+    const { userId, id, updates } = nData;
+    if (userId) {
+
+        const lists = await getData(tbl_names.lists); // Get lists before calling findItemByUserIdAndId
+        let _items = await findItemByUserIdAndId(userId, id) || [];
+
+        let shared_with = _items.shared_with ?? []
+
+        if (shared_with.includes(updates.email)) return;
+
+        shared_with.push(updates.email);
+
+        _items.shared_with = shared_with;
+
+        const [listsRes, itemsRes] = await Promise.all([
+            supabase.from(tbl_names.lists).update({ shared_with: shared_with }).eq("clean_name", _items.clean_name),
+            supabase.from(tbl_names.items).update({ shared_with: shared_with }).eq("list_name", _items.clean_name)
+        ]);
+
+        if (listsRes.error || itemsRes.error) {
+            console.error("Error updating user:", listsRes.error, itemsRes.error);
+        } else {
+            await replaceItemInStorage(tbl_names.lists, userId, id, _items)
+        }
+    }else {
+        
+    }
+}
+
 export async function updateListByDB(nData: any, dispatch: Dispatch) {
     const { userId, id, updates } = nData;
     if (userId) {
@@ -262,7 +292,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
             "clean_name": clean_name,
             "total": _item.total,
             "item_number": _item.item_number,
-            "user_id": userId,
+            "user_id": _item.user_id,
             "deleted": false,
             "edited": false,
             "archived": is_archive?? false
@@ -273,7 +303,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
         switch (type) {
             case 'note':
                 filteredData = listItems.map((item: any) => ({
-                    "user_id": userId,
+                    "user_id": _item.user_id,
                     "name": item.name,
                     "list_name": clean_name,
                     "checked": item.is_check?? false,
@@ -285,7 +315,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
                 break;
             case 'bookmark':
                 filteredData = listItems.map((item: any) => ({
-                    "user_id": userId,
+                    "user_id": _item.user_id,
                     "name": item.name,
                     "list_name": clean_name,
                     "checked": item.is_check?? false,
@@ -297,7 +327,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
                 break;
             case 'todo':
                filteredData = listItems.map((item: any) => ({
-                    "user_id": userId,
+                    "user_id": _item.user_id,
                     "name": item.name,
                     "list_name": clean_name,
                     "checked": item.is_check?? false,
@@ -309,7 +339,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
                 break;
             case 'grocery':
                 filteredData = listItems.map((item: any) => ({
-                    "user_id": userId,
+                    "user_id": _item.user_id,
                     "name": item.name,
                     "list_name": clean_name,
                     "checked": item.is_check?? false,
@@ -390,8 +420,7 @@ export async function archiveListByDB(userId: string, listId: string, dispatch: 
 
         const { data, error } = await supabase
             .from(tbl_names.lists)
-            .update({ archived: true })
-            .eq("user_id", userId).eq("id", listId);
+            .update({ archived: true }).eq("id", listId);
         
         if (error) {
             console.error("Error updating user:", error);
@@ -409,8 +438,7 @@ export async function restoreListByDB(userId: string, listId: string, dispatch: 
         
         const { data, error } = await supabase
             .from(tbl_names.lists)
-            .update({ archived: false })
-            .eq("user_id", userId).eq("id", listId);
+            .update({ archived: false }).eq("id", listId);
         
         if (error) {
             console.error("Error updating user:", error);

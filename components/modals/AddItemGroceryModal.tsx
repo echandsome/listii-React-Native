@@ -87,6 +87,9 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
               <Text style={[styles.closeButton, { color: colors.text }]}>×</Text>
             </TouchableOpacity>
           </View>
+          <Text style={[styles.modalDescription]}>
+              Make changes to your list here. Click save when you're done.
+          </Text>
 
           <View style={styles.modalBody}>
             <View style={styles.inputContainer}>
@@ -135,10 +138,11 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
               />
             </View>
           </View>
-
-          <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
-            <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
-          </TouchableOpacity>
+          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+            <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
+              <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Pressable>
     </Modal>
@@ -184,8 +188,14 @@ const getModalStyles = (colors: any) => {
     modalTitle: {
       fontSize: baseFontSize * 1.1,
       fontWeight: 'bold',
-      textAlign: 'center',
+      textAlign: 'left',
       flex: 1,
+    },
+    modalDescription: {
+      marginBottom: isSmallScreen ? 10 : 20,
+      textAlign: 'left',
+      color: '#758295',
+      fontSize: baseFontSize,
     },
     closeButtonContainer: {
       padding: isSmallScreen ? 4 : 8,
@@ -231,6 +241,7 @@ const getModalStyles = (colors: any) => {
       backgroundColor: '#2962FF',
       paddingVertical: isSmallScreen ? 8 : 10,
       borderRadius: 5,
+      paddingHorizontal: 10
     },
     addItemButtonText: {
       color: 'white',

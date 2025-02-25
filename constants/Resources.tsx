@@ -3,6 +3,7 @@ export const images = {
         edit: require('@/assets/images/dark/edit.png'),
         delete: require('@/assets/images/dark/delete.png'),
         share: require('@/assets/images/dark/share.png'),
+        duplicate: require('@/assets/images/dark/duplicate.png'),
         archive: require('@/assets/images/dark/archive.png'),
         unarchive: require('@/assets/images/dark/unarchive.png'),
         copy: require('@/assets/images/dark/copy.png'),
@@ -13,6 +14,7 @@ export const images = {
     dark: {
         edit: require('@/assets/images/light/edit.png'),
         delete: require('@/assets/images/light/delete.png'),
+        duplicate: require('@/assets/images/light/duplicate.png'),
         share: require('@/assets/images/light/share.png'),
         archive: require('@/assets/images/light/archive.png'),
         unarchive: require('@/assets/images/light/unarchive.png'),
