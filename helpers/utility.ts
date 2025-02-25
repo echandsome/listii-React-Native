@@ -11,6 +11,11 @@ export const listExists = async (lists: any, clean_name: string) => {
     return false;
 };
 
+export const createCleanName = (name:string) =>{
+    return name.replaceAll('"','')
+               .replace(/[^A-Z0-9]+/ig, "_");
+}
+
 export const createCleanNameChanged = (clean_name: string, variation: number) => {
     return clean_name + variation.toString();
 };
@@ -31,5 +36,10 @@ export const createNewCleanName = async (clean_name: string) => {
 
 export const findItemByUserIdAndId = async (userId: string, id: string) => {
     let lists = await getData(tbl_names.lists) || []; // Ensure lists is an array
-    return lists.find(item => item.user_id == userId && item.id == id);
+    return lists.find((item: any) => item.user_id == userId && item.id == id);
+};
+
+export const findItemByUserIdAndCleanName = async (userId: string, clean_name: string) => {
+    let lists = await getData(tbl_names.lists) || []; // Ensure lists is an array
+    return lists.find((item: any) => item.user_id == userId && item.clean_name == clean_name);
 };

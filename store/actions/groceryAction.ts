@@ -3,9 +3,24 @@ import { Dispatch } from 'redux';
 import store from '@/store';
 import {  addItem, updateItem, removeItem, 
     setAllItemsFalse, setAllItemsTrue, removeItemsFalse, removeItemsTrue } from '@/store/reducers/groceryReducer';
-import { findItemByUserIdAndId } from '@/helpers/utility';
+import { findItemByUserIdAndId, findItemByUserIdAndCleanName } from '@/helpers/utility';
 import { replaceItemInStorage } from '../localstorage';
 import { tbl_names } from '@/constants/Config';
+
+export async function editItemStorage(type: string, newList: any, listId: string, dispatch: Dispatch) {
+    if (type == 'INSERT') {
+        dispatch(addItem({ listId, 
+            item: {id: newList.id, name: newList.name, price: newList.price, quantity: newList.quantity, shop: newList.store_name, is_check: newList.checked?? false} }));
+    }else {
+        if (newList.deleted) {
+            dispatch(removeItem({listId, itemId: newList.id}));
+        }else {
+            dispatch(updateItem({listId, 
+                item: {id: newList.id, name: newList.name, price: newList.price, quantity: newList.quantity, shop: newList.store_name, is_check: newList.checked?? false} }));
+        }
+        
+    }
+}  
 
 const updateTotalAndNumber = async (userId: string, listId: string, _item: any) => {
     const {data, error} = await supabase.from(tbl_names.lists).update({item_number: _item.item_number, total: _item.total}).eq('id', _item.id);

@@ -4,6 +4,8 @@ import { createSelector } from 'reselect'
 interface List {
     id: string;
     is_archive: boolean; // Added: is_archive property
+    name: string;
+    type: string;
     [key: string]: any; // Allow for dynamic properties in your list item
 }
 
@@ -23,6 +25,8 @@ const listSlice = createSlice({
             state.lists = action.payload;
         },
         addList: (state, action: PayloadAction<List>) => {
+            let _lists = state.lists;
+            if (_lists != null && _lists.length > 0 && _lists.find((list) => list.id == action.payload.id)) return;
             state.lists = [...state.lists, action.payload];
         },
         deleteList: (state, action: PayloadAction<string>) => {

@@ -8,16 +8,19 @@ import {
     StyleSheet,
     Image,
     Dimensions,
-    Platform
+    Platform,
+    useWindowDimensions
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { images } from '@/constants/Resources';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
-const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose, onItemPress, activeTab, detailTab}) => {
+const ListItemMenuModal = ({isVisible, selectedId, menuButtonRef, onMenuClose, onItemPress, activeTab, detailTab, isLargeScreen}) => {
     const { colors } = useTheme();
     const styles = getModalStyles(colors);
     const [adjustedPosition, setAdjustedPosition] = useState(null);
+
+    const { width } = useWindowDimensions();
 
     const handleModalPress = (event: any) => {
         if (event.target == event.currentTarget) {
@@ -26,44 +29,41 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonLayout, onMenuClose
     };
 
     const calculateDropdownPosition = () => {
-        if (!menuButtonLayout) return null; // Guard against null layout
-        const DROPDOWN_OFFSET = 5;
-        let initialTop = menuButtonLayout.y + DROPDOWN_OFFSET ;
-        if (Platform.OS != 'web') initialTop -= menuButtonLayout.height
-        else initialTop += menuButtonLayout.height
-        let initialLeft = menuButtonLayout.x - 40;
-        let modalHeight;
-        if (activeTab != 'Detail') modalHeight = 250;
-        else modalHeight = 120;
-        const modalWidth = 40;
-
-        // Check if the modal will go off-screen at the bottom
-        if (menuButtonLayout.y + modalHeight > screenHeight) {
-            initialTop = screenHeight - modalHeight - 10; // Push it up so it fits, add a little margin
-        }
-
-        // Check if the modal will go off-screen on the left
-        if (initialLeft < 0) {
-            initialLeft = 10; // Push it right so it fits, add a little margin
-        }
-
-        // Check if the modal will go off-screen on the right
-        if (initialLeft + modalWidth > screenWidth) {
-            initialLeft = screenWidth - modalWidth - 10; // Push it left so it fits, add a little margin
-        }
-
-        return {
-            top: initialTop,
-            left: initialLeft,
-            width: 40,
-        };
+        if (!menuButtonRef?.current) return null; // Guard clause for null layout
+    
+        menuButtonRef.current.measure((fx, fy, fwidth, height, px, py) => {
+            const DROPDOWN_OFFSET = 5;
+            let initialTop = py + DROPDOWN_OFFSET;
+            let initialLeft = px;
+    
+            if (Platform.OS !== 'web') initialTop -= height;
+            else initialTop += height;
+    
+            let modalHeight = activeTab !== 'Detail' ? 250 : 120;
+            const modalWidth = 40;
+    
+            // Ensure dropdown fits within screen boundaries
+            if (initialTop + modalHeight > screenHeight) {
+                initialTop = screenHeight - modalHeight - 10;
+            }
+            if (initialLeft < 0) {
+                initialLeft = 10;
+            }
+    
+            setAdjustedPosition({
+                top: initialTop,
+                right: width - initialLeft,
+                width: modalWidth,
+            });
+        });
     };
 
+    
     useEffect(() => {
-        if (isVisible && menuButtonLayout) {
-            setAdjustedPosition(calculateDropdownPosition());
+        if (isVisible && menuButtonRef) {
+            calculateDropdownPosition()
         }
-    }, [isVisible, menuButtonLayout]);
+    }, [isVisible, menuButtonRef, isLargeScreen]);
 
     const handlePress = (type: string) => {
         onItemPress({

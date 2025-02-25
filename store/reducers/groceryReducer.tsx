@@ -35,6 +35,8 @@ const grocerySlice = createSlice({
     },
     addItem: (state, action: PayloadAction<{ listId: string, item: GroceryItem }>) => {
       const { listId, item } = action.payload;
+      let _items = state.listitems[listId];
+      if (_items != null && _items.length > 0 &&  _items.find((_item) => _item.id == item.id)) return;
       if (state.listitems[listId]) {
         state.listitems[listId].push(item);
       } else {

@@ -17,7 +17,6 @@ import {
 } from 'react-native';
 import { useTheme, useFocusEffect } from '@react-navigation/native';
 import { v4 as uuidv4 } from 'uuid';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import useBackHandler from '../hooks/useBackHandler';
 import NewListModal from '@/components/modals/NewListModal';
 import ListCard from '@/components/ui/ListCard';
@@ -29,6 +28,14 @@ import ListItemArchiveModal from '@/components/modals/ListItemArchiveModal';
 import { baseFontSize, isSmallScreen } from '@/constants/Config';
 import { showToast } from '@/helpers/toastHelper';
 import Nav from '@/components/ui/Nav';
+import { listChannel, itemChannel } from '@/supabaseChannels';
+import { tbl_names } from '@/constants/Config';
+import { editStorage } from '@/store/actions/listAction';
+import { editItemStorage as editItemGStorage } from '@/store/actions/groceryAction';
+import { editItemStorage as editItemBStorage } from '@/store/actions/bookmarkAction';
+import { editItemStorage as editItemTStorage } from '@/store/actions/todoAction';
+import { editItemStorage as editItemNStorage } from '@/store/actions/noteAction';
+import { findItemByUserIdAndCleanName } from '@/helpers/utility';
 
 // Import list-related actions and selectors from Redux
 import { selectLists, selectArchiveLists, selectListById } from '@/store/reducers/listSlice';
@@ -49,7 +56,6 @@ export default function ListScreen() {
 
   const [activeTab, setActiveTab] = useState('Lists');
   const dispatch = useDispatch();
-  const colorScheme = useColorScheme();
 
   const [isNewListModalVisible, setIsNewListModalVisible] = useState(false);
 
@@ -73,7 +79,7 @@ export default function ListScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fatchData ();  
+      fatchData ();
     }, [])
   )
 
@@ -85,6 +91,92 @@ export default function ListScreen() {
       if (res) showToast('success', 'Data loaded successfully.', '');
       else showToast('error', 'Unable to connect to the server. Please try again later.', '');
       setLoading(false);
+
+      if (!listChannel.joinedOnce) {
+        listChannel
+          .on('postgres_changes',
+              {
+                  event: "UPDATE",
+                  schema: "public",
+                  table: tbl_names.lists
+              },
+              (payload) => {
+                editStorage(payload.eventType, payload.new, payload.old, dispatch);
+              })
+          .on('postgres_changes',
+            {
+                event: "INSERT",
+                schema: "public",
+                table: tbl_names.lists
+            },
+            (payload) => {
+              editStorage(payload.eventType, payload.new, payload.old, dispatch);
+            })
+          .subscribe()
+        console.log('Subscribed for list changes')
+      }
+
+      if (!itemChannel.joinedOnce) {
+        itemChannel
+          .on('postgres_changes',
+              {
+                  event: "UPDATE",
+                  schema: "public",
+                  table: tbl_names.items
+              },
+              async (payload) => {
+                let _list = await findItemByUserIdAndCleanName(payload.new.user_id, payload.new.list_name) || {};
+                if (_list) {
+                  switch (_list.list_type) {
+                    case 'note':
+                      console.log('note');
+                      editItemNStorage(payload.eventType, payload.new, _list.id, dispatch);
+                      break;
+                    case 'bookmark':
+                      console.log('bookmark');
+                      editItemBStorage(payload.eventType, payload.new, _list.id, dispatch);
+                    case 'todo':
+                      console.log('todo');
+                      editItemTStorage(payload.eventType, payload.new, _list.id, dispatch);
+                      break;
+                    case 'grocery':
+                      console.log('grocery');
+                      editItemGStorage(payload.eventType, payload.new, _list.id, dispatch);
+                      break;
+                  }
+                }
+              })
+          .on('postgres_changes',
+            {
+                event: "INSERT",
+                schema: "public",
+                table: tbl_names.items
+            },
+            async (payload) => {
+              let _list = await findItemByUserIdAndCleanName(payload.new.user_id, payload.new.list_name) || {};
+              if (_list) {
+                switch (_list.list_type) {
+                  case 'note':
+                    console.log('note');
+                    editItemNStorage(payload.eventType, payload.new, _list.id, dispatch);
+                    break;
+                  case 'bookmark':
+                    console.log('bookmark');
+                    editItemBStorage(payload.eventType, payload.new, _list.id, dispatch);
+                  case 'todo':
+                    console.log('todo');
+                    editItemTStorage(payload.eventType, payload.new, _list.id, dispatch);
+                    break;
+                  case 'grocery':
+                    console.log('grocery');
+                    editItemGStorage(payload.eventType, payload.new, _list.id, dispatch);
+                    break;
+                }
+              }
+            })
+          .subscribe()
+        console.log('Subscribed for item changes')
+      }
     }
   }
 
@@ -144,22 +236,16 @@ export default function ListScreen() {
 
   const [isVisible, setVisible] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const [menuButtonLayout, setMenuButtonLayout] = useState(null);
+  const [menuButtonRef, setMenuButtonRef] = useState(null);
   const openMenuModal = useCallback((ref: any, itemId: any) => {
-    if (ref.current) {
-      ref.current.measure((fx, fy, width, height, px, py) => {
-        setMenuButtonLayout({ x: px, y: py, width, height });
-        setSelectedId(itemId);
-        setVisible(true);
-      });
-    }
-  }, [setMenuButtonLayout, setSelectedId, setVisible]);
+    setMenuButtonRef(ref);
+    setSelectedId(itemId);
+    setVisible(true);
+  }, [setMenuButtonRef, setSelectedId, setVisible]);
 
   const onMenuClose = useCallback(() => {
     setVisible(false);
   }, [setVisible]);
-
- 
 
   useEffect(() => {
     if (listItem != undefined) {
@@ -276,11 +362,12 @@ export default function ListScreen() {
       <ListItemMenuModal
         isVisible={isVisible}
         selectedId={selectedId}
-        menuButtonLayout={menuButtonLayout}
+        menuButtonRef={menuButtonRef}
         onMenuClose={onMenuClose}
         onItemPress={handleItemMenu}
         activeTab={activeTab}
         detailTab=''
+        isLargeScreen={isLargeScreen}
       />
       <ListItemEditModal
         visible={editModalVisible}

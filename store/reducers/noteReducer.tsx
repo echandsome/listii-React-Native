@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface NoteItem {
   id: string;
   name: string;
-  content: string;
+  note: string;
   is_check: boolean;
 }
 
@@ -33,6 +33,8 @@ const noteSlice = createSlice({
     },
     addItem: (state, action: PayloadAction<{ listId: string, item: NoteItem }>) => {
       const { listId, item } = action.payload;
+      let _items = state.listitems[listId];
+      if (_items != null && _items.length > 0 &&  _items.find((_item) => _item.id == item.id)) return;
       if (state.listitems[listId]) {
         state.listitems[listId].push(item);
       } else {

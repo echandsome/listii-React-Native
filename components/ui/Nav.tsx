@@ -17,6 +17,10 @@ import LogoutModal from '@/components/modals/LogoutModal';
 import { images } from '@/constants/Resources';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 import SelectInput from '@/components/ui/SelectInput';
+import { removeData } from '@/store/localstorage';
+import { tbl_names } from '@/constants/Config';
+import { listChannel, itemChannel } from '@/supabaseChannels';
+import supabase from '@/supabase';
 
 export default function Nav ({ page, openNewListModal, openAddItemModal, selectData }){
 
@@ -64,6 +68,9 @@ export default function Nav ({ page, openNewListModal, openAddItemModal, selectD
     }, [setIsThemeModalVisible]);
 
     const handleLogout = useCallback(() => {
+        removeData(tbl_names.lists);
+        supabase.removeChannel(listChannel);
+        supabase.removeChannel(itemChannel);
         dispatch({ type: "RESET" });
         router.push('/'); 
     }, []);

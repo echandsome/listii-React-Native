@@ -41,11 +41,6 @@ import NoteItem from '@/components/ui/NoteItem';
 import Nav from '@/components/ui/Nav';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
 
-// Define Types
-interface ColorsType {
-  text: string;
-}
-
 interface LocalSearchParams {
   type: 'grocery' | 'todo' | 'bookmark' | 'note';
   name: string;
@@ -117,8 +112,8 @@ const ListDetailScreen = () => {
   const [showCartItems, setShowCartItems] = useState(true);
   const [showListItems, setShowListItems] = useState(true);
 
-  const cartItems = useMemo(() => itemlist.filter((item) => item.is_check), [itemlist]);
-  const listItems = useMemo(() => itemlist.filter((item) => !item.is_check), [itemlist]);
+  const cartItems = useMemo(() => itemlist.filter((item: any) => item.is_check), [itemlist]);
+  const listItems = useMemo(() => itemlist.filter((item: any) => !item.is_check), [itemlist]);
 
   const handleAlert = useCallback(() => {
     if (selectedStatus == 'Check items' ||
@@ -219,17 +214,13 @@ const ListDetailScreen = () => {
 
   const [isVisible, setVisible] = useState<boolean | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [menuButtonLayout, setMenuButtonLayout] = useState<any>(null);
+  const [menuButtonRef, setMenuButtonRef] = useState<any>(null);
 
   const openMenuModal = useCallback((ref: any, itemId: any) => {
-    if (ref.current) {
-      ref.current.measure((fx, fy, width, height, px, py) => {
-        setMenuButtonLayout({ x: px, y: py, width, height });
-        setSelectedId(itemId);
-        setVisible(true);
-      });
-    }
-  }, [setMenuButtonLayout, setSelectedId, setVisible]);
+    setMenuButtonRef(ref);
+    setSelectedId(itemId);
+    setVisible(true);
+  }, [setMenuButtonRef, setSelectedId, setVisible]);
 
   const onMenuClose = useCallback(() => {
     setVisible(false);
@@ -586,11 +577,12 @@ const ListDetailScreen = () => {
           <ListItemMenuModal
             isVisible={isVisible}
             selectedId={selectedId}
-            menuButtonLayout={menuButtonLayout}
+            menuButtonRef={menuButtonRef}
             onMenuClose={onMenuClose}
             onItemPress={handleItemMenu}
             activeTab='Detail'
             detailTab={category.type}
+            isLargeScreen={isLargeScreen}
           />
         </View>
       </ScrollView>

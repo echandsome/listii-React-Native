@@ -9,9 +9,22 @@ import { setItems as setItemsBookmark, addItems as addItemsBookmark } from '@/st
 import { setItems as setItemsTodo, addItems as addItemsTodo } from '@/store/reducers/todoReducer';
 import { setItems as setItemsNote, addItems as addItemsNote } from '@/store/reducers/noteReducer';
 import { getData, storeData, addToData,replaceItemInStorage } from '../localstorage';
-import { listExists, createNewCleanName, findItemByUserIdAndId } from '@/helpers/utility';
+import { listExists, createCleanName, createNewCleanName, findItemByUserIdAndId } from '@/helpers/utility';
 
 import { tbl_names } from '@/constants/Config';
+
+export async function editStorage(type: string, newList: any, oldList: any, dispatch: Dispatch) {
+    if (type == 'INSERT') {
+        dispatch(addList({
+            id: newList.id, name: newList.name, type: newList.list_type,
+            is_archive: false
+        }));
+        await addToData(newList, tbl_names.lists);
+    }else {
+        dispatch(updateList({id: newList.id, updates: {name: newList.name, type: newList.list_type, is_archive: newList.archived}}))
+        await replaceItemInStorage(tbl_names.lists, newList.user_id, newList.id, newList)
+    }
+} 
 
 const groupAndTransformItems = (data: any[], list: any, type: any) => {
 
@@ -86,7 +99,6 @@ function transformData(data: any) {
         }));
 }
 
-
 export async function getLists(userId: string, dispatch: Dispatch) {
     if (!userId) return false;
     try {
@@ -125,7 +137,7 @@ export async function addNewList({ userId, name, type, id }, dispatch: Dispatch)
     if (userId) {
         
         type = type.toLowerCase();
-        let clean_name = name;
+        let clean_name = createCleanName(name);
         const lists = await getData(tbl_names.lists); // Get lists before calling listExists
         if(await listExists(lists, name)) clean_name = await createNewCleanName(clean_name);
 
@@ -183,15 +195,24 @@ export async function updateListByDB(nData: any, dispatch: Dispatch) {
 
         const lists = await getData(tbl_names.lists); // Get lists before calling findItemByUserIdAndId
         let _items = await findItemByUserIdAndId(userId, id) || [];
+
+        if (_items.name == updates.name) return;
+
         _items.name = updates.name;
 
-        const {data, error} = await supabase
-                .from(tbl_names.lists)
-                .update({ name: updates.name }).eq("id", id)
+        let prev_clean_name = _items.clean_name;
+        let clean_name = createCleanName(updates.name);
+        if(await listExists(lists, clean_name)) clean_name = await createNewCleanName(clean_name);
 
-    
-        if (error) {
-            console.error("Error updating user:", error);
+        _items.clean_name = clean_name;
+
+        const [listsRes, itemsRes] = await Promise.all([
+            supabase.from(tbl_names.lists).update({ name: updates.name, clean_name: clean_name }).eq("id", id),
+            supabase.from(tbl_names.items).update({ list_name: clean_name }).eq("list_name", prev_clean_name)
+        ]);
+
+        if (listsRes.error || itemsRes.error) {
+            console.error("Error updating user:", listsRes.error, itemsRes.error);
         } else {
             await replaceItemInStorage(tbl_names.lists, userId, id, _items)
             dispatch(updateList(nData));
@@ -227,7 +248,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
     if (userId) {
 
         const _item = await findItemByUserIdAndId(userId, id) || [];
-        let clean_name = _item.clean_name;
+        let clean_name = createCleanName(_item.clean_name);
 
         const lists = await getData(tbl_names.lists); // Get lists before calling listExists
         if(await listExists(lists, clean_name)) clean_name = await createNewCleanName(clean_name);
