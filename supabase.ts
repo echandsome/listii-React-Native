@@ -19,11 +19,4 @@ const options = {
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey, options);
 
-// const _delete = async() => {
-//   const { data, error } = await supabase.from('lists').delete().eq("user_id", '6a9525a2-a4d8-461d-9ee4-defb9675c7fe');
-//   await supabase.from('items').delete().eq("user_id", '6a9525a2-a4d8-461d-9ee4-defb9675c7fe');
-  
-// }
-// _delete();
-
 export default supabase

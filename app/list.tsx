@@ -29,7 +29,6 @@ import { baseFontSize, isSmallScreen } from '@/constants/Config';
 import { showToast } from '@/helpers/toastHelper';
 import Nav from '@/components/ui/Nav';
 import { getItemChannel, getListChannel, initializeChannels } from '@/supabaseChannels';
-import supabase from "@/supabase";
 import { tbl_names } from '@/constants/Config';
 import { editStorage } from '@/store/actions/listAction';
 import { editItemStorage as editItemGStorage } from '@/store/actions/groceryAction';
