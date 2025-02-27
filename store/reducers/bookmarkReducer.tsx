@@ -50,12 +50,16 @@ const bookmarkSlice = createSlice({
         }
       }
     },
-    updateItem: (state, action: PayloadAction<{ listId: string, item: BookmarkItem }>) => {
-      const { listId, item } = action.payload;
+    updateItem: (state, action: PayloadAction<{ listId: string, item: BookmarkItem, temp_id: string }>) => {
+      const { listId, item, temp_id } = action.payload;
       if (state.listitems[listId]) {
-        const index = state.listitems[listId].findIndex((bookmarkItem) => bookmarkItem.id == item.id);
+        const index = state.listitems[listId].findIndex((bookmarkItem) => {
+          if (temp_id != undefined && temp_id == '-1000') return bookmarkItem.id == temp_id;
+          else return bookmarkItem.id == item.id;
+        });
         if (index !== -1) {
-          state.listitems[listId][index] = item;
+          const _item = state.listitems[listId][index];
+          state.listitems[listId][index] = {..._item, ...item};
         }
       }
     },

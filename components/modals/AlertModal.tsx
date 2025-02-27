@@ -51,11 +51,12 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
     >
       <Pressable style={styles.modalListOverlay} onPress={handleBackdropPress}>
         <View style={[styles.modalView]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.modalTitle, styles.textColor]}>{title}</Text>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, styles.textColor]}>{title}</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+          </View>
           {content != null && content != '' ? (
             <Text style={[styles.modalcontent, styles.textColor]}>{content}</Text>
           ) : (
@@ -107,11 +108,13 @@ const getStyles = (colors: any) => {
       width: '80%',
       maxWidth: 400,
     },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 8 : 15,
+    },
     closeButton: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      padding: isSmallScreen ? 4 : 8,
     },
     closeButtonText: {
       fontSize: baseFontSize * 1.5,
@@ -125,7 +128,6 @@ const getStyles = (colors: any) => {
     },
     modalcontent: {
       marginBottom: isSmallScreen ? 10 : 20,
-      textAlign: 'center',
       color: '#555',
       fontSize: baseFontSize,
     },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -29,6 +29,8 @@ const AddItemTodoModal: React.FC<AddItemTodoModalProps> = ({ visible, onClose, o
   const [priorityType, setPriorityType] = useState('Low');
   const priorityTypes = ['Low', 'Medium', 'High', 'Urgent'];
 
+  const nameInputRef = useRef<TextInput>(null);
+
   useEffect(() => {
     if (mode == 'edit' && initialData) {
       setName(initialData.name || '');
@@ -39,11 +41,20 @@ const AddItemTodoModal: React.FC<AddItemTodoModalProps> = ({ visible, onClose, o
     }
   }, [mode, initialData]);
 
-  const handleAddItem = () => {
-    onAddItem({ ...initialData, name, priority: priorityType }, mode);
+  useEffect(() => {
+    if (visible && nameInputRef.current) {
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 400);
+    }
+  }, [visible]);
 
-    setName('');
-    setPriorityType('Low');
+  const handleAddItem = () => {
+    onAddItem({ name, priority: priorityType }, mode); // Removed initialData spread
+    if (mode != 'edit') {
+      setName('');
+      setPriorityType('Low');
+    }
     onClose();
   };
 
@@ -55,6 +66,10 @@ const AddItemTodoModal: React.FC<AddItemTodoModalProps> = ({ visible, onClose, o
 
   const handleSelectpriorityType = (type: string) => {
     setPriorityType(type);
+  };
+
+  const handleEnterPress = () => {
+    handleAddItem();
   };
 
   return (
@@ -82,6 +97,10 @@ const AddItemTodoModal: React.FC<AddItemTodoModalProps> = ({ visible, onClose, o
                 onChangeText={setName}
                 placeholder="Item Name"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleEnterPress}
+                returnKeyType="done"
+                ref={nameInputRef}
+                blurOnSubmit={false}
               />
             </View>
 
@@ -95,7 +114,7 @@ const AddItemTodoModal: React.FC<AddItemTodoModalProps> = ({ visible, onClose, o
             />
           </View>
 
-          <View style={{flexDirection: 'row', justifyContent: 'flex-end', zIndex: -1,}}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', zIndex: -1 }}>
             <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
               <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
             </TouchableOpacity>

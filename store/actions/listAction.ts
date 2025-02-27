@@ -152,7 +152,7 @@ export async function addNewList({ userId, name, type, id }, dispatch: Dispatch)
             "edited": false,
             "archived": false
         }
-        
+        dispatch(addList({id: '-1000', name, type}));     
         const { data, error } = await supabase
         .from(tbl_names.lists)
         .insert([_data])
@@ -161,8 +161,8 @@ export async function addNewList({ userId, name, type, id }, dispatch: Dispatch)
         if (error) {
             console.error("Error inserting user:", error);
         } else {
+            dispatch(updateList({id: '-1000', updates: {id: data[0].id, ..._data}}));
             await addToData({ id: data[0].id, ..._data }, tbl_names.lists);
-            dispatch(addList({id: data[0].id, name, type}));
         }
     }else {
         dispatch(addList({id, name, type}));
@@ -171,21 +171,40 @@ export async function addNewList({ userId, name, type, id }, dispatch: Dispatch)
 
 export async function deleteListByDB(userId: string, listId :string, dispatch: Dispatch) {
     if (userId) {
-
+       
         let _item = await findItemByUserIdAndId(userId, listId) || [];
+        let auth = store.getState().auth;
 
         dispatch(deleteList(_item.id));
 
-        const [listsRes, itemsRes] = await Promise.all([
-            supabase.from(tbl_names.lists).update({ deleted: true }).eq('clean_name', _item.clean_name),
-            supabase.from(tbl_names.items).update({ deleted: true }).eq('list_name', _item.clean_name)
-        ]);
+        if (_item.user_id != userId) {
+            // let shared_with = _item.shared_with;
+            // shared_with = shared_with.filter((_email: string) => _email != auth.user?.email);
+            // _item.shared_with = shared_with;
 
-        if (listsRes.error || itemsRes.error ) {
-            console.error("Error deleting user:", listsRes.error, itemsRes.error);
-        } else {
-           
+            // const [listsRes, itemsRes] = await Promise.all([
+            //     supabase.from(tbl_names.lists).update({ shared_with: _item.shared_with }).eq('clean_name', _item.clean_name),
+            //     supabase.from(tbl_names.items).update({ shared_with: _item.shared_with }).eq('list_name', _item.clean_name)
+            // ]);
+    
+            // if (listsRes.error || itemsRes.error ) {
+            //     console.error("Error deleting user:", listsRes.error, itemsRes.error);
+            // } else {
+               
+            // }
+        }else {
+            const [listsRes, itemsRes] = await Promise.all([
+                supabase.from(tbl_names.lists).update({ deleted: true }).eq('clean_name', _item.clean_name),
+                supabase.from(tbl_names.items).update({ deleted: true }).eq('list_name', _item.clean_name)
+            ]);
+    
+            if (listsRes.error || itemsRes.error ) {
+                console.error("Error deleting user:", listsRes.error, itemsRes.error);
+            } else {
+               
+            }
         }
+        
     }else {
         dispatch(deleteList(listId));
     }

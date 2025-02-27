@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -29,6 +29,11 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
   const [quantity, setQuantity] = useState(initialData?.quantity || '');
   const [shop, setShop] = useState(initialData?.shop || '');
 
+  const nameInputRef = useRef<TextInput>(null);
+  const priceInputRef = useRef<TextInput>(null);
+  const quantityInputRef = useRef<TextInput>(null);
+  const shopInputRef = useRef<TextInput>(null);
+
   useEffect(() => {
     if (mode == 'edit' && initialData) {
       setName(initialData.name || '');
@@ -43,15 +48,25 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
     }
   }, [mode, initialData]);
 
+  useEffect(() => {
+    if (visible && nameInputRef.current) {
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 400);
+    }
+  }, [visible]);
+
+
   const handleAddItem = () => {
     let t_quantity = (quantity == '' || quantity == '0') ? '1' : quantity;
     let t_price = (price == '') ? '0' : price;
     onAddItem({ ...initialData, name, price: t_price, quantity: t_quantity, shop }, mode);
-
-    setName('');
-    setPrice('');
-    setQuantity('');
-    setShop('');
+    if (mode != 'edit') {
+      setName('');
+      setPrice('');
+      setQuantity('');
+      setShop('');
+    }
 
     onClose();
   };
@@ -72,6 +87,10 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
     setQuantity(numericValue);
   };
 
+  const handleEnterPress = () => {
+    handleAddItem(); // Trigger addItem on pressing enter
+  };
+
   return (
     <Modal
       animationType="fade"
@@ -88,7 +107,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
             </TouchableOpacity>
           </View>
           <Text style={[styles.modalDescription]}>
-              Make changes to your list here. Click save when you're done.
+            Make changes to your list here. Click save when you're done.
           </Text>
 
           <View style={styles.modalBody}>
@@ -100,6 +119,10 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
                 onChangeText={setName}
                 placeholder="Item Name"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleEnterPress} // Handle enter key press
+                returnKeyType="done"
+                ref={nameInputRef}
+                blurOnSubmit={false}
               />
             </View>
 
@@ -112,6 +135,10 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
                 placeholder="0"
                 keyboardType="numeric"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleEnterPress} // Handle enter key press
+                returnKeyType="done"
+                ref={priceInputRef}
+                blurOnSubmit={false}
               />
             </View>
 
@@ -124,6 +151,10 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
                 placeholder="1"
                 keyboardType="numeric"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleEnterPress} // Handle enter key press
+                returnKeyType="done"
+                ref={quantityInputRef}
+                blurOnSubmit={false}
               />
             </View>
 
@@ -135,10 +166,14 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
                 onChangeText={setShop}
                 placeholder="Shop Name"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleEnterPress} // Handle enter key press
+                returnKeyType="done"
+                ref={shopInputRef}
+                blurOnSubmit={false}
               />
             </View>
           </View>
-          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
               <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
             </TouchableOpacity>

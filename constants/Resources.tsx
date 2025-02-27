@@ -9,7 +9,9 @@ export const images = {
         copy: require('@/assets/images/dark/copy.png'),
         menu: require('@/assets/images/dark/menu.png'),
         back: require('@/assets/images/dark/back.png'),
-        theme: require('@/assets/images/dark/theme.png')
+        theme: require('@/assets/images/dark/theme.png'),
+        checked: require('@/assets/images/dark/checked.png'),
+        unchecked: require('@/assets/images/dark/unchecked.png'),
     },
     dark: {
         edit: require('@/assets/images/light/edit.png'),
@@ -21,7 +23,9 @@ export const images = {
         copy: require('@/assets/images/light/copy.png'),
         menu: require('@/assets/images/light/menu.png'),
         back: require('@/assets/images/light/back.png'),
-        theme: require('@/assets/images/light/theme.png')
+        theme: require('@/assets/images/light/theme.png'),
+        checked: require('@/assets/images/light/checked.png'),
+        unchecked: require('@/assets/images/light/unchecked.png'),
     }
 }
 

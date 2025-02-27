@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -25,7 +25,10 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
   const styles = getModalStyles(colors);
 
   const [name, setName] = useState(initialData?.name || '');
-  const [path, setPath] = useState(initialData?.path || '');;
+  const [path, setPath] = useState(initialData?.path || '');
+
+  const nameInputRef = useRef<TextInput>(null);
+  const pathInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (mode == 'edit' && initialData) {
@@ -36,10 +39,21 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
       setPath('');
     }
   }, [mode, initialData]);
+
+  useEffect(() => {
+    if (visible && nameInputRef.current) {
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 400);
+    }
+  }, [visible]);
+
   const handleAddItem = () => {
-    onAddItem({ ...initialData, name, path }, mode);
-    setName('');
-    setPath('');
+    onAddItem({ name, path }, mode); // Removed initialData spread
+    if (mode != 'edit') {
+      setName('');
+      setPath('');
+    }
     onClose();
   };
 
@@ -47,6 +61,10 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
     if (event.target == event.currentTarget) {
       onClose();
     }
+  };
+
+  const handleEnterPress = () => {
+    handleAddItem();
   };
 
 
@@ -75,6 +93,10 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
                 onChangeText={setName}
                 placeholder="Name"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleEnterPress}
+                returnKeyType="done"
+                ref={nameInputRef}
+                blurOnSubmit={false}
               />
             </View>
 
@@ -86,11 +108,15 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
                 onChangeText={setPath}
                 placeholder="Path"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleEnterPress}
+                returnKeyType="done"
+                ref={pathInputRef}
+                blurOnSubmit={false}
               />
             </View>
           </View>
 
-          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
               <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
             </TouchableOpacity>

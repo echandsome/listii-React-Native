@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Modal,
   View,
@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Pressable,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
@@ -30,21 +31,31 @@ const EditListModal: React.FC<EditListModalProps> = ({
   const [name, setName] = useState(initialName);
   const [isSaveButtonDisabled, setIsSaveButtonDisabled] = useState(true);
 
+  const nameInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     setName(initialName);
   }, [initialName]);
 
-
   useEffect(() => {
     setIsSaveButtonDisabled(name.length < 4);
   }, [name]);
 
+  useEffect(() => {
+    if (visible && nameInputRef.current) {
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 400);
+    }
+  }, [visible]);
+
   const handleSave = useCallback(() => {
-      if (name.length >= 4) {
-        onSave(name);
-        onClose();
-      }
+    Keyboard.dismiss(); // Dismiss keyboard before save
+
+    if (name.length >= 4) {
+      onSave(name);
+      onClose();
+    }
   }, [name, onSave, onClose]);
 
   const handleBackdropPress = (event: any) => {
@@ -52,8 +63,6 @@ const EditListModal: React.FC<EditListModalProps> = ({
       onClose();
     }
   };
-
-  if (!visible) return null;
 
   return (
     <Modal
@@ -69,9 +78,8 @@ const EditListModal: React.FC<EditListModalProps> = ({
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeButtonText}>×</Text>
             </TouchableOpacity>
-          
           </View>
-         
+
           <Text style={[styles.modalDescription]}>
             Make changes to your list here. Click save when you're done.
           </Text>
@@ -79,18 +87,21 @@ const EditListModal: React.FC<EditListModalProps> = ({
           <View style={styles.inputContainer}>
             <Text style={[styles.label, styles.textColor]}>Name</Text>
             <TextInput
+              ref={nameInputRef}
               style={[styles.input, { color: colors.text, borderColor: colors.border }]} // Added dynamic styles
               value={name}
               onChangeText={setName}
               placeholder="List Name"
               placeholderTextColor={(styles.placeholder as any).color}
+              onSubmitEditing={handleSave}
+              returnKeyType="done"
             />
           </View>
-          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity
-                style={[styles.saveButton, isSaveButtonDisabled ? styles.saveButtonDisabled : {}]}
-                onPress={handleSave}
-                disabled={isSaveButtonDisabled}
+              style={[styles.saveButton, isSaveButtonDisabled ? styles.saveButtonDisabled : {}]}
+              onPress={handleSave}
+              disabled={isSaveButtonDisabled}
             >
               <Text style={styles.saveButtonText}>Save Changes</Text>
             </TouchableOpacity>
@@ -102,7 +113,6 @@ const EditListModal: React.FC<EditListModalProps> = ({
 };
 
 const getStyles = (colors: any) => {
-
   return StyleSheet.create({
     modalListOverlay: {
       flex: 1,

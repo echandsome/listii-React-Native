@@ -50,12 +50,16 @@ const todoSlice = createSlice({
         }
       }
     },
-    updateItem: (state, action: PayloadAction<{ listId: string, item: TodoItem }>) => {
-      const { listId, item } = action.payload;
+    updateItem: (state, action: PayloadAction<{ listId: string, item: TodoItem, temp_id: string }>) => {
+      const { listId, item, temp_id } = action.payload;
       if (state.listitems[listId]) {
-        const index = state.listitems[listId].findIndex((todoItem) => todoItem.id == item.id);
+        const index = state.listitems[listId].findIndex((todoItem) => {
+          if (temp_id != undefined && temp_id == '-1000') return todoItem.id == temp_id;
+          else return todoItem.id == item.id;
+        });
         if (index !== -1) {
-          state.listitems[listId][index] = item;
+          const _item = state.listitems[listId][index];
+          state.listitems[listId][index] = {..._item, ...item};
         }
       }
     },

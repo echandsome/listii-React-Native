@@ -49,13 +49,15 @@ const ArchiveListModal: React.FC<ArchiveListModalProps> = ({
     >
       <Pressable style={styles.modalListOverlay} onPress={handleBackdropPress}>
         <View style={[styles.modalView]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.modalTitle, styles.textColor]}>
-            {activeTab == 'Lists' ? 'Archive list' : 'Unarchive list'}
-          </Text>
+          <View style={styles.modalHeader}>
+            <Text style={[styles.modalTitle, styles.textColor]}>
+              {activeTab == 'Lists' ? 'Archive list' : 'Unarchive list'}
+            </Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+          </View>
+         
           <Text style={[styles.modalDescription]}>
             {activeTab == 'Lists'
               ? 'Archive lists that you will not be using often anymore.'
@@ -107,11 +109,13 @@ const getStyles = (colors: any) => {
       width: '80%',
       maxWidth: 400,
     },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: isSmallScreen ? 8 : 15,
+    },
     closeButton: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      padding: isSmallScreen ? 4 : 8,
     },
     closeButtonText: {
       fontSize: baseFontSize * 1.5,

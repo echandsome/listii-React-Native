@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -27,6 +27,9 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
   const [name, setName] = useState(initialData?.name || '');
   const [note, setNote] = useState(initialData?.note || '');
 
+  const nameInputRef = useRef<TextInput>(null);
+  const noteInputRef = useRef<TextInput>(null);
+
   useEffect(() => {
     if (mode == 'edit' && initialData) {
       setName(initialData.name || '');
@@ -37,10 +40,20 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
     }
   }, [mode, initialData]);
 
+  useEffect(() => {
+    if (visible && nameInputRef.current) {
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 400);
+    }
+  }, [visible]);
+
   const handleAddItem = () => {
-    onAddItem({ ...initialData, name, note }, mode);
-    setName('');
-    setNote('');
+    onAddItem({ name, note }, mode);  //Removed initialData spread
+    if (mode != 'edit') {
+      setName('');
+      setNote('');
+    }
     onClose();
   };
 
@@ -48,6 +61,10 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
     if (event.target == event.currentTarget) {
       onClose();
     }
+  };
+
+  const handleEnterPress = () => {
+    handleAddItem();
   };
 
   return (
@@ -75,6 +92,10 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
                 onChangeText={setName}
                 placeholder="Name"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleEnterPress}
+                returnKeyType="done"
+                ref={nameInputRef}
+                blurOnSubmit={false}
               />
             </View>
 
@@ -89,11 +110,15 @@ const AddItemNoteModal: React.FC<AddItemNoteModalProps> = ({ visible, onClose, o
                 multiline={true}
                 numberOfLines={5}
                 textAlignVertical="top"
+                onSubmitEditing={handleEnterPress}
+                returnKeyType="done"
+                ref={noteInputRef}
+                blurOnSubmit={false}
               />
             </View>
           </View>
 
-          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity style={styles.addItemButton} onPress={handleAddItem}>
               <Text style={styles.addItemButtonText}>{mode == 'add' ? 'Add item' : 'Save item'}</Text>
             </TouchableOpacity>

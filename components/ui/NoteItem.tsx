@@ -56,13 +56,6 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
             <Ionicons name="ellipsis-vertical" size={baseFontSize * 1.5} color={colors.text} />
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={[styles.toggleButton, { backgroundColor: colors.background }]} onPress={toggleNoteVisibility}>
-          <Text style={[styles.toggleButtonText, { color: colors.text }]}>
-            {isNoteVisible ? 'Hide Note' : 'Show Note'}
-          </Text>
-        </TouchableOpacity>
-
         {isNoteVisible && (
           <View style={styles.content}>
             <Text style={[styles.note, { color: colors.text }]}>
@@ -70,6 +63,11 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
             </Text>
           </View>
         )}
+        <TouchableOpacity style={[styles.toggleButton, { backgroundColor: colors.background }]} onPress={toggleNoteVisibility}>
+          <Text style={[styles.toggleButtonText, { color: colors.text }]}>
+            {isNoteVisible ? 'Hide Note' : 'Show Note'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

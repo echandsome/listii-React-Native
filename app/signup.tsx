@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-  Image,
+  Keyboard,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
@@ -27,6 +27,9 @@ export default function RegisterScreen() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
+
+  const passwordInputRef = useRef<TextInput>(null); // Ref to password input
+  const emailInputRef = useRef<TextInput>(null); // Ref to email input
 
   // Use useCallback to prevent unnecessary re-renders
   const validateEmail = useCallback((text: string) => {
@@ -50,7 +53,9 @@ export default function RegisterScreen() {
     setPassword(text);
   }, []);
 
-  const handleRegister = async () => { // Make the function async
+  const handleRegister = useCallback(async () => { // Make the function async
+    Keyboard.dismiss(); // Dismiss keyboard before register attempt
+
     let isValid = true;
 
     if (email.length < 5) {
@@ -79,6 +84,18 @@ export default function RegisterScreen() {
         setIsSubmitting(false);
       }
     }
+  }, [email, password, dispatch]);
+
+  useEffect(() => {
+    if (emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
+  }, []); // Empty dependency array means this runs only once after initial render
+
+  const handleEmailSubmitEditing = () => {
+    if (passwordInputRef.current) {
+      passwordInputRef.current.focus();
+    }
   };
 
   return (
@@ -89,6 +106,7 @@ export default function RegisterScreen() {
       <View style={styles.content}>
         <Text style={[styles.label, styles.textColor]}>Email</Text>
         <TextInput
+          ref={emailInputRef} // Attach the ref
           style={[styles.input, styles.textColor, { borderColor: colors.border }]}
           placeholder="you@example.com"
           placeholderTextColor={(styles.placeholder as any).color}
@@ -96,18 +114,24 @@ export default function RegisterScreen() {
           onChangeText={validateEmail}
           keyboardType="email-address" // Specify keyboard type
           autoCapitalize="none"        // Prevent auto capitalization
+          onSubmitEditing={handleEmailSubmitEditing}
+          returnKeyType="next"
+          blurOnSubmit={false}
         />
         <Text style={[styles.description, styles.textColor]}>Your email won't be shared.</Text>
         {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
         <Text style={[styles.label, styles.textColor]}>Password</Text>
         <TextInput
+          ref={passwordInputRef} // Attach the ref
           style={[styles.input, styles.textColor, { borderColor: colors.border }]}
           placeholder="Password"
           placeholderTextColor={(styles.placeholder as any).color}
           secureTextEntry
           value={password}
           onChangeText={validatePassword}
+          onSubmitEditing={handleRegister}
+          returnKeyType="go"
         />
         <Text style={[styles.description, styles.textColor]}>This is the key to your account. Please keep it safe.</Text>
         {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}

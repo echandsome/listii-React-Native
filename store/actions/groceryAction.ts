@@ -65,14 +65,13 @@ export async function addItemByDB(nData: any , dispatch: Dispatch) {
             "store_name": shop,
             "shared_with": _item.shared_with,         
         }
-
+        dispatch(addItem({ listId, item: {...nData.item, id: '-1000'}}));
         const {data, error} = await supabase.from(tbl_names.items).insert(_data).select('id');
-        console.log(data);
         if (error) {
             console.error("Error inserting item", data);
         } else {
             updateTotalAndNumber(userId, listId, _item);
-            dispatch(addItem({ listId, item: {...nData.item, id: data[0].id}}));
+            dispatch(updateItem({listId, item: {...nData.item, id: data[0].id}, temp_id: '-1000'}));
         }
  
     }else {
@@ -145,7 +144,7 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
             dispatch(updateItem(nData));
 
             const {data, error} = await supabase.from(tbl_names.items).update({ name: newItem.name, 
-                price: newItem.price, quantity: newItem.quantity, store_name: newItem.shop, checked: newItem.is_check?? false }).eq('id', newItem.id);
+                price: newItem.price, quantity: newItem.quantity, store_name: newItem.shop }).eq('id', newItem.id);
 
             if (error) {
                 console.error("Error deleting item", error);

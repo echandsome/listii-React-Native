@@ -319,7 +319,7 @@ const getStyles = (colors: any, isLargeScreen: boolean) => {
         gap: isSmallScreen ? 5 : 10,
       },
       selectInput: {
-        minWidth: 200, 
+        minWidth: 220, 
       },
       _selectInput: {
         width: '100%',

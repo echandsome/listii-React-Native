@@ -6,10 +6,14 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  Image
 } from 'react-native';
 import { Theme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/constants/Config';
+import { images } from '@/constants/Resources';
+import { selectThemeMode } from '@/store/reducers/themeSlice';
+import { useSelector } from 'react-redux';
 
 interface SelectInputProps {
   label: string;
@@ -24,6 +28,8 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
   const [showOptions, setShowOptions] = useState(false);
   const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const styles = getSelectInputStyles(colors);
+
+  const themeMode = useSelector(selectThemeMode);
 
   let _isSmallScreen = false;
   if (style.width == '100%') _isSmallScreen = true;
@@ -82,13 +88,30 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
           style={[styles.dropdownOptionsContainer, calculateDropdownPosition()]}
         >
           <ScrollView>
-            {options.map((option) => (
+            {options.map((option, key) => (
               <TouchableOpacity
                 key={option}
                 style={styles.dropdownOption}
                 onPress={() => handleSelect(option)}
               >
-                <Text style={[styles.dropdownOptionText, { color: colors.text }]}>{option}</Text>
+                {
+                  page == 'listDetail'? (
+                    <View style={styles.listItemMenuOption}>
+                        {
+                          key >= 2? (
+                            <Image source={images[themeMode].unchecked} style={styles.listItemMenuIcon} />
+                          ): (
+                            <Image source={images[themeMode].checked} style={styles.listItemMenuIcon} />
+                          )
+                        }
+                        
+                        <Text style={[styles.dropdownOptionText, { color: colors.text }]}>{option}</Text>
+                    </View>
+                  ): (
+                    <Text style={[styles.dropdownOptionText, { color: colors.text }]}>{option}</Text>
+                  )
+                }
+                
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -101,6 +124,15 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, value, options, onSele
 const getSelectInputStyles = (colors: any) => {
 
   return StyleSheet.create({
+    listItemMenuOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    listItemMenuIcon: {
+        width: 20,
+        height: 20,
+        marginRight: 10,
+    },
     container: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -138,7 +170,7 @@ const getSelectInputStyles = (colors: any) => {
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 4,
-      minWidth: 200,
+      minWidth: 220,
       zIndex: 100000,
       marginTop: 4,
       ...Platform.select({

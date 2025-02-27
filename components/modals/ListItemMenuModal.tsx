@@ -90,6 +90,16 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonRef, onMenuClose, o
                             <Image source={images['dark'].edit} style={styles.listItemMenuIcon} />
                             <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
                         </TouchableOpacity>
+                        {
+                            detailTab == 'note'? (
+                                <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('copy')}>
+                                    <Image source={images['dark'].copy} style={styles.listItemMenuIcon} />
+                                    <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
+                                </TouchableOpacity>
+                            ): (
+                                <></>
+                            )
+                        }
                         <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('delete')}>
                             <Image source={images['dark'].delete} style={styles.listItemMenuIcon} />
                             <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
@@ -118,18 +128,7 @@ const ListItemMenuModal = ({isVisible, selectedId, menuButtonRef, onMenuClose, o
                                     </TouchableOpacity>
                                 </>
                             ): (
-                                <>
-                                {
-                                    detailTab == 'note'? (
-                                        <TouchableOpacity style={styles.listItemMenuOption} onPress={() => handlePress('copy')}>
-                                            <Image source={images['dark'].copy} style={styles.listItemMenuIcon} />
-                                            <Text style={[styles.listItemMenuText, styles.textColor]}></Text>
-                                        </TouchableOpacity>
-                                    ): (
-                                        <></>
-                                    )
-                                }
-                                </>
+                                <></>
                             )
                         }
                        

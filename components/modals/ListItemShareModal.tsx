@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Modal,
   View,
@@ -27,8 +27,9 @@ const EditListModal: React.FC<EditListModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = getStyles(colors);
-  const [email, setEmail] = useState(initialName);
+  const [email, setEmail] = useState('');
   const [isSaveButtonDisabled, setIsSaveButtonDisabled] = useState(true);
+  const emailInputRef = useRef<TextInput>(null);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -36,17 +37,36 @@ const EditListModal: React.FC<EditListModalProps> = ({
     setIsSaveButtonDisabled(!emailRegex.test(email));
   }, [email]);
 
+  useEffect(() => {
+    if (visible && emailInputRef.current) {
+      setTimeout(() => {
+        emailInputRef.current?.focus();
+      }, 400);
+    }
+  }, [visible]);
+
+
   const handleSave = useCallback(() => {
-      if (emailRegex.test(email)) {
-        onSave(email);
-        onClose();
-        setEmail('');
-      }
-  }, [email, onSave, onClose]);
+    if (emailRegex.test(email) && !isSaveButtonDisabled) { // Add check for isSaveButtonDisabled
+      onSave(email);
+      onClose();
+      setEmail('');
+    }
+  }, [email, onSave, onClose, isSaveButtonDisabled]);
 
   const handleBackdropPress = (event: any) => {
     if (event.target == event.currentTarget) {
       onClose();
+    }
+  };
+
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+  };
+
+  const handleEnterPress = () => {
+    if (!isSaveButtonDisabled) { // Prevent save if the button is disabled
+      handleSave();
     }
   };
 
@@ -66,9 +86,9 @@ const EditListModal: React.FC<EditListModalProps> = ({
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeButtonText}>×</Text>
             </TouchableOpacity>
-          
+
           </View>
-         
+
           <Text style={[styles.modalDescription]}>
             Enter the email of the person you'd like to share your list with.
           </Text>
@@ -88,16 +108,20 @@ const EditListModal: React.FC<EditListModalProps> = ({
             <TextInput
               style={[styles.input, { color: colors.text, borderColor: colors.border }]} // Added dynamic styles
               value={email}
-              onChangeText={setEmail}
+              onChangeText={handleEmailChange}
               placeholder="Email"
               placeholderTextColor={(styles.placeholder as any).color}
+              onSubmitEditing={handleEnterPress} // Handle Enter Key Press
+              returnKeyType="done" // Adjust return key type as needed
+              blurOnSubmit={false} //Prevent keyboard from dismissing
+              ref={emailInputRef}
             />
           </View>
-          <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <TouchableOpacity
-                style={[styles.saveButton, isSaveButtonDisabled ? styles.saveButtonDisabled : {}]}
-                onPress={handleSave}
-                disabled={isSaveButtonDisabled}
+              style={[styles.saveButton, isSaveButtonDisabled ? styles.saveButtonDisabled : {}]}
+              onPress={handleSave}
+              disabled={isSaveButtonDisabled}
             >
               <Text style={styles.saveButtonText}>Save Changes</Text>
             </TouchableOpacity>

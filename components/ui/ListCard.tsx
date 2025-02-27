@@ -103,7 +103,7 @@ const ListCard: React.FC<ListCardProps> = ({ list, openMenuModal }) => {
     <TouchableOpacity style={[styles.listCard, { borderLeftColor: typeColors[list.type] }]} onPress={movePage} activeOpacity={0.7}>
       <View style={{ flex: 1 }} >
         <View style={styles.listCardHeader}>
-          <Text style={[styles.listCardItemCount, styles.textColor]}>{itemCount()}</Text>
+          <Text style={[styles.listCardItemCount]}>{itemCount()}</Text>
           <TouchableOpacity
             style={styles.listCardMenuButton}
             onPress={() => openMenuModal(menuButtonRef, list.id)}
@@ -153,13 +153,13 @@ const getStyles = (colors: any): Styles => {
     },
     listCardItemCount: {
       fontSize: baseFontSize, // Responsive item count
-      color: colors.textSecondary,
+      color: '#3765EB',
     },
     listCardMenuButton: {
       padding: 0, // Increased padding for a bigger touch target
     },
     listCardTotal: {
-      fontSize: baseFontSize, // Responsive total
+      fontSize: baseFontSize * 0.9, // Responsive total
       marginTop: 5,
     },
     listCardHeader: {

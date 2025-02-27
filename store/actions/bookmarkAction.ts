@@ -67,14 +67,13 @@ export async function addItemByDB(nData: any, dispatch: Dispatch) {
         link: item.path,
         shared_with: _item.shared_with,
     };
-
+    dispatch(addItem({ listId, item: {...nData.item, id: '-1000'}}));
     const { data, error } = await supabase.from(tbl_names.items).insert(newItem).select('id');
-
     if (error) {
         console.error("Error inserting item", error);
     } else {
         updateTotalAndNumber(userId, listId, _item);
-        dispatch(addItem({ listId, item: { ...nData.item, id: data[0].id } }));
+        dispatch(updateItem({listId, item: {...nData.item, id: data[0].id}, temp_id: '-1000'}));
     }
 }
 
@@ -128,7 +127,7 @@ export async function updateItemByDB(nData: any, dispatch: Dispatch) {
         } else {
             const { error } = await supabase
                 .from(tbl_names.items)
-                .update({ name: newItem.name, link: newItem.path, checked: newItem.is_check ?? false })
+                .update({ name: newItem.name, link: newItem.path })
                 .eq('id', newItem.id);
 
             if (error) {

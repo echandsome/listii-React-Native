@@ -52,12 +52,17 @@ const grocerySlice = createSlice({
         }
       }
     },
-    updateItem: (state, action: PayloadAction<{ listId: string, item: GroceryItem }>) => {
-      const { listId, item } = action.payload;
+    updateItem: (state, action: PayloadAction<{ listId: string, item: GroceryItem, temp_id: string }>) => {
+      const { listId, item, temp_id } = action.payload;
+
       if (state.listitems[listId]) {
-        const index = state.listitems[listId].findIndex((groceryItem) => groceryItem.id == item.id);
+        const index = state.listitems[listId].findIndex((groceryItem) => {
+          if (temp_id != undefined && temp_id == '-1000') return groceryItem.id == temp_id;
+          else return groceryItem.id == item.id;
+        });
         if (index !== -1) {
-          state.listitems[listId][index] = item;
+          const _item = state.listitems[listId][index];
+          state.listitems[listId][index] = {..._item, ...item};
         }
       }
     },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -7,7 +7,8 @@ import {
   Modal,
   TextInput,
   Pressable,
-  Platform
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 
@@ -29,9 +30,17 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
   const listTypes = ['Grocery', 'ToDo', 'Bookmark', 'Note'];
   const [isAddButtonDisabled, setIsAddButtonDisabled] = useState(true); // New state
 
+  const listNameInputRef = useRef<TextInput>(null);
+
   useEffect(() => {
     setIsAddButtonDisabled(listName.length < 4);
   }, [listName]);
+
+  useEffect(() => {
+    if (visible && listNameInputRef.current) {
+      listNameInputRef.current.focus();
+    }
+  }, [visible]);
 
   const handleSelectListType = (type: string) => {
     setListType(type);
@@ -43,7 +52,9 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
     }
   };
 
-  const handleAddPress = () => {
+  const handleAddPress = useCallback(() => {
+    Keyboard.dismiss(); // Dismiss keyboard before adding
+
     if (listName.length >= 4) { //Modified Validation
       onAdd({
         name: listName,
@@ -51,8 +62,9 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
       });
       setListName('');
       setListType('Grocery');
+      onClose(); //Close modal after adding list
     }
-  };
+  }, [listName, listType, onAdd, onClose]);
 
   return (
     <Modal
@@ -74,11 +86,14 @@ const NewListModal: React.FC<NewListModalProps> = ({ visible, onClose, onAdd }) 
             <View style={styles.inputContainer}>
               <Text style={[styles.textColor, styles.label]}>Name</Text>
               <TextInput
+                ref={listNameInputRef}
                 style={[styles.input, styles.textColor]}
                 value={listName}
                 onChangeText={setListName}
                 placeholder="List Name"
                 placeholderTextColor={(styles.placeholder as any).color}
+                onSubmitEditing={handleAddPress}
+                returnKeyType="done"
               />
             </View>
 
