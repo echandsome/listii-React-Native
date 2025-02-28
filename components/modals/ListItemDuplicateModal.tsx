@@ -13,12 +13,14 @@ import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/consta
 
 interface ShareListModalProps {
   visible: boolean;
+  initialName?: string;
   onClose: () => void;
   onShare: () => void;
 }
 
 const ShareListModal: React.FC<ShareListModalProps> = ({
   visible,
+  initialName = '',
   onClose,
   onShare,
 }) => {
@@ -54,7 +56,8 @@ const ShareListModal: React.FC<ShareListModalProps> = ({
             </TouchableOpacity>
           </View>
           <Text style={[styles.modalDescription]}>
-            Would you like to create a copy?
+            Would you like to create a copy of 
+            <Text style={styles.txtName}>{initialName}</Text>?
           </Text>
 
           <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
@@ -124,6 +127,11 @@ const getStyles = (colors: any) => {
       textAlign: 'left',
       color: '#758295',
       fontSize: baseFontSize,
+    },
+    txtName: {
+      color: '#007bff',
+      fontSize: baseFontSize,
+      marginLeft: 5
     },
     saveButton: {
       backgroundColor: '#2962FF',

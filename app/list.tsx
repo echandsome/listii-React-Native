@@ -389,6 +389,7 @@ export default function ListScreen() {
       />
       <ListItemDeleteModal
         visible={deleteModalVisible}
+        initialName={listName}
         onClose={() => setDeleteModalVisible(false)}
         onDelete={handleDelete}
       />
@@ -400,6 +401,7 @@ export default function ListScreen() {
       />
       <ListItemDuplicateModal
         visible={duplicateModalVisible}
+        initialName={listName}
         onClose={() => setDuplicateModalVisible(false)}
         onShare={handleDuplicate}
       />

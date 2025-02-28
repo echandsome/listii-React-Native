@@ -109,7 +109,7 @@ const ListDetailScreen = () => {
   const [alertContent, setAlertContent] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
 
-  const [showCartItems, setShowCartItems] = useState(true);
+  const [showCartItems, setShowCartItems] = useState(false);
   const [showListItems, setShowListItems] = useState(true);
 
   const cartItems = useMemo(() => itemlist.filter((item: any) => item.is_check), [itemlist]);
@@ -571,6 +571,7 @@ const ListDetailScreen = () => {
           />
           <ListItemDeleteModal
             visible={deleteModalVisible}
+            initialName={selectedItem?.name}
             onClose={() => setDeleteModalVisible(false)}
             onDelete={handleDelete}
           />

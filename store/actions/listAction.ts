@@ -178,20 +178,13 @@ export async function deleteListByDB(userId: string, listId :string, dispatch: D
         dispatch(deleteList(_item.id));
 
         if (_item.user_id != userId) {
-            // let shared_with = _item.shared_with;
-            // shared_with = shared_with.filter((_email: string) => _email != auth.user?.email);
-            // _item.shared_with = shared_with;
+            if (!_item.shared_with.includes(auth.user?.email)) return
 
-            // const [listsRes, itemsRes] = await Promise.all([
-            //     supabase.from(tbl_names.lists).update({ shared_with: _item.shared_with }).eq('clean_name', _item.clean_name),
-            //     supabase.from(tbl_names.items).update({ shared_with: _item.shared_with }).eq('list_name', _item.clean_name)
-            // ]);
-    
-            // if (listsRes.error || itemsRes.error ) {
-            //     console.error("Error deleting user:", listsRes.error, itemsRes.error);
-            // } else {
-               
-            // }
+
+            const { data, error } = await supabase.from(tbl_names.revoked_lists)
+            .insert({ id: _item.id, clean_name: _item.clean_name, revoked: auth.user?.email });
+
+            if (error) console.error("Error deleting user:", error);
         }else {
             const [listsRes, itemsRes] = await Promise.all([
                 supabase.from(tbl_names.lists).update({ deleted: true }).eq('clean_name', _item.clean_name),

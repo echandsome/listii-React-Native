@@ -14,7 +14,8 @@ const isSmallScreen = screenWidth < 375;
 
 const tbl_names = {
     lists: 'lists',
-    items: 'items'
+    items: 'items',
+    revoked_lists: 'revoked_lists'
 }
 
 export  {

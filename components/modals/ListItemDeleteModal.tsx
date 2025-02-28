@@ -13,12 +13,14 @@ import { screenWidth, screenHeight, baseFontSize, isSmallScreen } from '@/consta
 
 interface DeleteListModalProps {
   visible: boolean;
+  initialName?: string;
   onClose: () => void;
   onDelete: () => void;
 }
 
 const DeleteListModal: React.FC<DeleteListModalProps> = ({
   visible,
+  initialName = '',
   onClose,
   onDelete,
 }) => {
@@ -54,7 +56,8 @@ const DeleteListModal: React.FC<DeleteListModalProps> = ({
             </TouchableOpacity>
           </View>
           <Text style={[styles.modalDescription]}>
-            Are you sure you'd like to delete this list?
+            Are you sure you'd like to delete this list: 
+            <Text style={styles.txtName}>{initialName}</Text>
           </Text>
 
           <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
@@ -123,6 +126,11 @@ const getStyles = (colors: any) => {
       textAlign: 'left',
       color: '#758295',
       fontSize: baseFontSize,
+    },
+    txtName: {
+      color: '#007bff',
+      fontSize: baseFontSize,
+      marginLeft: 5
     },
     saveButton: {
       backgroundColor: '#7F1D1D',
