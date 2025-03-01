@@ -130,7 +130,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
               <Text style={[styles.label, { color: colors.text }]}>Price</Text>
               <TextInput
                 style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-                value={price}
+                value={price+''}
                 onChangeText={handlePriceChange}
                 placeholder="0"
                 keyboardType="numeric"
@@ -146,7 +146,7 @@ const AddItemGroceryModal: React.FC<AddItemGroceryModalProps> = ({ visible, onCl
               <Text style={[styles.label, { color: colors.text }]}>Quantity</Text>
               <TextInput
                 style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-                value={quantity}
+                value={quantity+''}
                 onChangeText={handleQuantityChange}
                 placeholder="1"
                 keyboardType="numeric"
