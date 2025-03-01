@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -26,6 +26,29 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
   const { colors } = useTheme();
   const menuButtonRef = useRef<TouchableOpacity>(null);
 
+  const itemURL = useMemo(() =>  convertToHttpsFullUrl(item.path), [item.path]);
+
+  function convertToHttpsFullUrl(url: string) {
+    if (url.length <= 3) return '';
+    if (url == 'google.com') return '';
+  
+    // Remove any existing protocol from the URL.
+    url = url.replace(/^(http|https):\/\//, '')
+  
+    // Add the `www` prefix if it's missing.
+    if (url.startsWith('www.')) {
+      url = url.replace('www.', '')
+    }
+  
+    // Prepend the `https://` protocol if it's missing.
+    if (!url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    // Return the full path of the URL.
+    return url;
+  }
+  
+
   return (
     <View style={[styles.itemContainer, { backgroundColor: colors.tabBg }]}>
       <View style={{ flexDirection: 'row' }}>
@@ -50,8 +73,8 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
                 {item.name}
               </Text>
 
-              {item.path && item.path.startsWith('http') ? (
-                <ExternalLink href={item.path} style={styles.button}>
+              {itemURL && itemURL.length > 0 ? (
+                <ExternalLink href={itemURL} style={styles.button}>
                   <Text style={styles.buttonText}>Open link </Text>
                   <Ionicons name="open-outline" size={baseFontSize} color="white" />
                 </ExternalLink>
