@@ -415,7 +415,7 @@ export async function duplicateListByDB(userId: string, nData: any, dispatch: Di
                 case 'bookmark':
                     dispatch(addItemsBookmark({ listId, items: filteredData}));
                 break;
-                case 'toDo':
+                case 'todo':
                     dispatch(addItemsTodo({ listId, items: filteredData}));
                 break;
                 case 'grocery':
