@@ -30,7 +30,6 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
 
   function convertToHttpsFullUrl(url: string) {
     if (url.length <= 3) return '';
-    if (url == 'google.com') return '';
   
     // Remove any existing protocol from the URL.
     url = url.replace(/^(http|https):\/\//, '')
@@ -72,17 +71,18 @@ const BookmarkItem: React.FC<BookmarkItemProps> = ({ item, openMenuModal, handle
               >
                 {item.name}
               </Text>
-
-              {itemURL && itemURL.length > 0 ? (
-                <ExternalLink href={itemURL} style={styles.button}>
-                  <Text style={styles.buttonText}>Open link </Text>
-                  <Ionicons name="open-outline" size={baseFontSize} color="white" />
-                </ExternalLink>
-              ) : (
-                <View style={styles.noLinkButton}>
-                  <Text style={styles.noLinkButtonText}>No link</Text>
-                </View>
-              )}
+              <View style={{alignSelf: "flex-start"}}>
+                {itemURL && itemURL.length > 0 ? (
+                  <ExternalLink href={itemURL} style={styles.button}>
+                    <Text style={styles.buttonText}>Open link </Text>
+                    <Ionicons name="open-outline" size={baseFontSize} color="white" />
+                  </ExternalLink>
+                ) : (
+                  <View style={styles.noLinkButton}>
+                    <Text style={styles.noLinkButtonText}>No link</Text>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
           <TouchableOpacity
